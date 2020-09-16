@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,40 @@ namespace Roslynator.CSharp
            ITypeSymbol typeSymbol,
            CancellationToken cancellationToken = default)
         {
+            if (type.IsVar
+                && type.Parent is DeclarationExpressionSyntax declarationExpression
+                && declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
+            {
+#if DEBUG
+                SyntaxNode parent = declarationExpression.Parent;
+
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.SimpleAssignmentExpression:
+                        {
+                            var assignmentExpression = (AssignmentExpressionSyntax)parent;
+                            Debug.Assert(object.ReferenceEquals(assignmentExpression.Left, declarationExpression));
+                            break;
+                        }
+                    case SyntaxKind.ForEachVariableStatement:
+                        {
+                            var forEachStatement = (ForEachVariableStatementSyntax)parent;
+                            Debug.Assert(object.ReferenceEquals(forEachStatement.Variable, declarationExpression));
+                            break;
+                        }
+                    default:
+                        {
+                            Debug.Fail(parent.Kind().ToString());
+                            break;
+                        }
+                }
+#endif
+                TupleExpressionSyntax tupleExpression = CreateTupleExpression(typeSymbol)
+                    .WithTriviaFrom(declarationExpression);
+
+                return document.ReplaceNodeAsync(declarationExpression, tupleExpression, cancellationToken);
+            }
+
             TypeSyntax newType = ChangeType(type, typeSymbol);
 
             return document.ReplaceNodeAsync(type, newType, cancellationToken);
@@ -49,6 +84,29 @@ namespace Roslynator.CSharp
             }
         }
 
+        private static TupleExpressionSyntax CreateTupleExpression(ITypeSymbol typeSymbol)
+        {
+            if (!typeSymbol.SupportsExplicitDeclaration())
+                throw new ArgumentException($"Type '{typeSymbol.ToDisplayString()}' does not support explicit declaration.", nameof(typeSymbol));
+
+            var tupleExpression = (TupleExpressionSyntax)ParseExpression(typeSymbol.ToDisplayString(SymbolDisplayFormats.FullName));
+
+            SeparatedSyntaxList<ArgumentSyntax> newArguments = tupleExpression
+                .Arguments
+                .Select(f =>
+                {
+                    if (f.Expression is DeclarationExpressionSyntax declarationExpression)
+                        return f.WithExpression(declarationExpression.WithType(declarationExpression.Type.WithSimplifierAnnotation()));
+
+                    Debug.Fail(f.Expression.Kind().ToString());
+
+                    return f;
+                })
+                .ToSeparatedSyntaxList();
+
+            return tupleExpression.WithArguments(newArguments);
+        }
+
         public static Task<Document> ChangeTypeToVarAsync(
             Document document,
             TypeSyntax type,
@@ -57,6 +115,26 @@ namespace Roslynator.CSharp
             IdentifierNameSyntax newType = VarType().WithTriviaFrom(type);
 
             return document.ReplaceNodeAsync(type, newType, cancellationToken);
+        }
+
+        public static Task<Document> ChangeTypeToVarAsync(
+            Document document,
+            TupleExpressionSyntax tupleExpression,
+            CancellationToken cancellationToken = default)
+        {
+            SeparatedSyntaxList<VariableDesignationSyntax> variables = tupleExpression.Arguments
+                .Select(f => f.Expression)
+                .Cast<DeclarationExpressionSyntax>()
+                .Select(f => f.Designation)
+                .ToSeparatedSyntaxList();
+
+            DeclarationExpressionSyntax declarationExpression = DeclarationExpression(
+                    VarType(),
+                    ParenthesizedVariableDesignation(variables))
+                .WithTriviaFrom(tupleExpression)
+                .WithFormatterAnnotation();
+
+            return document.ReplaceNodeAsync(tupleExpression, declarationExpression, cancellationToken);
         }
 
         public static Task<Document> ChangeTypeAndAddAwaitAsync(
@@ -127,40 +205,6 @@ namespace Roslynator.CSharp
             return RemoveAsyncAwait.RefactorAsync(document, asyncKeyword, cancellationToken);
         }
 
-        public static Task<Document> SwapBinaryOperandsAsync(
-            Document document,
-            BinaryExpressionSyntax binaryExpression,
-            CancellationToken cancellationToken = default)
-        {
-            ExpressionSyntax left = binaryExpression.Left;
-            ExpressionSyntax right = binaryExpression.Right;
-            SyntaxToken token = binaryExpression.OperatorToken;
-
-            ExpressionSyntax newBinaryExpressions = binaryExpression.Update(
-                left: right.WithTriviaFrom(left),
-                operatorToken: Token(token.LeadingTrivia, GetOperatorTokenKind(token.Kind()), token.TrailingTrivia),
-                right: left.WithTriviaFrom(right));
-
-            return document.ReplaceNodeAsync(binaryExpression, newBinaryExpressions, cancellationToken);
-
-            static SyntaxKind GetOperatorTokenKind(SyntaxKind kind)
-            {
-                switch (kind)
-                {
-                    case SyntaxKind.LessThanToken:
-                        return SyntaxKind.GreaterThanToken;
-                    case SyntaxKind.LessThanEqualsToken:
-                        return SyntaxKind.GreaterThanEqualsToken;
-                    case SyntaxKind.GreaterThanToken:
-                        return SyntaxKind.LessThanToken;
-                    case SyntaxKind.GreaterThanEqualsToken:
-                        return SyntaxKind.LessThanEqualsToken;
-                    default:
-                        return kind;
-                }
-            }
-        }
-
         public static async Task<Document> AddNewDocumentationCommentsAsync(
             Document document,
             DocumentationCommentGeneratorSettings settings = null,
@@ -190,6 +234,85 @@ namespace Roslynator.CSharp
             SyntaxNode newRoot = rewriter.Visit(root);
 
             return document.WithSyntaxRoot(newRoot);
+        }
+
+        public static Task<Document> RemoveParenthesesAsync(
+            Document document,
+            ParenthesizedExpressionSyntax parenthesizedExpression,
+            CancellationToken cancellationToken = default)
+        {
+            ExpressionSyntax expression = parenthesizedExpression.Expression;
+
+            SyntaxTriviaList leading = parenthesizedExpression.GetLeadingTrivia()
+                .Concat(parenthesizedExpression.OpenParenToken.TrailingTrivia)
+                .Concat(expression.GetLeadingTrivia())
+                .ToSyntaxTriviaList();
+
+            SyntaxTriviaList trailing = expression.GetTrailingTrivia()
+                .Concat(parenthesizedExpression.CloseParenToken.LeadingTrivia)
+                .Concat(parenthesizedExpression.GetTrailingTrivia())
+                .ToSyntaxTriviaList();
+
+            ExpressionSyntax newExpression = expression
+                .WithLeadingTrivia(leading)
+                .WithTrailingTrivia(trailing)
+                .WithFormatterAnnotation();
+
+            if (!leading.Any())
+            {
+                SyntaxNode parent = parenthesizedExpression.Parent;
+
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.ReturnStatement:
+                        {
+                            var returnStatement = (ReturnStatementSyntax)parent;
+
+                            SyntaxToken returnKeyword = returnStatement.ReturnKeyword;
+
+                            if (!returnKeyword.TrailingTrivia.Any())
+                            {
+                                ReturnStatementSyntax newNode = returnStatement.Update(returnKeyword.WithTrailingTrivia(Space), newExpression, returnStatement.SemicolonToken);
+
+                                return document.ReplaceNodeAsync(returnStatement, newNode, cancellationToken);
+                            }
+
+                            break;
+                        }
+                    case SyntaxKind.YieldReturnStatement:
+                        {
+                            var yieldReturn = (YieldStatementSyntax)parent;
+
+                            SyntaxToken returnKeyword = yieldReturn.ReturnOrBreakKeyword;
+
+                            if (!returnKeyword.TrailingTrivia.Any())
+                            {
+                                YieldStatementSyntax newNode = yieldReturn.Update(yieldReturn.YieldKeyword, returnKeyword.WithTrailingTrivia(Space), newExpression, yieldReturn.SemicolonToken);
+
+                                return document.ReplaceNodeAsync(yieldReturn, newNode, cancellationToken);
+                            }
+
+                            break;
+                        }
+                    case SyntaxKind.AwaitExpression:
+                        {
+                            var awaitExpression = (AwaitExpressionSyntax)parent;
+
+                            SyntaxToken awaitKeyword = awaitExpression.AwaitKeyword;
+
+                            if (!awaitKeyword.TrailingTrivia.Any())
+                            {
+                                AwaitExpressionSyntax newNode = awaitExpression.Update(awaitKeyword.WithTrailingTrivia(Space), newExpression);
+
+                                return document.ReplaceNodeAsync(awaitExpression, newNode, cancellationToken);
+                            }
+
+                            break;
+                        }
+                }
+            }
+
+            return document.ReplaceNodeAsync(parenthesizedExpression, newExpression, cancellationToken);
         }
     }
 }

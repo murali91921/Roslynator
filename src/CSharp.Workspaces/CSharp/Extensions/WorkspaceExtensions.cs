@@ -32,6 +32,8 @@ namespace Roslynator.CSharp
                 case CSharpLanguageFeature.InferredTupleElementNames:
                 case CSharpLanguageFeature.PatternMatchingWithGenerics:
                     return SupportsLanguageVersion(document, LanguageVersion.CSharp7_1);
+                case CSharpLanguageFeature.NullCoalescingAssignmentOperator:
+                    return SupportsLanguageVersion(document, LanguageVersion.CSharp8);
             }
 
             throw new ArgumentException($"Unknown enum value '{feature}'.", nameof(feature));
@@ -342,6 +344,8 @@ namespace Roslynator.CSharp
                         return (directiveFilter & PreprocessorDirectiveFilter.Shebang) != 0;
                     case SyntaxKind.LoadDirectiveTrivia:
                         return (directiveFilter & PreprocessorDirectiveFilter.Load) != 0;
+                    case SyntaxKind.NullableDirectiveTrivia:
+                        return (directiveFilter & PreprocessorDirectiveFilter.Nullable) != 0;
                 }
 
                 Debug.Fail(directive.Kind().ToString());
@@ -411,6 +415,15 @@ namespace Roslynator.CSharp
             CancellationToken cancellationToken = default)
         {
             return document.ReplaceNodeAsync(statementsInfo.Parent, statementsInfo.WithStatements(newStatements).Parent, cancellationToken);
+        }
+
+        internal static Task<Document> ReplaceStatementsAsync(
+            this Document document,
+            in StatementListInfo statementsInfo,
+            in StatementListInfo newStatementsInfo,
+            CancellationToken cancellationToken = default)
+        {
+            return document.ReplaceNodeAsync(statementsInfo.Parent, newStatementsInfo.Parent, cancellationToken);
         }
 
         internal static Task<Document> ReplaceMembersAsync(

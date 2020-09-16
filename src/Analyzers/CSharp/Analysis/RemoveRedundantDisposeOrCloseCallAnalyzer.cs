@@ -22,7 +22,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeUsingStatement, SyntaxKind.UsingStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeUsingStatement(f), SyntaxKind.UsingStatement);
         }
 
         private static void AnalyzeUsingStatement(SyntaxNodeAnalysisContext context)
@@ -80,7 +80,7 @@ namespace Roslynator.CSharp.Analysis
                     {
                         ISymbol symbol = context.SemanticModel.GetDeclaredSymbol(declarator, context.CancellationToken);
 
-                        if (symbol?.Equals(context.SemanticModel.GetSymbol(identifierName, context.CancellationToken)) == true)
+                        if (SymbolEqualityComparer.Default.Equals(symbol, context.SemanticModel.GetSymbol(identifierName, context.CancellationToken)))
                             ReportDiagnostic(context, info.Statement, methodName);
                     }
                 }

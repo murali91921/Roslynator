@@ -29,7 +29,7 @@ namespace Roslynator.CSharp.CodeFixes
                 return ImmutableArray.Create(
                     DiagnosticIdentifiers.SimplifyBooleanComparison,
                     DiagnosticIdentifiers.CallSkipAndAnyInsteadOfCount,
-                    DiagnosticIdentifiers.AvoidNullLiteralExpressionOnLeftSideOfBinaryExpression,
+                    DiagnosticIdentifiers.ConstantValuesShouldBePlacedOnRightSideOfComparisons,
                     DiagnosticIdentifiers.UseStringIsNullOrEmptyMethod,
                     DiagnosticIdentifiers.SimplifyCoalesceExpression,
                     DiagnosticIdentifiers.RemoveRedundantAsOperator,
@@ -78,11 +78,11 @@ namespace Roslynator.CSharp.CodeFixes
                             context.RegisterCodeFix(codeAction, diagnostic);
                             break;
                         }
-                    case DiagnosticIdentifiers.AvoidNullLiteralExpressionOnLeftSideOfBinaryExpression:
+                    case DiagnosticIdentifiers.ConstantValuesShouldBePlacedOnRightSideOfComparisons:
                         {
                             CodeAction codeAction = CodeAction.Create(
                                 "Swap operands",
-                                cancellationToken => DocumentRefactorings.SwapBinaryOperandsAsync(document, binaryExpression, cancellationToken),
+                                cancellationToken => document.ReplaceNodeAsync(binaryExpression, SyntaxRefactorings.SwapBinaryOperands(binaryExpression), cancellationToken),
                                 GetEquivalenceKey(diagnostic));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
@@ -167,7 +167,7 @@ namespace Roslynator.CSharp.CodeFixes
                             }
                             else
                             {
-                                title = $"Use EqualityComparer<{SymbolDisplay.ToMinimalDisplayString(typeSymbol, semanticModel, binaryExpression.Right.SpanStart, SymbolDisplayFormats.Default)}>.Default";
+                                title = $"Use EqualityComparer<{SymbolDisplay.ToMinimalDisplayString(typeSymbol, semanticModel, binaryExpression.Right.SpanStart, SymbolDisplayFormats.DisplayName)}>.Default";
                             }
 
                             CodeAction codeAction = CodeAction.Create(

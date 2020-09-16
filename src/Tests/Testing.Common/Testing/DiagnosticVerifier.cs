@@ -17,6 +17,7 @@ namespace Roslynator.Testing
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public abstract class DiagnosticVerifier : CodeVerifier
     {
+        private ImmutableArray<DiagnosticAnalyzer> _analyzers;
         private ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics;
 
         internal DiagnosticVerifier(WorkspaceFactory workspaceFactory) : base(workspaceFactory)
@@ -27,12 +28,42 @@ namespace Roslynator.Testing
 
         public abstract DiagnosticAnalyzer Analyzer { get; }
 
+        public virtual ImmutableArray<DiagnosticAnalyzer> AdditionalAnalyzers { get; } = ImmutableArray<DiagnosticAnalyzer>.Empty;
+
+        public ImmutableArray<DiagnosticAnalyzer> Analyzers
+        {
+            get
+            {
+                if (_analyzers.IsDefault)
+                    ImmutableInterlocked.InterlockedInitialize(ref _analyzers, CreateAnalyzers());
+
+                return _analyzers;
+
+                ImmutableArray<DiagnosticAnalyzer> CreateAnalyzers()
+                {
+                    if (AdditionalAnalyzers.IsDefaultOrEmpty)
+                    {
+                        return ImmutableArray.Create(Analyzer);
+                    }
+                    else
+                    {
+                        ImmutableArray<DiagnosticAnalyzer>.Builder builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>(AdditionalAnalyzers.Length + 1);
+
+                        builder.Add(Analyzer);
+                        builder.AddRange(AdditionalAnalyzers);
+
+                        return builder.ToImmutable();
+                    }
+                }
+            }
+        }
+
         internal ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
                 if (_supportedDiagnostics.IsDefault)
-                    ImmutableInterlocked.InterlockedInitialize(ref _supportedDiagnostics, Analyzer.SupportedDiagnostics);
+                    ImmutableInterlocked.InterlockedInitialize(ref _supportedDiagnostics, Analyzers.SelectMany(f => f.SupportedDiagnostics).ToImmutableArray());
 
                 return _supportedDiagnostics;
             }
@@ -41,7 +72,7 @@ namespace Roslynator.Testing
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay
         {
-            get { return $"{Descriptor.Id} {Analyzer.GetType().Name}"; }
+            get { return $"{Descriptor.Id} {string.Join(", ", Analyzers.Select(f => f.GetType().Name))}"; }
         }
 
         public async Task VerifyDiagnosticAsync(
@@ -143,10 +174,9 @@ namespace Roslynator.Testing
 
                 VerifyCompilerDiagnostics(compilerDiagnostics, options);
 
-                if (!Descriptor.IsEnabledByDefault)
-                    compilation = compilation.EnsureEnabled(Descriptor);
+                compilation = UpdateCompilation(compilation);
 
-                ImmutableArray<Diagnostic> diagnostics = await compilation.GetAnalyzerDiagnosticsAsync(Analyzer, DiagnosticComparer.SpanStart, cancellationToken).ConfigureAwait(false);
+                ImmutableArray<Diagnostic> diagnostics = await compilation.GetAnalyzerDiagnosticsAsync(Analyzers, DiagnosticComparer.SpanStart, cancellationToken).ConfigureAwait(false);
 
                 if (diagnostics.Length > 0
                     && SupportedDiagnostics.Length > 1)
@@ -179,6 +209,14 @@ namespace Roslynator.Testing
             }
         }
 
+        protected virtual Compilation UpdateCompilation(Compilation compilation)
+        {
+            if (!Descriptor.IsEnabledByDefault)
+                compilation = compilation.EnsureEnabled(Descriptor);
+
+            return compilation;
+        }
+
         public async Task VerifyNoDiagnosticAsync(
             string source,
             string inlineSource,
@@ -205,7 +243,7 @@ namespace Roslynator.Testing
             options ??= Options;
 
             if (SupportedDiagnostics.IndexOf(Descriptor, DiagnosticDescriptorComparer.Id) == -1)
-                Assert.True(false, $"Diagnostic \"{Descriptor.Id}\" is not supported by analyzer \"{Analyzer.GetType().Name}\".");
+                Assert.True(false, $"Diagnostic \"{Descriptor.Id}\" is not supported by analyzer(s) {string.Join(", ", Analyzers.Select(f => f.GetType().Name))}.");
 
             using (Workspace workspace = new AdhocWorkspace())
             {
@@ -219,10 +257,9 @@ namespace Roslynator.Testing
 
                 VerifyCompilerDiagnostics(compilerDiagnostics, options);
 
-                if (!Descriptor.IsEnabledByDefault)
-                    compilation = compilation.EnsureEnabled(Descriptor);
+                compilation = UpdateCompilation(compilation);
 
-                ImmutableArray<Diagnostic> analyzerDiagnostics = await compilation.GetAnalyzerDiagnosticsAsync(Analyzer, DiagnosticComparer.SpanStart, cancellationToken).ConfigureAwait(false);
+                ImmutableArray<Diagnostic> analyzerDiagnostics = await compilation.GetAnalyzerDiagnosticsAsync(Analyzers, DiagnosticComparer.SpanStart, cancellationToken).ConfigureAwait(false);
 
                 foreach (Diagnostic diagnostic in analyzerDiagnostics)
                 {
@@ -264,7 +301,7 @@ namespace Roslynator.Testing
                     Diagnostic expectedDiagnostic = expectedEnumerator.Current;
 
                     if (SupportedDiagnostics.IndexOf(expectedDiagnostic.Descriptor, DiagnosticDescriptorComparer.Id) == -1)
-                        Assert.True(false, $"Diagnostic \"{expectedDiagnostic.Id}\" is not supported by analyzer \"{Analyzer.GetType().Name}\".");
+                        Assert.True(false, $"Diagnostic \"{expectedDiagnostic.Id}\" is not supported by analyzer(s) {string.Join(", ", Analyzers.Select(f => f.GetType().Name))}.");
 
                     if (actualEnumerator.MoveNext())
                     {

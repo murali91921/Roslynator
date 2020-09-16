@@ -4,7 +4,7 @@
   "displayName": "Roslynator",
   "description": "A collection of 500+ analyzers, refactorings and fixes for C#, powered by Roslyn.",
   "icon": "images/icon.png",
-  "version": "2.9.0",
+  "version": "3.0.0",
   "author": "Josef Pihrt",
   "license": "SEE LICENSE IN LICENSE.TXT",
   "homepage": "https://github.com/josefpihrt/roslynator",
@@ -65,7 +65,8 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile",
-    "test": "node ./out/test/runTest.js"
+    "test": "node ./out/test/runTest.js",
+    "vscode:uninstall": "node ./out/cleanupOmnisharpConfiguration.js"
   },
   "devDependencies": {
     "@types/fs-extra": "^8.0.1",

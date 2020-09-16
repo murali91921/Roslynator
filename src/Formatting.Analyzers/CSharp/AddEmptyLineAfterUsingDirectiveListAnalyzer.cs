@@ -22,8 +22,8 @@ namespace Roslynator.Formatting.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeCompilationUnit, SyntaxKind.CompilationUnit);
-            context.RegisterSyntaxNodeAction(AnalyzeNamespaceDeclaration, SyntaxKind.NamespaceDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeCompilationUnit(f), SyntaxKind.CompilationUnit);
+            context.RegisterSyntaxNodeAction(f => AnalyzeNamespaceDeclaration(f), SyntaxKind.NamespaceDeclaration);
         }
 
         private static void AnalyzeCompilationUnit(SyntaxNodeAnalysisContext context)
@@ -102,9 +102,10 @@ namespace Roslynator.Formatting.CSharp
 
             void ReportDiagnostic(int position)
             {
-                context.ReportDiagnostic(
-                   DiagnosticDescriptors.AddEmptyLineAfterUsingDirectiveList,
-                   Location.Create(usingDirective.SyntaxTree, new TextSpan(position, 0)));
+                DiagnosticHelpers.ReportDiagnostic(
+                    context,
+                    DiagnosticDescriptors.AddEmptyLineAfterUsingDirectiveList,
+                    Location.Create(usingDirective.SyntaxTree, new TextSpan(position, 0)));
             }
         }
     }

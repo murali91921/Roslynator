@@ -115,7 +115,7 @@ namespace Roslynator.CSharp.Refactorings
             if (!(interfaceSymbol.GetSyntaxOrDefault(context.CancellationToken) is InterfaceDeclarationSyntax interfaceDeclaration))
                 return false;
 
-            if (interfaceSymbol.Equals(explicitInterfaceSymbol))
+            if (SymbolEqualityComparer.Default.Equals(interfaceSymbol, explicitInterfaceSymbol))
                 return false;
 
             ImmutableArray<ISymbol> members = interfaceSymbol.GetMembers();
@@ -128,12 +128,12 @@ namespace Roslynator.CSharp.Refactorings
                 {
                     ISymbol symbol = memberSymbol.ContainingType.FindImplementationForInterfaceMember(members[i]);
 
-                    if (memberSymbol.OriginalDefinition.Equals(symbol?.OriginalDefinition))
+                    if (SymbolEqualityComparer.Default.Equals(memberSymbol.OriginalDefinition, symbol?.OriginalDefinition))
                         return false;
                 }
             }
 
-            string displayName = SymbolDisplay.ToMinimalDisplayString(interfaceSymbol.OriginalDefinition, semanticModel, type.SpanStart, SymbolDisplayFormats.Default);
+            string displayName = SymbolDisplay.ToMinimalDisplayString(interfaceSymbol.OriginalDefinition, semanticModel, type.SpanStart, SymbolDisplayFormats.DisplayName);
 
             Document document = context.Document;
             string title = $"Add to interface '{displayName}'";

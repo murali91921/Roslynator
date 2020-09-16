@@ -21,7 +21,7 @@ namespace Roslynator.Formatting.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeSwitchSection, SyntaxKind.SwitchSection);
+            context.RegisterSyntaxNodeAction(f => AnalyzeSwitchSection(f), SyntaxKind.SwitchSection);
         }
 
         private static void AnalyzeSwitchSection(SyntaxNodeAnalysisContext context)
@@ -41,7 +41,8 @@ namespace Roslynator.Formatting.CSharp
             if (!switchSection.SyntaxTree.IsSingleLineSpan(TextSpan.FromBounds(label.Span.End, statement.SpanStart)))
                 return;
 
-            context.ReportDiagnostic(
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.AddNewLineAfterSwitchLabel,
                 Location.Create(statement.SyntaxTree, statement.Span.WithLength(0)));
         }

@@ -22,7 +22,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeInvocationExpression, SyntaxKind.InvocationExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeInvocationExpression(f), SyntaxKind.InvocationExpression);
         }
 
         private static void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext context)
@@ -43,9 +43,9 @@ namespace Roslynator.CSharp.Analysis
             if (!analysis.Success)
                 return;
 
-            if (semanticModel
-                .GetEnclosingNamedType(analysis.InvocationExpression.SpanStart, cancellationToken)?
-                .Equals(analysis.MethodSymbol.ContainingType) != false)
+            if (SymbolEqualityComparer.Default.Equals(
+                semanticModel.GetEnclosingNamedType(analysis.InvocationExpression.SpanStart, cancellationToken),
+                analysis.MethodSymbol.ContainingType))
             {
                 return;
             }

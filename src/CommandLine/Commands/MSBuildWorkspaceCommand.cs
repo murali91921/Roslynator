@@ -42,7 +42,7 @@ namespace Roslynator.CommandLine
                 if (workspace == null)
                     return CommandResult.Fail;
 
-                workspace.WorkspaceFailed += WorkspaceFailed;
+                workspace.WorkspaceFailed += (sender, args) => WorkspaceFailed(sender, args);
 
                 var cts = new CancellationTokenSource();
                 Console.CancelKeyPress += (sender, e) =>
@@ -70,7 +70,7 @@ namespace Roslynator.CommandLine
 
                     CommandResult result = await ExecuteAsync(path, workspace, ConsoleProgressReporter.Default, cancellationToken);
 
-                    if (result.Kind != CommandResultKind.None)
+                    if (result != CommandResult.None)
                         return result;
 
                     ProjectOrSolution projectOrSolution = await OpenProjectOrSolutionAsync(path, workspace, ConsoleProgressReporter.Default, cancellationToken);

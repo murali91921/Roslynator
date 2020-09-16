@@ -26,16 +26,15 @@ namespace Roslynator.CSharp.Analysis
         public override void Initialize(AnalysisContext context)
         {
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
             context.RegisterCompilationStartAction(startContext =>
             {
                 if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.UseUnaryOperatorInsteadOfAssignment))
                     return;
 
-                startContext.RegisterSyntaxNodeAction(AnalyzeSimpleAssignmentExpression, SyntaxKind.SimpleAssignmentExpression);
-                startContext.RegisterSyntaxNodeAction(AnalyzeAddAssignmentExpression, SyntaxKind.AddAssignmentExpression);
-                startContext.RegisterSyntaxNodeAction(AnalyzeSubtractAssignmentExpression, SyntaxKind.SubtractAssignmentExpression);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeSimpleAssignmentExpression(f), SyntaxKind.SimpleAssignmentExpression);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeAddAssignmentExpression(f), SyntaxKind.AddAssignmentExpression);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeSubtractAssignmentExpression(f), SyntaxKind.SubtractAssignmentExpression);
             });
         }
 

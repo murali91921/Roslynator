@@ -23,10 +23,9 @@ namespace Roslynator.CSharp.Analysis
         public override void Initialize(AnalysisContext context)
         {
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeMethodDeclaration, SyntaxKind.MethodDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeGetAccessorDeclaration, SyntaxKind.GetAccessorDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeMethodDeclaration(f), SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeGetAccessorDeclaration(f), SyntaxKind.GetAccessorDeclaration);
         }
 
         private static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)

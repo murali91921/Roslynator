@@ -257,7 +257,7 @@ namespace Roslynator.CSharp.Refactorings.InlineDefinition
                             {
                                 if (!NodeEnclosingType
                                     .BaseTypesAndSelf()
-                                    .Any(f => f.Equals(containingType)))
+                                    .Any(f => SymbolEqualityComparer.Default.Equals(f, containingType)))
                                 {
                                     replacementMap.Add(identifierName, CSharpFactory.SimpleMemberAccessExpression(containingType.ToTypeSyntax().WithSimplifierAnnotation(), identifierName));
                                 }
@@ -323,7 +323,7 @@ namespace Roslynator.CSharp.Refactorings.InlineDefinition
                     }
                 }
 
-                return parameterSymbol.OriginalDefinition.Equals(parameterSymbol2);
+                return SymbolEqualityComparer.Default.Equals(parameterSymbol.OriginalDefinition, parameterSymbol2);
             }
         }
 
@@ -358,7 +358,7 @@ namespace Roslynator.CSharp.Refactorings.InlineDefinition
             foreach (ISymbol symbol in declarationSymbols)
             {
                 if (reservedNames.Contains(symbol.Name))
-                    (symbols ?? (symbols = new List<ISymbol>())).Add(symbol);
+                    (symbols ??= new List<ISymbol>()).Add(symbol);
             }
 
             if (symbols == null)

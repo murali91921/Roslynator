@@ -21,7 +21,7 @@ namespace Roslynator.Formatting.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeBlock, SyntaxKind.Block);
+            context.RegisterSyntaxNodeAction(f => AnalyzeBlock(f), SyntaxKind.Block);
         }
 
         private static void AnalyzeBlock(SyntaxNodeAnalysisContext context)
@@ -46,7 +46,8 @@ namespace Roslynator.Formatting.CSharp
             if (!block.SyntaxTree.IsSingleLineSpan(TextSpan.FromBounds(openBrace.Span.End, openBrace.GetNextToken().SpanStart), context.CancellationToken))
                 return;
 
-            context.ReportDiagnostic(
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.AddNewLineAfterOpeningBraceOfBlock,
                 Location.Create(block.SyntaxTree, new TextSpan(openBrace.Span.End, 0)));
         }

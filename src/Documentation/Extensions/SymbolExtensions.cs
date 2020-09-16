@@ -47,7 +47,7 @@ namespace Roslynator.Documentation
 
                     if (overriddenSymbol != null)
                     {
-                        (overriddenSymbols ?? (overriddenSymbols = new HashSet<ISymbol>())).Add(overriddenSymbol);
+                        (overriddenSymbols ??= new HashSet<ISymbol>()).Add(overriddenSymbol);
                     }
 
                     symbols.Add(symbol);
@@ -73,7 +73,7 @@ namespace Roslynator.Documentation
 
                             if (overriddenSymbol != null)
                             {
-                                (overriddenSymbols ?? (overriddenSymbols = new HashSet<ISymbol>())).Add(overriddenSymbol);
+                                (overriddenSymbols ??= new HashSet<ISymbol>()).Add(overriddenSymbol);
                             }
                         }
                     }
@@ -280,7 +280,7 @@ namespace Roslynator.Documentation
                 if (predicate == null
                     || predicate(namedType, attributeData))
                 {
-                    (attributes ?? (attributes = new HashSet<AttributeInfo>(AttributeInfo.AttributeClassComparer))).Add(new AttributeInfo(namedType, attributeData));
+                    (attributes ??= new HashSet<AttributeInfo>(AttributeInfo.AttributeClassComparer)).Add(new AttributeInfo(namedType, attributeData));
                 }
             }
 
@@ -297,7 +297,8 @@ namespace Roslynator.Documentation
                     {
                         TypedConstant typedConstant = attributeUsage.NamedArguments.FirstOrDefault(f => f.Key == "Inherited").Value;
 
-                        if (typedConstant.Type?.SpecialType == SpecialType.System_Boolean
+                        if (typedConstant.Kind != TypedConstantKind.Error
+                            && typedConstant.Type?.SpecialType == SpecialType.System_Boolean
                             && (!(bool)typedConstant.Value))
                         {
                             continue;
@@ -307,7 +308,7 @@ namespace Roslynator.Documentation
                     if (predicate == null
                         || predicate(baseType, attributeData))
                     {
-                        (attributes ?? (attributes = new HashSet<AttributeInfo>(AttributeInfo.AttributeClassComparer))).Add(new AttributeInfo(baseType, attributeData));
+                        (attributes ??= new HashSet<AttributeInfo>(AttributeInfo.AttributeClassComparer)).Add(new AttributeInfo(baseType, attributeData));
                     }
                 }
 

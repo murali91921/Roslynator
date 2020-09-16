@@ -21,7 +21,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSymbolAction(AnalyzeNamedType, SymbolKind.NamedType);
+            context.RegisterSymbolAction(f => AnalyzeNamedType(f), SymbolKind.NamedType);
         }
 
         private static void AnalyzeNamedType(SymbolAnalysisContext context)
@@ -83,7 +83,7 @@ namespace Roslynator.CSharp.Analysis
             foreach (INamedTypeSymbol typeMember in typeMembers)
             {
                 if (typeMember.TypeKind == TypeKind.Class
-                    && typeMember.OriginalDefinition.BaseType?.Equals(typeSymbol) == true)
+                    && SymbolEqualityComparer.Default.Equals(typeMember.OriginalDefinition.BaseType, typeSymbol))
                 {
                     return true;
                 }

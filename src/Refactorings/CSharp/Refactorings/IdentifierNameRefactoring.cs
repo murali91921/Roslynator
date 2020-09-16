@@ -26,6 +26,9 @@ namespace Roslynator.CSharp.Refactorings
 
             if (context.IsRefactoringEnabled(RefactoringIdentifiers.InlineProperty))
                 await InlinePropertyRefactoring.ComputeRefactoringsAsync(context, identifierName).ConfigureAwait(false);
+
+            if (context.IsRefactoringEnabled(RefactoringIdentifiers.ConvertMethodGroupToLambda))
+                await ConvertMethodGroupToLambdaRefactoring.ComputeRefactoringAsync(context, identifierName).ConfigureAwait(false);
         }
 
         private static async Task RenameFieldAccordingToPropertyNameAsync(
@@ -58,7 +61,7 @@ namespace Roslynator.CSharp.Refactorings
             if (fieldSymbol.IsStatic != propertySymbol.IsStatic)
                 return;
 
-            if (fieldSymbol.ContainingType != propertySymbol.ContainingType)
+            if (!SymbolEqualityComparer.Default.Equals(fieldSymbol.ContainingType, propertySymbol.ContainingType))
                 return;
 
             string newName = StringUtility.ToCamelCase(propertySymbol.Name, context.Settings.PrefixFieldIdentifierWithUnderscore);

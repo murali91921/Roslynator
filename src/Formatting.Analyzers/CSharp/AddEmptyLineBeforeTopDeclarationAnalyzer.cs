@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Roslynator.CSharp;
 
 namespace Roslynator.Formatting.CSharp
 {
@@ -21,7 +22,7 @@ namespace Roslynator.Formatting.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeCompilationUnit, SyntaxKind.CompilationUnit);
+            context.RegisterSyntaxNodeAction(f => AnalyzeCompilationUnit(f), SyntaxKind.CompilationUnit);
         }
 
         private static void AnalyzeCompilationUnit(SyntaxNodeAnalysisContext context)
@@ -46,7 +47,8 @@ namespace Roslynator.Formatting.CSharp
             if (!SyntaxTriviaAnalysis.IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(node.GetTrailingTrivia()))
                 return;
 
-            context.ReportDiagnostic(
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.AddEmptyLineBeforeTopDeclaration,
                 Location.Create(compilationUnit.SyntaxTree, new TextSpan(node.GetTrailingTrivia().Last().SpanStart, 0)));
         }

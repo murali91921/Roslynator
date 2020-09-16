@@ -25,7 +25,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeBaseList, SyntaxKind.BaseList);
+            context.RegisterSyntaxNodeAction(f => AnalyzeBaseList(f), SyntaxKind.BaseList);
         }
 
         private static void AnalyzeBaseList(SyntaxNodeAnalysisContext context)
@@ -110,7 +110,7 @@ namespace Roslynator.CSharp.Analysis
 
                 foreach (INamedTypeSymbol interfaceSymbol in interfaceInfo2.Interfaces)
                 {
-                    if (interfaceInfo.Symbol.Equals(interfaceSymbol))
+                    if (SymbolEqualityComparer.Default.Equals(interfaceInfo.Symbol, interfaceSymbol))
                     {
                         if (typeSymbol != null)
                         {
@@ -129,8 +129,8 @@ namespace Roslynator.CSharp.Analysis
                         DiagnosticHelpers.ReportDiagnostic(context,
                             DiagnosticDescriptors.RemoveRedundantBaseInterface,
                             baseType,
-                            SymbolDisplay.ToMinimalDisplayString(interfaceInfo.Symbol, context.SemanticModel, baseType.SpanStart, SymbolDisplayFormats.Default),
-                            SymbolDisplay.ToMinimalDisplayString(interfaceInfo2.Symbol, context.SemanticModel, baseType.SpanStart, SymbolDisplayFormats.Default));
+                            SymbolDisplay.ToMinimalDisplayString(interfaceInfo.Symbol, context.SemanticModel, baseType.SpanStart, SymbolDisplayFormats.DisplayName),
+                            SymbolDisplay.ToMinimalDisplayString(interfaceInfo2.Symbol, context.SemanticModel, baseType.SpanStart, SymbolDisplayFormats.DisplayName));
 
                         return;
                     }
@@ -161,7 +161,7 @@ namespace Roslynator.CSharp.Analysis
                             {
                                 foreach (IEventSymbol eventSymbol in ((IEventSymbol)member).ExplicitInterfaceImplementations)
                                 {
-                                    if (eventSymbol.ContainingType?.Equals(interfaceSymbol) == true)
+                                    if (SymbolEqualityComparer.Default.Equals(eventSymbol.ContainingType, interfaceSymbol))
                                         return true;
                                 }
 
@@ -171,7 +171,7 @@ namespace Roslynator.CSharp.Analysis
                             {
                                 foreach (IMethodSymbol methodSymbol in ((IMethodSymbol)member).ExplicitInterfaceImplementations)
                                 {
-                                    if (methodSymbol.ContainingType?.Equals(interfaceSymbol) == true)
+                                    if (SymbolEqualityComparer.Default.Equals(methodSymbol.ContainingType, interfaceSymbol))
                                         return true;
                                 }
 
@@ -181,7 +181,7 @@ namespace Roslynator.CSharp.Analysis
                             {
                                 foreach (IPropertySymbol propertySymbol in ((IPropertySymbol)member).ExplicitInterfaceImplementations)
                                 {
-                                    if (propertySymbol.ContainingType?.Equals(interfaceSymbol) == true)
+                                    if (SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType, interfaceSymbol))
                                         return true;
                                 }
 

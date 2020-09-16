@@ -21,10 +21,9 @@ namespace Roslynator.CSharp.Analysis
         public override void Initialize(AnalysisContext context)
         {
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
-            context.RegisterSymbolAction(AnalyzeMethodSymbol, SymbolKind.Method);
-            context.RegisterSymbolAction(AnalyzePropertySymbol, SymbolKind.Property);
+            context.RegisterSymbolAction(f => AnalyzeMethodSymbol(f), SymbolKind.Method);
+            context.RegisterSymbolAction(f => AnalyzePropertySymbol(f), SymbolKind.Property);
         }
 
         private static void AnalyzeMethodSymbol(SymbolAnalysisContext context)

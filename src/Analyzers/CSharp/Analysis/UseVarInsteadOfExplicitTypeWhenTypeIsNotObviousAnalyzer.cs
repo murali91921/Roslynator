@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -20,10 +19,10 @@ namespace Roslynator.CSharp.Analysis
         public override void Initialize(AnalysisContext context)
         {
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeVariableDeclaration, SyntaxKind.VariableDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeDeclarationExpression, SyntaxKind.DeclarationExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeVariableDeclaration(f), SyntaxKind.VariableDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeDeclarationExpression(f), SyntaxKind.DeclarationExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeTupleExpression(f), SyntaxKind.TupleExpression);
         }
 
         private static void AnalyzeVariableDeclaration(SyntaxNodeAnalysisContext context)
@@ -42,12 +41,33 @@ namespace Roslynator.CSharp.Analysis
         {
             var declarationExpression = (DeclarationExpressionSyntax)context.Node;
 
-            if (CSharpTypeAnalysis.IsExplicitThatCanBeImplicit(declarationExpression, context.SemanticModel, context.CancellationToken))
+            if (declarationExpression.IsParentKind(SyntaxKind.Argument)
+                && declarationExpression.Parent.IsParentKind(SyntaxKind.TupleExpression))
             {
-                DiagnosticHelpers.ReportDiagnostic(context,
-                    DiagnosticDescriptors.UseVarInsteadOfExplicitTypeWhenTypeIsNotObvious,
-                    declarationExpression.Type);
+                return;
             }
+
+            if (CSharpTypeAnalysis.IsExplicitThatCanBeImplicit(declarationExpression, context.SemanticModel, context.CancellationToken))
+                ReportDiagnostic(context, declarationExpression.Type);
+        }
+
+        private static void AnalyzeTupleExpression(SyntaxNodeAnalysisContext context)
+        {
+            var tupleExpression = (TupleExpressionSyntax)context.Node;
+
+            if (tupleExpression.IsParentKind(SyntaxKind.ForEachVariableStatement))
+                return;
+
+            if (CSharpTypeAnalysis.IsExplicitThatCanBeImplicit(tupleExpression, context.SemanticModel, context.CancellationToken))
+                ReportDiagnostic(context, tupleExpression);
+        }
+
+        private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, SyntaxNode node)
+        {
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
+                DiagnosticDescriptors.UseVarInsteadOfExplicitTypeWhenTypeIsNotObvious,
+                node);
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeClassDeclaration, SyntaxKind.ClassDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeClassDeclaration(f), SyntaxKind.ClassDeclaration);
         }
 
         private static void AnalyzeClassDeclaration(SyntaxNodeAnalysisContext context)
@@ -174,10 +174,9 @@ namespace Roslynator.CSharp.Analysis
                 if (node is IdentifierNameSyntax identifierName)
                 {
                     if (string.Equals(Symbol.Name, identifierName.Identifier.ValueText, StringComparison.Ordinal)
-                        && SemanticModel
-                            .GetSymbol(identifierName, CancellationToken)?
-                            .OriginalDefinition
-                            .Equals(Symbol) == true)
+                        && SymbolEqualityComparer.Default.Equals(
+                            SemanticModel.GetSymbol(identifierName, CancellationToken)?.OriginalDefinition,
+                            Symbol))
                     {
                         CanBeMadeStatic = false;
                     }

@@ -20,10 +20,9 @@ namespace Roslynator.CSharp.Analysis
         public override void Initialize(AnalysisContext context)
         {
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeIfStatement, SyntaxKind.IfStatement);
-            context.RegisterSyntaxNodeAction(AnalyzeElseClause, SyntaxKind.ElseClause);
+            context.RegisterSyntaxNodeAction(f => AnalyzeIfStatement(f), SyntaxKind.IfStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeElseClause(f), SyntaxKind.ElseClause);
         }
 
         private static void AnalyzeIfStatement(SyntaxNodeAnalysisContext context)

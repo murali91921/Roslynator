@@ -17,6 +17,7 @@ namespace Roslynator.CSharp.Testing
         private static CSharpCodeVerificationOptions _default_CSharp6;
         private static CSharpCodeVerificationOptions _default_CSharp7;
         private static CSharpCodeVerificationOptions _default_CSharp7_3;
+        private static CSharpCodeVerificationOptions _default_NullableReferenceTypes;
 
         public CSharpCodeVerificationOptions(
             CSharpParseOptions parseOptions,
@@ -132,6 +133,19 @@ namespace Roslynator.CSharp.Testing
             }
         }
 
+        internal static CSharpCodeVerificationOptions Default_NullableReferenceTypes
+        {
+            get
+            {
+                if (_default_NullableReferenceTypes == null)
+                    Interlocked.CompareExchange(ref _default_NullableReferenceTypes, Create(), null);
+
+                return _default_NullableReferenceTypes;
+
+                static CSharpCodeVerificationOptions Create() => Default.WithCompilationOptions(Default.CompilationOptions.WithNullableContextOptions(NullableContextOptions.Enable));
+            }
+        }
+
         public CSharpCodeVerificationOptions AddAllowedCompilerDiagnosticId(string diagnosticId)
         {
             return WithAllowedCompilerDiagnosticIds(AllowedCompilerDiagnosticIds.Add(diagnosticId));
@@ -150,6 +164,20 @@ namespace Roslynator.CSharp.Testing
                 assemblyNames: AssemblyNames,
                 allowedCompilerDiagnosticSeverity: AllowedCompilerDiagnosticSeverity,
                 allowedCompilerDiagnosticIds: allowedCompilerDiagnosticIds);
+        }
+
+        public CSharpCodeVerificationOptions WithEnabled(DiagnosticDescriptor descriptor)
+        {
+            var compilationOptions = (CSharpCompilationOptions)CompilationOptions.EnsureEnabled(descriptor);
+
+            return WithCompilationOptions(compilationOptions);
+        }
+
+        public CSharpCodeVerificationOptions WithSuppressed(DiagnosticDescriptor descriptor)
+        {
+            var compilationOptions = (CSharpCompilationOptions)CompilationOptions.EnsureSuppressed(descriptor);
+
+            return WithCompilationOptions(compilationOptions);
         }
 
         public CSharpCodeVerificationOptions WithParseOptions(CSharpParseOptions parseOptions)

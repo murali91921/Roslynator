@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
@@ -64,7 +65,7 @@ namespace Roslynator.CommandLine
                 string key = property.Substring(0, index);
                 string value = property.Substring(index + 1);
 
-                (properties ?? (properties = new List<KeyValuePair<string, string>>())).Add(new KeyValuePair<string, string>(key, value));
+                (properties ??= new List<KeyValuePair<string, string>>()).Add(new KeyValuePair<string, string>(key, value));
             }
 
             return true;
@@ -227,12 +228,82 @@ namespace Roslynator.CommandLine
                     return false;
                 }
 
-                (builder ?? (builder = ImmutableArray.CreateBuilder<MetadataName>())).Add(metadataName);
+                (builder ??= ImmutableArray.CreateBuilder<MetadataName>()).Add(metadataName);
             }
 
             metadataNames = builder?.ToImmutableArray() ?? ImmutableArray<MetadataName>.Empty;
 
             return true;
+        }
+
+        public static bool TryParseVersion(string value, out Version version)
+        {
+            if (!Version.TryParse(value, out version))
+            {
+                WriteLine($"Could not parse '{value}' as version.", Verbosity.Quiet);
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool TryParsePaths(IEnumerable<string> values, out ImmutableArray<string> paths)
+        {
+            paths = ImmutableArray<string>.Empty;
+
+            if (values.Any()
+                && !TryEnsureFullPath(values, out paths))
+            {
+                return false;
+            }
+
+            if (Console.IsInputRedirected)
+            {
+                ImmutableArray<string> pathsFromInput = ConsoleHelpers.ReadRedirectedInputAsLines()
+                   .Where(f => !string.IsNullOrEmpty(f))
+                   .ToImmutableArray();
+
+                paths = paths.AddRange(pathsFromInput);
+            }
+
+            if (paths.IsEmpty)
+                paths = ImmutableArray.Create(Environment.CurrentDirectory);
+
+            return true;
+        }
+
+        private static bool TryEnsureFullPath(IEnumerable<string> paths, out ImmutableArray<string> fullPaths)
+        {
+            ImmutableArray<string>.Builder builder = ImmutableArray.CreateBuilder<string>();
+
+            foreach (string path in paths)
+            {
+                if (!TryEnsureFullPath(path, out string fullPath))
+                    return false;
+
+                builder.Add(fullPath);
+            }
+
+            fullPaths = builder.ToImmutableArray();
+            return true;
+        }
+
+        private static bool TryEnsureFullPath(string path, out string result)
+        {
+            try
+            {
+                if (!Path.IsPathRooted(path))
+                    path = Path.GetFullPath(path);
+
+                result = path;
+                return true;
+            }
+            catch (ArgumentException ex)
+            {
+                WriteLine($"Path '{path}' is invalid: {ex.Message}.", Verbosity.Quiet);
+                result = null;
+                return false;
+            }
         }
     }
 }

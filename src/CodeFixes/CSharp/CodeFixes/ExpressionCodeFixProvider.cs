@@ -75,7 +75,7 @@ namespace Roslynator.CSharp.CodeFixes
                                         context.RegisterCodeFix(codeAction, diagnostic);
                                     }
                                 }
-                                else if (namedType.TypeArguments[0].Equals(convertedType))
+                                else if (SymbolEqualityComparer.Default.Equals(namedType.TypeArguments[0], convertedType))
                                 {
                                     if (Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.UseCoalesceExpression))
                                     {
@@ -113,7 +113,7 @@ namespace Roslynator.CSharp.CodeFixes
 
                             if (Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.CreateSingletonArray)
                                 && type?.IsErrorType() == false
-                                && !type.Equals(convertedType)
+                                && !SymbolEqualityComparer.Default.Equals(type, convertedType)
                                 && (convertedType is IArrayTypeSymbol arrayType)
                                 && semanticModel.IsImplicitConversion(expression, arrayType.ElementType))
                             {
@@ -235,10 +235,7 @@ namespace Roslynator.CSharp.CodeFixes
                                 && expression is ParenthesizedExpressionSyntax parenthesizedExpression
                                 && parenthesizedExpression?.IsMissing == false)
                             {
-                                CodeAction codeAction = CodeAction.Create(
-                                    "Remove parentheses",
-                                    cancellationToken => RemoveRedundantParenthesesRefactoring.RefactorAsync(context.Document, parenthesizedExpression, cancellationToken),
-                                    GetEquivalenceKey(diagnostic));
+                                CodeAction codeAction = CodeActionFactory.RemoveParentheses(context.Document, parenthesizedExpression, equivalenceKey: GetEquivalenceKey(diagnostic));
 
                                 context.RegisterCodeFix(codeAction, diagnostic);
                                 break;

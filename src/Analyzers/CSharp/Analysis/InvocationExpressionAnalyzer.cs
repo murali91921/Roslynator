@@ -24,7 +24,7 @@ namespace Roslynator.CSharp.Analysis
                     DiagnosticDescriptors.OptimizeLinqMethodCall,
                     DiagnosticDescriptors.UseElementAccess,
                     DiagnosticDescriptors.UseCountOrLengthPropertyInsteadOfAnyMethod,
-                    DiagnosticDescriptors.UseBitwiseOperationInsteadOfCallingHasFlag,
+                    DiagnosticDescriptors.ConvertHasFlagCallToBitwiseOperationOrViceVersa,
                     DiagnosticDescriptors.RemoveRedundantToStringCall,
                     DiagnosticDescriptors.RemoveRedundantStringToCharArrayCall,
                     DiagnosticDescriptors.CombineEnumerableWhereMethodChain,
@@ -48,7 +48,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeInvocationExpression, SyntaxKind.InvocationExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeInvocationExpression(f), SyntaxKind.InvocationExpression);
         }
 
         private static void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext context)
@@ -111,7 +111,7 @@ namespace Roslynator.CSharp.Analysis
                                 {
                                     if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.OptimizeLinqMethodCall))
                                     {
-                                        if (!invocationInfo.Expression.IsKind(SyntaxKind.InvocationExpression)
+                                        if (CanUseElementAccess(context, invocationInfo)
                                             && UseElementAccessAnalysis.IsFixableFirst(invocationInfo, context.SemanticModel, context.CancellationToken))
                                         {
                                             DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UseElementAccess, Location.Create(invocation.SyntaxTree, TextSpan.FromBounds(invocationInfo.Name.SpanStart, invocationInfo.ArgumentList.Span.End)));
@@ -231,7 +231,7 @@ namespace Roslynator.CSharp.Analysis
                             case "ElementAt":
                                 {
                                     if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.OptimizeLinqMethodCall)
-                                        && !invocationInfo.Expression.IsKind(SyntaxKind.InvocationExpression)
+                                        && CanUseElementAccess(context, invocationInfo)
                                         && UseElementAccessAnalysis.IsFixableElementAt(invocationInfo, context.SemanticModel, context.CancellationToken))
                                     {
                                         DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UseElementAccess, Location.Create(invocation.SyntaxTree, TextSpan.FromBounds(invocationInfo.Name.SpanStart, invocationInfo.ArgumentList.Span.End)));
@@ -271,11 +271,15 @@ namespace Roslynator.CSharp.Analysis
                                 }
                             case "HasFlag":
                                 {
-                                    if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.UseBitwiseOperationInsteadOfCallingHasFlag)
+                                    if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.ConvertHasFlagCallToBitwiseOperationOrViceVersa)
+                                        && context.IsAnalyzerSuppressed(AnalyzerOptions.ConvertBitwiseOperationToHasFlagCall)
                                         && !invocation.SpanContainsDirectives()
-                                        && UseBitwiseOperationInsteadOfCallingHasFlagAnalysis.IsFixable(invocationInfo, context.SemanticModel, context.CancellationToken))
+                                        && ConvertHasFlagCallToBitwiseOperationAnalysis.IsFixable(invocationInfo, context.SemanticModel, context.CancellationToken))
                                     {
-                                        DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UseBitwiseOperationInsteadOfCallingHasFlag, invocation);
+                                        DiagnosticHelpers.ReportDiagnostic(
+                                            context,
+                                            DiagnosticDescriptors.ConvertHasFlagCallToBitwiseOperationOrViceVersa,
+                                            invocation);
                                     }
 
                                     break;
@@ -397,14 +401,7 @@ namespace Roslynator.CSharp.Analysis
                 case "SingleOrDefault":
                     {
                         if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.AvoidNullReferenceException))
-                        {
-                            if (argumentCount == 0
-                                || argumentCount == 1
-                                || argumentCount == 2)
-                            {
-                                AvoidNullReferenceExceptionAnalyzer.Analyze(context, invocationInfo);
-                            }
-                        }
+                            AvoidNullReferenceExceptionAnalyzer.Analyze(context, invocationInfo);
 
                         break;
                     }
@@ -441,6 +438,17 @@ namespace Roslynator.CSharp.Analysis
 
                         break;
                     }
+                default:
+                    {
+                        if (methodName.Length > "OrDefault".Length
+                            && methodName.EndsWith("OrDefault", StringComparison.Ordinal)
+                            && !context.IsAnalyzerSuppressed(DiagnosticDescriptors.AvoidNullReferenceException))
+                        {
+                            AvoidNullReferenceExceptionAnalyzer.Analyze(context, invocationInfo);
+                        }
+
+                        break;
+                    }
             }
 
             if (!context.IsAnalyzerSuppressed(DiagnosticDescriptors.UseMethodChaining)
@@ -448,6 +456,13 @@ namespace Roslynator.CSharp.Analysis
             {
                 DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UseMethodChaining, invocationInfo.InvocationExpression);
             }
+        }
+
+        public static bool CanUseElementAccess(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
+        {
+            return !invocationInfo.Expression.IsKind(SyntaxKind.ElementAccessExpression)
+                && (!invocationInfo.Expression.IsKind(SyntaxKind.InvocationExpression)
+                    || context.IsAnalyzerSuppressed(AnalyzerOptions.DoNotUseElementAccessWhenExpressionIsInvocation));
         }
     }
 }

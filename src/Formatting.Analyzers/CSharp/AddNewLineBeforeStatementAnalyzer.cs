@@ -21,8 +21,8 @@ namespace Roslynator.Formatting.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeBlock, SyntaxKind.Block);
-            context.RegisterSyntaxNodeAction(AnalyzeSwitchSection, SyntaxKind.SwitchSection);
+            context.RegisterSyntaxNodeAction(f => AnalyzeBlock(f), SyntaxKind.Block);
+            context.RegisterSyntaxNodeAction(f => AnalyzeSwitchSection(f), SyntaxKind.SwitchSection);
         }
 
         private static void AnalyzeBlock(SyntaxNodeAnalysisContext context)
@@ -53,7 +53,8 @@ namespace Roslynator.Formatting.CSharp
                 if (!statement.IsKind(SyntaxKind.Block, SyntaxKind.EmptyStatement)
                     && statement.GetSpanStartLine() == previousEndLine)
                 {
-                    context.ReportDiagnostic(
+                    DiagnosticHelpers.ReportDiagnostic(
+                        context,
                         DiagnosticDescriptors.AddNewLineBeforeStatement,
                         Location.Create(statement.SyntaxTree, statement.Span.WithLength(0)));
                 }

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -21,11 +20,10 @@ namespace Roslynator.CSharp.Analysis
         public override void Initialize(AnalysisContext context)
         {
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeContinueStatement, SyntaxKind.ContinueStatement);
-            context.RegisterSyntaxNodeAction(AnalyzeReturnStatement, SyntaxKind.ReturnStatement);
-            context.RegisterSyntaxNodeAction(AnalyzeYieldBreakStatement, SyntaxKind.YieldBreakStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeContinueStatement(f), SyntaxKind.ContinueStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeReturnStatement(f), SyntaxKind.ReturnStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeYieldBreakStatement(f), SyntaxKind.YieldBreakStatement);
         }
 
         private static void AnalyzeContinueStatement(SyntaxNodeAnalysisContext context)

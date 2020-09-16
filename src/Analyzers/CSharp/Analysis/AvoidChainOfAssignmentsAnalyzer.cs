@@ -20,10 +20,9 @@ namespace Roslynator.CSharp.Analysis
         public override void Initialize(AnalysisContext context)
         {
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeAssignment, CSharpFacts.AssignmentExpressionKinds);
-            context.RegisterSyntaxNodeAction(AnalyzeEqualsValueClause, SyntaxKind.EqualsValueClause);
+            context.RegisterSyntaxNodeAction(f => AnalyzeAssignment(f), CSharpFacts.AssignmentExpressionKinds);
+            context.RegisterSyntaxNodeAction(f => AnalyzeEqualsValueClause(f), SyntaxKind.EqualsValueClause);
         }
 
         private static void AnalyzeAssignment(SyntaxNodeAnalysisContext context)

@@ -22,7 +22,7 @@ namespace Roslynator.Formatting.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeCompilationUnit, SyntaxKind.CompilationUnit);
+            context.RegisterSyntaxNodeAction(f => AnalyzeCompilationUnit(f), SyntaxKind.CompilationUnit);
         }
 
         private static void AnalyzeCompilationUnit(SyntaxNodeAnalysisContext context)
@@ -66,9 +66,10 @@ namespace Roslynator.Formatting.CSharp
 
             void ReportDiagnostic(int position)
             {
-                context.ReportDiagnostic(
-                   DiagnosticDescriptors.AddEmptyLineBeforeUsingDirectiveList,
-                   Location.Create(compilationUnit.SyntaxTree, new TextSpan(position, 0)));
+                DiagnosticHelpers.ReportDiagnostic(
+                    context,
+                    DiagnosticDescriptors.AddEmptyLineBeforeUsingDirectiveList,
+                    Location.Create(compilationUnit.SyntaxTree, new TextSpan(position, 0)));
             }
         }
     }

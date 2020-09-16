@@ -292,7 +292,7 @@ namespace Roslynator.CSharp
                         if (en.MoveNext()
                             && en.Current.IsEndOfLineTrivia())
                         {
-                            (topTrivia ?? (topTrivia = new List<SyntaxTrivia>())).Add(trivia);
+                            (topTrivia ??= new List<SyntaxTrivia>()).Add(trivia);
                             topTrivia.Add(en.Current);
                         }
                         else
@@ -1232,7 +1232,7 @@ namespace Roslynator.CSharp
 
             return member
                 .GetLeadingTrivia()
-                .Any(IsDocumentationCommentTrivia);
+                .Any(f => IsDocumentationCommentTrivia(f));
         }
 
         internal static TMember WithNewSingleLineDocumentationComment<TMember>(
@@ -1599,6 +1599,27 @@ namespace Roslynator.CSharp
                 GetEndIndex(list.Last(), includeExteriorTrivia, trim));
 
             return tree.IsMultiLineSpan(span, cancellationToken);
+        }
+
+        //TODO: make public
+        /// <summary>
+        /// Creates a new list with the elements in the specified range replaced with new node.
+        /// </summary>
+        /// <typeparam name="TNode"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        /// <param name="newNode"></param>
+        internal static SeparatedSyntaxList<TNode> ReplaceRange<TNode>(
+            this SeparatedSyntaxList<TNode> list,
+            int index,
+            int count,
+            TNode newNode) where TNode : SyntaxNode
+        {
+            if (newNode == null)
+                throw new ArgumentNullException(nameof(newNode));
+
+            return ReplaceRange(list, index, count, new TNode[] { newNode });
         }
 
         /// <summary>
@@ -2096,6 +2117,27 @@ namespace Roslynator.CSharp
             }
 
             return statements.Insert(index, statement);
+        }
+
+        //TODO: make public
+        /// <summary>
+        /// Creates a new list with the elements in the specified range replaced with new node.
+        /// </summary>
+        /// <typeparam name="TNode"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        /// <param name="newNode"></param>
+        internal static SyntaxList<TNode> ReplaceRange<TNode>(
+            this SyntaxList<TNode> list,
+            int index,
+            int count,
+            TNode newNode) where TNode : SyntaxNode
+        {
+            if (newNode == null)
+                throw new ArgumentNullException(nameof(newNode));
+
+            return ReplaceRange(list, index, count, new TNode[] { newNode });
         }
 
         /// <summary>
@@ -2892,58 +2934,6 @@ namespace Roslynator.CSharp
             }
 
             return false;
-        }
-
-        internal static SyntaxTrivia GetIndentation(this SyntaxNode node, CancellationToken cancellationToken = default)
-        {
-            SyntaxTree tree = node.SyntaxTree;
-
-            if (tree != null)
-            {
-                TextSpan span = node.Span;
-
-                int lineStartIndex = span.Start - tree.GetLineSpan(span, cancellationToken).StartLinePosition.Character;
-
-                while (!node.FullSpan.Contains(lineStartIndex))
-                    node = node.GetParent(ascendOutOfTrivia: true);
-
-                if (node.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
-                {
-                    if (((DocumentationCommentTriviaSyntax)node)
-                        .ParentTrivia
-                        .TryGetContainingList(out SyntaxTriviaList leading, allowTrailing: false))
-                    {
-                        SyntaxTrivia trivia = leading.Last();
-
-                        if (trivia.IsWhitespaceTrivia())
-                            return trivia;
-                    }
-                }
-                else
-                {
-                    SyntaxToken token = node.FindToken(lineStartIndex);
-
-                    SyntaxTriviaList leading = token.LeadingTrivia;
-
-                    if (leading.Any()
-                        && leading.FullSpan.Contains(lineStartIndex))
-                    {
-                        SyntaxTrivia trivia = leading.Last();
-
-                        if (trivia.IsWhitespaceTrivia())
-                            return trivia;
-                    }
-                }
-            }
-
-            return EmptyWhitespace();
-        }
-
-        internal static SyntaxTriviaList GetIncreasedIndentation(this SyntaxNode node, CancellationToken cancellationToken = default)
-        {
-            SyntaxTrivia trivia = GetIndentation(node, cancellationToken);
-
-            return IncreaseIndentation(trivia);
         }
 
         internal static bool ContainsUnbalancedIfElseDirectives(this SyntaxNode node)
@@ -3968,6 +3958,19 @@ namespace Roslynator.CSharp
             }
 
             return null;
+        }
+
+        //TODO: make public
+        internal static XmlElementSyntax UpdateName(this XmlElementSyntax element, string newName)
+        {
+            XmlElementStartTagSyntax startTag = element.StartTag;
+            XmlElementEndTagSyntax endTag = element.EndTag;
+
+            SyntaxToken localName = Identifier(newName);
+
+            return element
+                .WithStartTag(startTag.WithName(startTag.Name.WithLocalName(localName.WithTriviaFrom(startTag.Name))))
+                .WithEndTag(endTag.WithName(endTag.Name.WithLocalName(localName.WithTriviaFrom(endTag.Name))));
         }
         #endregion XmlElementSyntax
 
