@@ -1868,15 +1868,15 @@ namespace Roslynator.CSharp
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1199</summary>
-        public static readonly DiagnosticDescriptor SimplifyBooleanExpression = DiagnosticDescriptorFactory.Default.Create(
-            id:                 DiagnosticIdentifiers.SimplifyBooleanExpression, 
-            title:              "Simplify boolean expression.", 
-            messageFormat:      "Simplify boolean expression.", 
-            category:           DiagnosticCategories.Simplification, 
+        public static readonly DiagnosticDescriptor UnnecessaryNullCheck = DiagnosticDescriptorFactory.Default.Create(
+            id:                 DiagnosticIdentifiers.UnnecessaryNullCheck, 
+            title:              "Unncessary null check.", 
+            messageFormat:      "Unncessary null check.", 
+            category:           DiagnosticCategories.Redundancy, 
             defaultSeverity:    DiagnosticSeverity.Info, 
             isEnabledByDefault: true, 
             description:        null, 
-            helpLinkUri:        DiagnosticIdentifiers.SimplifyBooleanExpression, 
+            helpLinkUri:        DiagnosticIdentifiers.UnnecessaryNullCheck, 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1200</summary>
@@ -2453,6 +2453,18 @@ namespace Roslynator.CSharp
             helpLinkUri:        DiagnosticIdentifiers.FixDocumentationCommentTag, 
             customTags:         Array.Empty<string>());
 
+        /// <summary>RCS1248</summary>
+        public static readonly DiagnosticDescriptor UseIsNullPatternInsteadOfComparisonOrViceVersa = DiagnosticDescriptorFactory.Default.Create(
+            id:                 DiagnosticIdentifiers.UseIsNullPatternInsteadOfComparisonOrViceVersa, 
+            title:              "Use 'is null' pattern instead of comparison (or vice versa).", 
+            messageFormat:      "Use 'is null' pattern instead '{0}' operator.", 
+            category:           DiagnosticCategories.Style, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: false, 
+            description:        null, 
+            helpLinkUri:        DiagnosticIdentifiers.UseIsNullPatternInsteadOfComparisonOrViceVersa, 
+            customTags:         Array.Empty<string>());
+
         public static partial class ReportOnly
         {
             /// <summary>RCS1050i</summary>
@@ -2501,6 +2513,18 @@ namespace Roslynator.CSharp
                 isEnabledByDefault: false, 
                 description:        null, 
                 helpLinkUri:        DiagnosticIdentifiers.ConvertAnonymousFunctionToMethodGroupOrViceVersa, 
+                customTags:         Array.Empty<string>());
+
+            /// <summary>RCS1248i</summary>
+            public static readonly DiagnosticDescriptor UseComparisonInsteadOfIsNullPattern = DiagnosticDescriptorFactory.Default.Create(
+                id:                 DiagnosticIdentifiers.UseIsNullPatternInsteadOfComparisonOrViceVersa, 
+                title:              "Use 'is null' pattern instead of comparison (or vice versa).", 
+                messageFormat:      "Use comparison instead of 'is null' pattern.", 
+                category:           DiagnosticCategories.Style, 
+                defaultSeverity:    DiagnosticSeverity.Info, 
+                isEnabledByDefault: false, 
+                description:        null, 
+                helpLinkUri:        DiagnosticIdentifiers.UseIsNullPatternInsteadOfComparisonOrViceVersa, 
                 customTags:         Array.Empty<string>());
 
         }

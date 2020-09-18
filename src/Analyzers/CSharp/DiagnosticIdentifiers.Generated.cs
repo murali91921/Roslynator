@@ -159,7 +159,7 @@ namespace Roslynator.CSharp
         public const string CallExtensionMethodAsInstanceMethod = "RCS1196";
         public const string OptimizeStringBuilderAppendCall = "RCS1197";
         public const string AvoidBoxingOfValueType = "RCS1198";
-        public const string SimplifyBooleanExpression = "RCS1199";
+        public const string UnnecessaryNullCheck = "RCS1199";
         public const string CallThenByInsteadOfOrderBy = "RCS1200";
         public const string UseMethodChaining = "RCS1201";
         public const string AvoidNullReferenceException = "RCS1202";
@@ -207,5 +207,6 @@ namespace Roslynator.CSharp
         public const string SimplifyDefaultExpression = "RCS1244";
         public const string UseElementAccess = "RCS1246";
         public const string FixDocumentationCommentTag = "RCS1247";
+        public const string UseIsNullPatternInsteadOfComparisonOrViceVersa = "RCS1248";
     }
 }
