@@ -173,6 +173,18 @@ namespace Roslynator.CSharp.Testing
             return WithCompilationOptions(compilationOptions);
         }
 
+        public CSharpCodeVerificationOptions WithEnabled(DiagnosticDescriptor descriptor1, DiagnosticDescriptor descriptor2)
+        {
+            ImmutableDictionary<string, ReportDiagnostic> options = CompilationOptions.SpecificDiagnosticOptions;
+
+            options = options.SetItem(descriptor1.Id, descriptor1.DefaultSeverity.ToReportDiagnostic());
+            options = options.SetItem(descriptor2.Id, descriptor2.DefaultSeverity.ToReportDiagnostic());
+
+            CSharpCompilationOptions compilationOptions = CompilationOptions.WithSpecificDiagnosticOptions(options);
+
+            return WithCompilationOptions(compilationOptions);
+        }
+
         public CSharpCodeVerificationOptions WithSuppressed(DiagnosticDescriptor descriptor)
         {
             var compilationOptions = (CSharpCompilationOptions)CompilationOptions.EnsureSuppressed(descriptor);

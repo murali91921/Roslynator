@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -30,23 +29,23 @@ namespace Roslynator.Formatting.CodeFixes
             SyntaxNode root = await context.GetSyntaxRootAsync().ConfigureAwait(false);
 
             TextSpan span = context.Span;
-
-            SyntaxNode baseNode = root.FindNode(new TextSpan(span.End, 0), findInsideTrivia: true, getInnermostNodeForTie: true);
-
             Document document = context.Document;
             Diagnostic diagnostic = context.Diagnostics[0];
 
             int maxLength = AnalyzerSettings.Current.MaxLineLength;
 
-            foreach (SyntaxNode node in baseNode.AncestorsAndSelf())
-            {
-                switch (node.Kind())
-                {
-                    case SyntaxKind.ArrowExpressionClause:
-                        {
-                            var expressionBody = (ArrowExpressionClauseSyntax)node;
+            SyntaxToken token = root.FindToken(span.End);
 
-                            SemanticModel semanticModel = default;
+            switch (token.Kind())
+            {
+                case SyntaxKind.SemicolonToken:
+                    {
+                        ArrowExpressionClauseSyntax expressionBody = CSharpUtility.GetExpressionBody(token.Parent);
+
+                        if (expressionBody != null
+                            && span.Contains(expressionBody.Span))
+                        {
+                            SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
 
                             bool addNewLineAfterArrow = !semanticModel.Compilation.IsAnalyzerSuppressed(DiagnosticDescriptors.AddNewLineBeforeExpressionBodyArrowInsteadOfAfterItOrViceVersa)
                                 && !semanticModel.Compilation.IsAnalyzerSuppressed(AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
@@ -59,15 +58,21 @@ namespace Roslynator.Formatting.CodeFixes
                             {
                                 CodeAction codeAction = CodeAction.Create(
                                     Title,
-                                    ct => WrapExpressionBodyAsync(document, (ArrowExpressionClauseSyntax)node, addNewLineAfterArrow, ct),
+                                    ct => WrapExpressionBodyAsync(document, expressionBody, addNewLineAfterArrow, ct),
                                     GetEquivalenceKey(diagnostic));
 
                                 context.RegisterCodeFix(codeAction, diagnostic);
                             }
-
-                            break;
                         }
-                }
+
+                        break;
+                    }
+            }
+
+            SyntaxNode baseNode = root.FindNode(new TextSpan(span.End - 1, 0), findInsideTrivia: true, getInnermostNodeForTie: true);
+
+            foreach (SyntaxNode node in baseNode.AncestorsAndSelf())
+            {
             }
         }
 

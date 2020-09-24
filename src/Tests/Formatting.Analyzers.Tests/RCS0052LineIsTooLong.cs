@@ -18,47 +18,39 @@ namespace Roslynator.Formatting.CSharp.Tests
         public override CodeFixProvider FixProvider { get; } = new LineIsTooLongCodeFixProvider();
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
-        public async Task Test_ExpressionBody_AddNewLineAfterArrow()
-        {
-            await VerifyDiagnosticAndFixAsync(@"
-class C
-{
-[|    void M(object pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp) => null;|]
-    {
-    }
-}
-",
-@"
-class C
-{
-    void M(object pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp) =>
-        null;
-    {
-    }
-}
-");
-        }
-
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
         public async Task Test_ExpressionBody_AddNewLineBeforeArrow()
         {
             await VerifyDiagnosticAndFixAsync(@"
 class C
 {
-[|    void M(object pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp) => null;|]
-    {
-    }
+[|    string M(object pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp) => null;|]
 }
 ",
 @"
 class C
 {
-    void M(object pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp)
+    string M(object pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp)
         => null;
-    {
-    }
 }
 ");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_ExpressionBody_AddNewLineAfterArrow()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+[|    string M(object ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp) => null;|]
+}
+",
+@"
+class C
+{
+    string M(object ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp) =>
+        null;
+}
+", options: Options.WithEnabled(DiagnosticDescriptors.AddNewLineBeforeExpressionBodyArrowInsteadOfAfterItOrViceVersa, AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt));
         }
     }
 }
