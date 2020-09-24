@@ -50,6 +50,20 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 cancellationToken);
         }
 
+        public static Task<Document> AddNewLineAfterAsync(
+            Document document,
+            SyntaxToken token,
+            CancellationToken cancellationToken = default)
+        {
+            SyntaxTrivia indentation = SyntaxTriviaAnalysis.DetermineIndentation(token.Parent, cancellationToken);
+
+            return AddNewLineAfterAsync(
+                document,
+                token,
+                indentation.ToString(),
+                cancellationToken);
+        }
+
         public static Task<Document> AddNewLineBeforeAndIncreaseIndentationAsync(
             Document document,
             SyntaxToken token,
@@ -75,6 +89,31 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 cancellationToken);
         }
 
+        public static Task<Document> AddNewLineAfterAndIncreaseIndentationAsync(
+            Document document,
+            SyntaxToken token,
+            CancellationToken cancellationToken = default)
+        {
+            return AddNewLineAfterAndIncreaseIndentationAsync(
+                document,
+                token,
+                SyntaxTriviaAnalysis.AnalyzeIndentation(token.Parent, cancellationToken),
+                cancellationToken);
+        }
+
+        public static Task<Document> AddNewLineAfterAndIncreaseIndentationAsync(
+            Document document,
+            SyntaxToken token,
+            IndentationAnalysis indentation,
+            CancellationToken cancellationToken = default)
+        {
+            return AddNewLineAfterAsync(
+                document,
+                token,
+                indentation.GetIncreasedIndentation(),
+                cancellationToken);
+        }
+
         public static Task<Document> AddNewLineBeforeAsync(
             Document document,
             SyntaxToken token,
@@ -83,6 +122,19 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
         {
             var textChange = new TextChange(
                 TextSpan.FromBounds(token.GetPreviousToken().Span.End, token.SpanStart),
+                SyntaxTriviaAnalysis.DetermineEndOfLine(token).ToString() + indentation);
+
+            return document.WithTextChangeAsync(textChange, cancellationToken);
+        }
+
+        public static Task<Document> AddNewLineAfterAsync(
+            Document document,
+            SyntaxToken token,
+            string indentation,
+            CancellationToken cancellationToken = default)
+        {
+            var textChange = new TextChange(
+                TextSpan.FromBounds(token.Span.End, token.GetNextToken().SpanStart),
                 SyntaxTriviaAnalysis.DetermineEndOfLine(token).ToString() + indentation);
 
             return document.WithTextChangeAsync(textChange, cancellationToken);
