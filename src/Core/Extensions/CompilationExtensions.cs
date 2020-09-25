@@ -9,23 +9,23 @@ namespace Roslynator
     {
         internal static bool IsAnalyzerSuppressed(this Compilation compilation, DiagnosticDescriptor descriptor)
         {
-            ReportDiagnostic reportDiagnostic = compilation
-                .Options
+            return IsAnalyzerSuppressed(compilation.Options, descriptor);
+        }
+
+        internal static bool IsAnalyzerSuppressed(this CompilationOptions compilationOptions, DiagnosticDescriptor descriptor)
+        {
+            ReportDiagnostic reportDiagnostic = compilationOptions
                 .SpecificDiagnosticOptions
                 .GetValueOrDefault(descriptor.Id);
 
-            switch (reportDiagnostic)
+            return reportDiagnostic switch
             {
-                case ReportDiagnostic.Default:
-                    return !descriptor.IsEnabledByDefault;
-                case ReportDiagnostic.Suppress:
-                    return true;
-                default:
-                    return false;
-            }
+                ReportDiagnostic.Default => !descriptor.IsEnabledByDefault,
+                ReportDiagnostic.Suppress => true,
+                _ => false,
+            };
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("AnalyzerPerformance", "RS1012:Start action has no registered actions.", Justification = "<Pending>")]
         internal static bool AreAnalyzersSuppressed(this Compilation compilation, ImmutableArray<DiagnosticDescriptor> descriptors)
         {
             foreach (DiagnosticDescriptor descriptor in descriptors)

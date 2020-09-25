@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Roslynator.Formatting.CodeFixes;
 using Xunit;
 
+#pragma warning disable RCS0052
+
 namespace Roslynator.Formatting.CSharp.Tests
 {
     public class RCS0052LineIsTooLongTests : AbstractCSharpFixVerifier
@@ -51,6 +53,53 @@ class C
         null;
 }
 ", options: Options.WithEnabled(DiagnosticDescriptors.AddNewLineBeforeExpressionBodyArrowInsteadOfAfterItOrViceVersa, AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt));
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task TestNoDiagnostic_ExpressionBody_TooLongAfterWrapping()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    string M(object pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp) => null;
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task TestNoDiagnostic_ExpressionBody_TooLongAfterWrapping2()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    string M(object ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp) => null;
+}
+", options: Options.WithEnabled(DiagnosticDescriptors.AddNewLineBeforeExpressionBodyArrowInsteadOfAfterItOrViceVersa, AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt));
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task TestNoDiagnostic_ExpressionBody_AlreadyWrapped()
+        {
+            await VerifyNoDiagnosticAsync(
+@"
+class C
+{
+    string M(object p)
+        => ""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"";
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task TestNoDiagnostic_ExpressionBody_AlreadyWrapped2()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    string M(object p) =>
+        ""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"";
+}
+");
         }
     }
 }

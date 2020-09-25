@@ -22,7 +22,10 @@ namespace Roslynator.Formatting.CodeFixes
     {
         private const string Title = "Wrap line";
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIdentifiers.LineIsTooLong);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
+        {
+            get { return ImmutableArray.Create(DiagnosticIdentifiers.LineIsTooLong); }
+        }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -42,26 +45,16 @@ namespace Roslynator.Formatting.CodeFixes
                     {
                         ArrowExpressionClauseSyntax expressionBody = CSharpUtility.GetExpressionBody(token.Parent);
 
-                        if (expressionBody != null
-                            && span.Contains(expressionBody.Span))
+                        if (expressionBody != null)
                         {
-                            SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
+                            SyntaxToken arrowToken = expressionBody.ArrowToken;
 
-                            bool addNewLineAfterArrow = !semanticModel.Compilation.IsAnalyzerSuppressed(DiagnosticDescriptors.AddNewLineBeforeExpressionBodyArrowInsteadOfAfterItOrViceVersa)
-                                && !semanticModel.Compilation.IsAnalyzerSuppressed(AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
-
-                            int end = (addNewLineAfterArrow)
-                                ? expressionBody.ArrowToken.Span.End
-                                : expressionBody.ArrowToken.Span.Start;
-
-                            if (end - span.Start <= maxLength)
+                            if (span.Contains(TextSpan.FromBounds(arrowToken.GetPreviousToken().SpanStart, token.SpanStart)))
                             {
-                                CodeAction codeAction = CodeAction.Create(
-                                    Title,
-                                    ct => WrapExpressionBodyAsync(document, expressionBody, addNewLineAfterArrow, ct),
-                                    GetEquivalenceKey(diagnostic));
+                                bool addNewLineAfterArrow = !document.Project.CompilationOptions.IsAnalyzerSuppressed(DiagnosticDescriptors.AddNewLineBeforeExpressionBodyArrowInsteadOfAfterItOrViceVersa)
+                                    && !document.Project.CompilationOptions.IsAnalyzerSuppressed(AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
 
-                                context.RegisterCodeFix(codeAction, diagnostic);
+                                RegisterCodeFix(token.Parent, expressionBody.Expression, arrowToken, token, addNewLineAfterArrow);
                             }
                         }
 
@@ -74,21 +67,54 @@ namespace Roslynator.Formatting.CodeFixes
             foreach (SyntaxNode node in baseNode.AncestorsAndSelf())
             {
             }
+
+            void RegisterCodeFix(
+                SyntaxNode declaration,
+                ExpressionSyntax expression,
+                SyntaxToken token,
+                SyntaxToken semicolonToken,
+                bool addNewLineAfter)
+            {
+                int end = (addNewLineAfter) ? token.Span.End : token.SpanStart;
+
+                if (end - span.Start <= maxLength)
+                {
+                    IndentationAnalysis analysis = SyntaxTriviaAnalysis.AnalyzeIndentation(declaration);
+
+                    string indentation = analysis.GetIncreasedIndentation();
+
+                    int start = (addNewLineAfter) ? expression.SpanStart : token.SpanStart;
+
+                    var newLength = indentation.Length + semicolonToken.Span.End - start;
+
+                    if (newLength <= maxLength)
+                    {
+                        CodeAction codeAction = CodeAction.Create(
+                            Title,
+                            ct => WrapLineBeforeOrAfterTokenAsync(document, token, addNewLineAfter, indentation, ct),
+                            GetEquivalenceKey(diagnostic));
+
+                        context.RegisterCodeFix(codeAction, diagnostic);
+                    }
+
+                }
+            }
         }
 
-        private Task<Document> WrapExpressionBodyAsync(
+        private Task<Document> WrapLineBeforeOrAfterTokenAsync(
             Document document,
-            ArrowExpressionClauseSyntax expressionBody,
-            bool addNewLineAfterArrow,
+            SyntaxToken token,
+            bool addNewLineAfter,
+            string indentation,
             CancellationToken cancellationToken)
         {
-            if (addNewLineAfterArrow)
+            if (addNewLineAfter)
             {
-                return CodeFixHelpers.AddNewLineAfterAndIncreaseIndentationAsync(document, expressionBody.ArrowToken, cancellationToken);
+                return CodeFixHelpers.AddNewLineAfterAsync(document, token, indentation, cancellationToken);
             }
             else
             {
-                return CodeFixHelpers.AddNewLineBeforeAndIncreaseIndentationAsync(document, expressionBody.ArrowToken, cancellationToken);
+                return CodeFixHelpers.AddNewLineBeforeAsync(document, token, indentation, cancellationToken);
             }
         }
     }
