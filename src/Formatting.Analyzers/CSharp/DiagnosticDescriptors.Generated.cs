@@ -549,6 +549,18 @@ namespace Roslynator.Formatting.CSharp
             helpLinkUri:        DiagnosticIdentifiers.LineIsTooLong, 
             customTags:         Array.Empty<string>());
 
+        /// <summary>RCS0053</summary>
+        public static readonly DiagnosticDescriptor AddNewLineBeforeEqualsSignInsteadOfAfterItOrViceVersa = DiagnosticDescriptorFactory.Default.Create(
+            id:                 DiagnosticIdentifiers.AddNewLineBeforeEqualsSignInsteadOfAfterItOrViceVersa, 
+            title:              "Add newline before equals sign instead of after it (or vice versa).", 
+            messageFormat:      "Add newline before equals sign instead of after it.", 
+            category:           DiagnosticCategories.Formatting, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: false, 
+            description:        null, 
+            helpLinkUri:        DiagnosticIdentifiers.AddNewLineBeforeEqualsSignInsteadOfAfterItOrViceVersa, 
+            customTags:         Array.Empty<string>());
+
         public static partial class ReportOnly
         {
             /// <summary>RCS0011i</summary>
@@ -621,6 +633,18 @@ namespace Roslynator.Formatting.CSharp
                 isEnabledByDefault: false, 
                 description:        null, 
                 helpLinkUri:        DiagnosticIdentifiers.AddNewLineBetweenClosingBraceAndWhileKeywordOrViceVersa, 
+                customTags:         Array.Empty<string>());
+
+            /// <summary>RCS0053i</summary>
+            public static readonly DiagnosticDescriptor AddNewLineAfterEqualsSignInsteadOfBeforeIt = DiagnosticDescriptorFactory.Default.Create(
+                id:                 DiagnosticIdentifiers.AddNewLineBeforeEqualsSignInsteadOfAfterItOrViceVersa, 
+                title:              "Add newline before equals sign instead of after it (or vice versa).", 
+                messageFormat:      "Add newline after equals sign instead of before it.", 
+                category:           DiagnosticCategories.Formatting, 
+                defaultSeverity:    DiagnosticSeverity.Info, 
+                isEnabledByDefault: false, 
+                description:        null, 
+                helpLinkUri:        DiagnosticIdentifiers.AddNewLineBeforeEqualsSignInsteadOfAfterItOrViceVersa, 
                 customTags:         Array.Empty<string>());
 
         }

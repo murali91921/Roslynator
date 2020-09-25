@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -212,6 +213,16 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
         public static Task<Document> AddNewLineAfterInsteadOfBeforeAsync(
             Document document,
+            SyntaxToken token,
+            CancellationToken cancellationToken = default)
+        {
+            ExpressionSyntax right = FindNextExpression(token);
+
+            return AddNewLineAfterInsteadOfBeforeAsync(document, token.GetPreviousToken(), token, right, cancellationToken);
+        }
+
+        public static Task<Document> AddNewLineAfterInsteadOfBeforeAsync(
+            Document document,
             SyntaxNodeOrToken left,
             SyntaxNodeOrToken middle,
             SyntaxNodeOrToken right,
@@ -246,6 +257,16 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
         public static Task<Document> AddNewLineBeforeInsteadOfAfterAsync(
             Document document,
+            SyntaxToken token,
+            CancellationToken cancellationToken = default)
+        {
+            ExpressionSyntax right = FindNextExpression(token);
+
+            return AddNewLineBeforeInsteadOfAfterAsync(document, token.GetPreviousToken(), token, right, cancellationToken);
+        }
+
+        public static Task<Document> AddNewLineBeforeInsteadOfAfterAsync(
+            Document document,
             SyntaxNodeOrToken left,
             SyntaxNodeOrToken middle,
             SyntaxNodeOrToken right,
@@ -275,6 +296,40 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 newText);
 
             return document.WithTextChangeAsync(textChange, cancellationToken);
+        }
+
+        private static ExpressionSyntax FindNextExpression(SyntaxToken token)
+        {
+            switch (token.Parent)
+            {
+                case ArrowExpressionClauseSyntax arrowExpressionClause:
+                    {
+                        return arrowExpressionClause.Expression;
+                    }
+                case AssignmentExpressionSyntax assignmentExpression:
+                    {
+                        return assignmentExpression.Right;
+                    }
+                case EqualsValueClauseSyntax equalsValueClause:
+                    {
+                        return equalsValueClause.Value;
+                    }
+                case NameEqualsSyntax nameEquals:
+                    {
+                        if (nameEquals.Parent is AttributeArgumentSyntax attributeArgument)
+                        {
+                            return attributeArgument.Expression;
+                        }
+                        else if (nameEquals.Parent is AnonymousObjectMemberDeclaratorSyntax declarator)
+                        {
+                            return declarator.Expression;
+                        }
+
+                        break;
+                    }
+            }
+
+            throw new InvalidOperationException();
         }
 
         public static Task<Document> RemoveEmptyLinesBeforeAsync(
