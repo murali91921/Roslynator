@@ -7,8 +7,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Roslynator.Formatting.CodeFixes;
 using Xunit;
 
-#pragma warning disable RCS0052
-
 namespace Roslynator.Formatting.CSharp.Tests
 {
     public class RCS0052LineIsTooLongTests : AbstractCSharpFixVerifier
@@ -56,48 +54,48 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
-        public async Task TestNoDiagnostic_ExpressionBody_TooLongAfterWrapping()
+        public async Task TestNoFix_ExpressionBody_TooLongAfterWrapping()
         {
-            await VerifyNoDiagnosticAsync(@"
+            await VerifyDiagnosticAndNoFixAsync(@"
 class C
 {
-    string M(object pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp) => null;
+[|    string M(object pppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp) => null;|]
 }
 ");
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
-        public async Task TestNoDiagnostic_ExpressionBody_TooLongAfterWrapping2()
+        public async Task TestNoFix_ExpressionBody_TooLongAfterWrapping2()
         {
-            await VerifyNoDiagnosticAsync(@"
+            await VerifyDiagnosticAndNoFixAsync(@"
 class C
 {
-    string M(object ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp) => null;
+[|    string M(object ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp) => null;|]
 }
 ", options: Options.WithEnabled(DiagnosticDescriptors.AddNewLineBeforeExpressionBodyArrowInsteadOfAfterItOrViceVersa, AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt));
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
-        public async Task TestNoDiagnostic_ExpressionBody_AlreadyWrapped()
+        public async Task TestNoFix_ExpressionBody_AlreadyWrapped()
         {
-            await VerifyNoDiagnosticAsync(
+            await VerifyDiagnosticAndNoFixAsync(
 @"
 class C
 {
     string M(object p)
-        => ""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"";
+[|        => ""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"";|]
 }
 ");
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
-        public async Task TestNoDiagnostic_ExpressionBody_AlreadyWrapped2()
+        public async Task TestNoFix_ExpressionBody_AlreadyWrapped2()
         {
-            await VerifyNoDiagnosticAsync(@"
+            await VerifyDiagnosticAndNoFixAsync(@"
 class C
 {
     string M(object p) =>
-        ""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"";
+[|        ""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"";|]
 }
 ");
         }

@@ -51,10 +51,12 @@ namespace Roslynator.Formatting.CodeFixes
 
                             if (span.Contains(TextSpan.FromBounds(arrowToken.GetPreviousToken().SpanStart, token.SpanStart)))
                             {
-                                bool addNewLineAfterArrow = !document.Project.CompilationOptions.IsAnalyzerSuppressed(DiagnosticDescriptors.AddNewLineBeforeExpressionBodyArrowInsteadOfAfterItOrViceVersa)
-                                    && !document.Project.CompilationOptions.IsAnalyzerSuppressed(AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
+                                CompilationOptions compilationOptions = document.Project.CompilationOptions;
+                                bool addNewLineAfterArrow = !compilationOptions.IsAnalyzerSuppressed(DiagnosticDescriptors.AddNewLineBeforeExpressionBodyArrowInsteadOfAfterItOrViceVersa)
+                                    && !compilationOptions.IsAnalyzerSuppressed(AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
 
-                                RegisterCodeFix(token.Parent, expressionBody.Expression, arrowToken, token, addNewLineAfterArrow);
+                                if (RegisterCodeFix(token.Parent, expressionBody.Expression, arrowToken, token, addNewLineAfterArrow))
+                                    return;
                             }
                         }
 
@@ -68,7 +70,7 @@ namespace Roslynator.Formatting.CodeFixes
             {
             }
 
-            void RegisterCodeFix(
+            bool RegisterCodeFix(
                 SyntaxNode declaration,
                 ExpressionSyntax expression,
                 SyntaxToken token,
@@ -77,44 +79,32 @@ namespace Roslynator.Formatting.CodeFixes
             {
                 int end = (addNewLineAfter) ? token.Span.End : token.SpanStart;
 
-                if (end - span.Start <= maxLength)
-                {
-                    IndentationAnalysis analysis = SyntaxTriviaAnalysis.AnalyzeIndentation(declaration);
+                if (end - span.Start > maxLength)
+                    return false;
 
-                    string indentation = analysis.GetIncreasedIndentation();
+                IndentationAnalysis analysis = SyntaxTriviaAnalysis.AnalyzeIndentation(declaration);
 
-                    int start = (addNewLineAfter) ? expression.SpanStart : token.SpanStart;
+                string indentation = analysis.GetIncreasedIndentation();
 
-                    var newLength = indentation.Length + semicolonToken.Span.End - start;
+                int start = (addNewLineAfter) ? expression.SpanStart : token.SpanStart;
 
-                    if (newLength <= maxLength)
+                int newLength = indentation.Length + semicolonToken.Span.End - start;
+
+                if (newLength > maxLength)
+                    return false;
+
+                CodeAction codeAction = CodeAction.Create(
+                    Title,
+                    ct =>
                     {
-                        CodeAction codeAction = CodeAction.Create(
-                            Title,
-                            ct => WrapLineBeforeOrAfterTokenAsync(document, token, addNewLineAfter, indentation, ct),
-                            GetEquivalenceKey(diagnostic));
+                        return (addNewLineAfter)
+                            ? CodeFixHelpers.AddNewLineAfterAsync(document, token, indentation, ct)
+                            : CodeFixHelpers.AddNewLineBeforeAsync(document, token, indentation, ct);
+                    },
+                    GetEquivalenceKey(diagnostic));
 
-                        context.RegisterCodeFix(codeAction, diagnostic);
-                    }
-
-                }
-            }
-        }
-
-        private Task<Document> WrapLineBeforeOrAfterTokenAsync(
-            Document document,
-            SyntaxToken token,
-            bool addNewLineAfter,
-            string indentation,
-            CancellationToken cancellationToken)
-        {
-            if (addNewLineAfter)
-            {
-                return CodeFixHelpers.AddNewLineAfterAsync(document, token, indentation, cancellationToken);
-            }
-            else
-            {
-                return CodeFixHelpers.AddNewLineBeforeAsync(document, token, indentation, cancellationToken);
+                context.RegisterCodeFix(codeAction, diagnostic);
+                return true;
             }
         }
     }
