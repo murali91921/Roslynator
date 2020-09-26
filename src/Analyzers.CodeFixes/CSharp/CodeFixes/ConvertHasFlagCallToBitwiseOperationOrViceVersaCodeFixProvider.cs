@@ -18,9 +18,9 @@ using static Roslynator.CSharp.CSharpFactory;
 
 namespace Roslynator.CSharp.CodeFixes
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(ConvertHasFlagCallToBitwiseOperationCodeFixProvider))]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(ConvertHasFlagCallToBitwiseOperationOrViceVersaCodeFixProvider))]
     [Shared]
-    public class ConvertHasFlagCallToBitwiseOperationCodeFixProvider : BaseCodeFixProvider
+    public class ConvertHasFlagCallToBitwiseOperationOrViceVersaCodeFixProvider : BaseCodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
@@ -67,33 +67,32 @@ namespace Roslynator.CSharp.CodeFixes
             ExpressionSyntax left = equalsOrNotEquals.Left.WalkDownParentheses();
             ExpressionSyntax right = equalsOrNotEquals.Right.WalkDownParentheses();
 
-            BinaryExpressionSyntax bitwiseAnd = (left.IsKind(SyntaxKind.BitwiseAndExpression))
-                ? (BinaryExpressionSyntax)left
-                : (BinaryExpressionSyntax)right;
-
-            ExpressionSyntax expression;
-            ExpressionSyntax argumentExpression;
-
-            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            if (ConvertHasFlagCallToBitwiseOperationAnalysis.IsSuitableAsArgumentOfHasFlag(bitwiseAnd.Right, semanticModel, cancellationToken))
+            BinaryExpressionSyntax bitwiseAnd;
+            ExpressionSyntax valueExpression;
+            if (left.IsKind(SyntaxKind.BitwiseAndExpression))
             {
-                expression = bitwiseAnd.Left;
-                argumentExpression = bitwiseAnd.Right;
+                bitwiseAnd = (BinaryExpressionSyntax)left;
+                valueExpression = right;
             }
             else
             {
-                expression = bitwiseAnd.Right;
-                argumentExpression = bitwiseAnd.Left;
+                bitwiseAnd = (BinaryExpressionSyntax)right;
+                valueExpression = left;
             }
+
+            ExpressionSyntax expression = bitwiseAnd.Left;
+            ExpressionSyntax argumentExpression = bitwiseAnd.Right;
 
             ExpressionSyntax newExpression = SimpleMemberInvocationExpression(
                 expression,
                 IdentifierName("HasFlag"),
                 ArgumentList(Argument(argumentExpression.WalkDownParentheses()))).Parenthesize();
 
-            if (equalsOrNotEquals.IsKind(SyntaxKind.EqualsExpression))
+            if (!(equalsOrNotEquals.IsKind(SyntaxKind.EqualsExpression)
+                ^ valueExpression.IsNumericLiteralExpression("0")))
+            {
                 newExpression = LogicalNotExpression(newExpression).Parenthesize();
+            }
 
             newExpression = newExpression.WithFormatterAnnotation();
 

@@ -153,9 +153,9 @@ namespace Roslynator.CSharp
             switch (typeAppearance)
             {
                 case TypeAppearance.Obvious:
-                    return IsObvious(expression, semanticModel, cancellationToken);
+                    return IsTypeObvious(expression, semanticModel, cancellationToken);
                 case TypeAppearance.NotObvious:
-                    return !IsObvious(expression, semanticModel, cancellationToken);
+                    return !IsTypeObvious(expression, semanticModel, cancellationToken);
             }
 
             Debug.Assert(typeAppearance == TypeAppearance.None, typeAppearance.ToString());
@@ -232,9 +232,9 @@ namespace Roslynator.CSharp
             switch (typeAppearance)
             {
                 case TypeAppearance.Obvious:
-                    return IsObvious(expression, semanticModel, cancellationToken);
+                    return IsTypeObvious(expression, semanticModel, cancellationToken);
                 case TypeAppearance.NotObvious:
-                    return !IsObvious(expression, semanticModel, cancellationToken);
+                    return !IsTypeObvious(expression, semanticModel, cancellationToken);
             }
 
             Debug.Assert(typeAppearance == TypeAppearance.None, typeAppearance.ToString());
@@ -242,10 +242,14 @@ namespace Roslynator.CSharp
             return true;
         }
 
-        private static bool IsObvious(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        public static bool IsTypeObvious(ExpressionSyntax expression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             switch (expression.Kind())
             {
+                case SyntaxKind.StringLiteralExpression:
+                case SyntaxKind.CharacterLiteralExpression:
+                case SyntaxKind.TrueLiteralExpression:
+                case SyntaxKind.FalseLiteralExpression:
                 case SyntaxKind.ObjectCreationExpression:
                 case SyntaxKind.ArrayCreationExpression:
                 case SyntaxKind.CastExpression:
@@ -253,6 +257,23 @@ namespace Roslynator.CSharp
                 case SyntaxKind.ThisExpression:
                 case SyntaxKind.DefaultExpression:
                     {
+                        return true;
+                    }
+                case SyntaxKind.ImplicitArrayCreationExpression:
+                    {
+                        var implicitArrayCreation = (ImplicitArrayCreationExpressionSyntax)expression;
+
+                        var expressions = implicitArrayCreation.Initializer?.Expressions ?? default;
+
+                        if (!expressions.Any())
+                            return false;
+
+                        foreach (ExpressionSyntax expression2 in expressions)
+                        {
+                            if (!IsTypeObvious(expression2, semanticModel, cancellationToken))
+                                return false;
+                        }
+
                         return true;
                     }
                 case SyntaxKind.SimpleMemberAccessExpression:
@@ -520,9 +541,9 @@ namespace Roslynator.CSharp
             switch (typeAppearance)
             {
                 case TypeAppearance.Obvious:
-                    return IsObvious(expression, semanticModel, cancellationToken);
+                    return IsTypeObvious(expression, semanticModel, cancellationToken);
                 case TypeAppearance.NotObvious:
-                    return !IsObvious(expression, semanticModel, cancellationToken);
+                    return !IsTypeObvious(expression, semanticModel, cancellationToken);
             }
 
             Debug.Assert(typeAppearance == TypeAppearance.None, typeAppearance.ToString());
@@ -748,7 +769,7 @@ namespace Roslynator.CSharp
             ForEachVariableStatementSyntax forEachStatement,
             SemanticModel semanticModel)
         {
-            bool isAllVar = true;
+            var isAllVar = true;
 
             foreach (ArgumentSyntax argument in tupleExpression.Arguments)
             {

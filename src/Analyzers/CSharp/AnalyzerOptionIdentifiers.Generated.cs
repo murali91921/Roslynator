@@ -8,11 +8,17 @@ namespace Roslynator.CSharp
 {
     public static partial class AnalyzerOptionIdentifiers
     {
+        public const string UseImplicitlyTypedArrayWhenTypeIsObvious = "RCS1014a";
+        public const string UseImplicitlyTypedArray = "RCS1014i";
+        public const string ConvertExpressionBodyToBlockBodyWhenExpressionIsMultiLine = "RCS1016a";
+        public const string ConvertExpressionBodyToBlockBodyWhenDeclarationIsMultiLine = "RCS1016b";
         public const string RemoveAccessibilityModifiers = "RCS1018i";
         public const string RemoveEmptyLineBetweenClosingBraceAndSwitchSection = "RCS1036a";
         public const string DoNotRenamePrivateStaticReadOnlyFieldToCamelCaseWithUnderscore = "RCS1045a";
         public const string RemoveArgumentListFromObjectCreation = "RCS1050i";
         public const string RemoveParenthesesFromConditionOfConditionalExpressionWhenExpressionIsSingleToken = "RCS1051a";
+        public const string UseStringEmptyInsteadOfEmptyStringLiteral = "RCS1078i";
+        public const string RemoveCallToConfigureAwait = "RCS1090i";
         public const string ConvertBitwiseOperationToHasFlagCall = "RCS1096i";
         public const string SimplifyConditionalExpressionWhenItIncludesNegationOfCondition = "RCS1104a";
         public const string ConvertMethodGroupToAnonymousFunction = "RCS1207i";

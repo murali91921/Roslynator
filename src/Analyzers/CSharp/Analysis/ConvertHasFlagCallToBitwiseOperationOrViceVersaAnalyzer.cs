@@ -6,12 +6,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslynator.CSharp.Syntax;
 using static Roslynator.CSharp.Analysis.ConvertHasFlagCallToBitwiseOperationAnalysis;
 
 namespace Roslynator.CSharp.Analysis
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class ConvertBitwiseOperationToHasFlagCallAnalyzer : BaseDiagnosticAnalyzer
+    public class ConvertHasFlagCallToBitwiseOperationOrViceVersaAnalyzer : BaseDiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
@@ -27,6 +28,10 @@ namespace Roslynator.CSharp.Analysis
                 if (!startContext.IsAnalyzerSuppressed(AnalyzerOptions.ConvertBitwiseOperationToHasFlagCall))
                 {
                     startContext.RegisterSyntaxNodeAction(f => AnalyzeBitwiseAndExpression(f), SyntaxKind.BitwiseAndExpression);
+                }
+                else
+                {
+                    context.RegisterSyntaxNodeAction(f => AnalyzeInvocationExpression(f), SyntaxKind.InvocationExpression);
                 }
             });
         }
@@ -46,11 +51,23 @@ namespace Roslynator.CSharp.Analysis
                 ? equalsOrNotEquals.Right
                 : equalsOrNotEquals.Left;
 
-            if (!otherExpression.WalkDownParentheses().IsNumericLiteralExpression("0"))
-                return;
+            otherExpression = otherExpression.WalkDownParentheses();
+
+            ExpressionSyntax right = bitwiseAnd.Right.WalkDownParentheses();
 
             SemanticModel semanticModel = context.SemanticModel;
             CancellationToken cancellationToken = context.CancellationToken;
+
+            if (otherExpression.IsNumericLiteralExpression("0"))
+            {
+                if (SyntaxUtility.IsCompositeEnumValue(right, semanticModel, cancellationToken))
+                    return;
+            }
+            else if (!CSharpFactory.AreEquivalent(right, otherExpression))
+            {
+                return;
+            }
+
             IMethodSymbol methodSymbol = semanticModel.GetMethodSymbol(bitwiseAnd, cancellationToken);
 
             if (methodSymbol?.MethodKind != MethodKind.BuiltinOperator
@@ -60,20 +77,13 @@ namespace Roslynator.CSharp.Analysis
                 return;
             }
 
-            if (IsSuitableAsArgumentOfHasFlag(bitwiseAnd.Right, semanticModel, cancellationToken))
-            {
-                if (!IsSuitableAsExpressionOfHasFlag(bitwiseAnd.Left))
-                    return;
-            }
-            else if (IsSuitableAsArgumentOfHasFlag(bitwiseAnd.Left, semanticModel, cancellationToken))
-            {
-                if (!IsSuitableAsExpressionOfHasFlag(bitwiseAnd.Right))
-                    return;
-            }
-            else
-            {
+            ExpressionSyntax left = bitwiseAnd.Left.WalkDownParentheses();
+
+            if (!IsSuitableAsExpressionOfHasFlag(left))
                 return;
-            }
+
+            if (!IsSuitableAsArgumentOfHasFlag(right))
+                return;
 
             DiagnosticHelpers.ReportDiagnostic(
                 context,
@@ -82,8 +92,6 @@ namespace Roslynator.CSharp.Analysis
 
             bool IsSuitableAsExpressionOfHasFlag(ExpressionSyntax expression)
             {
-                expression = expression.WalkDownParentheses();
-
                 if (expression.IsKind(
                     SyntaxKind.IdentifierName,
                     SyntaxKind.SimpleMemberAccessExpression,
@@ -95,6 +103,52 @@ namespace Roslynator.CSharp.Analysis
 
                 return false;
             }
+
+            bool IsSuitableAsArgumentOfHasFlag(ExpressionSyntax expression)
+            {
+                expression = expression.WalkDownParentheses();
+
+                if (expression.IsKind(
+                    SyntaxKind.BitwiseAndExpression,
+                    SyntaxKind.BitwiseOrExpression,
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxKind.IdentifierName))
+                {
+                    return semanticModel.GetTypeSymbol(expression, cancellationToken)?.TypeKind == TypeKind.Enum;
+                }
+
+                return false;
+            }
+        }
+
+        private static void AnalyzeInvocationExpression(SyntaxNodeAnalysisContext context)
+        {
+            var invocation = (InvocationExpressionSyntax)context.Node;
+
+            if (invocation.ContainsDiagnostics)
+                return;
+
+            if (invocation.SpanContainsDirectives())
+                return;
+
+            SimpleMemberInvocationExpressionInfo invocationInfo = SyntaxInfo.SimpleMemberInvocationExpressionInfo(invocation);
+
+            if (invocationInfo.Arguments.Count != 1)
+                return;
+
+            if (!invocationInfo.Name.IsKind(SyntaxKind.IdentifierName))
+                return;
+
+            if (invocationInfo.NameText != "HasFlag")
+                return;
+
+            if (!IsFixable(invocationInfo, context.SemanticModel, context.CancellationToken))
+                return;
+
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
+                DiagnosticDescriptors.ConvertHasFlagCallToBitwiseOperationOrViceVersa,
+                invocation);
         }
     }
 }

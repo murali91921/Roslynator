@@ -12,32 +12,26 @@ using Roslynator.CSharp.Refactorings;
 
 namespace Roslynator.CSharp.CodeFixes
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MemberAccessExpressionCodeFixProvider))]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(ConvertLambdaExpressionBodyToExpressionBodyCodeFixProvider))]
     [Shared]
-    public class MemberAccessExpressionCodeFixProvider : BaseCodeFixProvider
+    public class ConvertLambdaExpressionBodyToExpressionBodyCodeFixProvider : BaseCodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(DiagnosticIdentifiers.UseEmptyStringLiteralInsteadOfStringEmpty); }
+            get { return ImmutableArray.Create(DiagnosticIdentifiers.ConvertLambdaExpressionBodyToExpressionBody); }
         }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             SyntaxNode root = await context.GetSyntaxRootAsync().ConfigureAwait(false);
 
-            if (!TryFindFirstAncestorOrSelf(root, context.Span, out MemberAccessExpressionSyntax memberAccess))
+            if (!TryFindFirstAncestorOrSelf(root, context.Span, out BlockSyntax block))
                 return;
 
             CodeAction codeAction = CodeAction.Create(
-                $"Use \"\" instead of '{memberAccess}'",
-                cancellationToken =>
-                {
-                    return UseEmptyStringLiteralInsteadOfStringEmptyRefactoring.RefactorAsync(
-                        context.Document,
-                        memberAccess,
-                        cancellationToken);
-                },
-                GetEquivalenceKey(DiagnosticIdentifiers.UseEmptyStringLiteralInsteadOfStringEmpty));
+                ConvertLambdaExpressionBodyToExpressionBodyRefactoring.Title,
+                ct => ConvertLambdaExpressionBodyToExpressionBodyRefactoring.RefactorAsync(context.Document, (LambdaExpressionSyntax)block.Parent, ct),
+                GetEquivalenceKey(DiagnosticIdentifiers.ConvertLambdaExpressionBodyToExpressionBody));
 
             context.RegisterCodeFix(codeAction, context.Diagnostics);
         }
