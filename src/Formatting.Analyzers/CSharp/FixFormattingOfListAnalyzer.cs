@@ -24,6 +24,12 @@ namespace Roslynator.Formatting.CSharp
 
             context.RegisterSyntaxNodeAction(f => AnalyzeParameterList(f), SyntaxKind.ParameterList);
             context.RegisterSyntaxNodeAction(f => AnalyzeBracketedParameterList(f), SyntaxKind.BracketedParameterList);
+            context.RegisterSyntaxNodeAction(f => AnalyzeTypeParameterList(f), SyntaxKind.TypeParameterList);
+
+            context.RegisterSyntaxNodeAction(f => AnalyzeArgumentList(f), SyntaxKind.ArgumentList);
+            context.RegisterSyntaxNodeAction(f => AnalyzeBracketedArgumentList(f), SyntaxKind.BracketedArgumentList);
+            context.RegisterSyntaxNodeAction(f => AnalyzeAttributeArgumentList(f), SyntaxKind.AttributeArgumentList);
+            context.RegisterSyntaxNodeAction(f => AnalyzeTypeArgumentList(f), SyntaxKind.TypeArgumentList);
         }
 
         private static void AnalyzeParameterList(SyntaxNodeAnalysisContext context)
@@ -38,6 +44,41 @@ namespace Roslynator.Formatting.CSharp
             var parameterList = (BracketedParameterListSyntax)context.Node;
 
             Analyze(context, parameterList.OpenBracketToken, parameterList.Parameters);
+        }
+
+        private static void AnalyzeTypeParameterList(SyntaxNodeAnalysisContext context)
+        {
+            var parameterList = (TypeParameterListSyntax)context.Node;
+
+            Analyze(context, parameterList.LessThanToken, parameterList.Parameters);
+        }
+
+        private static void AnalyzeArgumentList(SyntaxNodeAnalysisContext context)
+        {
+            var argumentList = (ArgumentListSyntax)context.Node;
+
+            Analyze(context, argumentList.OpenParenToken, argumentList.Arguments);
+        }
+
+        private static void AnalyzeBracketedArgumentList(SyntaxNodeAnalysisContext context)
+        {
+            var argumentList = (BracketedArgumentListSyntax)context.Node;
+
+            Analyze(context, argumentList.OpenBracketToken, argumentList.Arguments);
+        }
+
+        private static void AnalyzeAttributeArgumentList(SyntaxNodeAnalysisContext context)
+        {
+            var argumentList = (AttributeArgumentListSyntax)context.Node;
+
+            Analyze(context, argumentList.OpenParenToken, argumentList.Arguments);
+        }
+
+        private static void AnalyzeTypeArgumentList(SyntaxNodeAnalysisContext context)
+        {
+            var argumentList = (TypeArgumentListSyntax)context.Node;
+
+            Analyze(context, argumentList.LessThanToken, argumentList.Arguments);
         }
 
         //TODO: last argument is anonymous function

@@ -15,7 +15,7 @@ namespace Roslynator.Formatting.CSharp.Tests
 
         public override DiagnosticAnalyzer Analyzer { get; } = new FixFormattingOfListAnalyzer();
 
-        public override CodeFixProvider FixProvider { get; } = new BaseParameterListCodeFixProvider();
+        public override CodeFixProvider FixProvider { get; } = new FixFormattingOfListCodeFixProvider();
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task Test_Singleline_AlignedToParenthesis()
