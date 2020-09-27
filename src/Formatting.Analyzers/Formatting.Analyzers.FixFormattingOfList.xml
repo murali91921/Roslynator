@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Analyzers>
-  <Analyzer Identifier="FixParameterListFormatting">
+  <Analyzer Identifier="FixFormattingOfList">
     <Id>RCS0052</Id>
-    <Title>Fix parameter list formatting.</Title>
+    <Title>Fix formatting of a list.</Title>
     <Category>Formatting</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>false</IsEnabledByDefault>
-    <Summary>This analyzer fixes indentation and wrapping of parameters.
+    <Summary>This analyzer fixes indentation and wrapping of items in a list.
 
 Following formats are considered as valid:
 ```cs

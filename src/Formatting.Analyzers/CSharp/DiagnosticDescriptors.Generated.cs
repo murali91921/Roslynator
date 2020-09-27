@@ -538,15 +538,15 @@ namespace Roslynator.Formatting.CSharp
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS0052</summary>
-        public static readonly DiagnosticDescriptor FixParameterListFormatting = DiagnosticDescriptorFactory.Default.Create(
-            id:                 DiagnosticIdentifiers.FixParameterListFormatting, 
-            title:              "Fix parameter list formatting.", 
-            messageFormat:      "Fix parameter list formatting.", 
+        public static readonly DiagnosticDescriptor FixFormattingOfList = DiagnosticDescriptorFactory.Default.Create(
+            id:                 DiagnosticIdentifiers.FixFormattingOfList, 
+            title:              "Fix formatting of a list.", 
+            messageFormat:      "Fix formatting of a list.", 
             category:           DiagnosticCategories.Formatting, 
             defaultSeverity:    DiagnosticSeverity.Info, 
             isEnabledByDefault: false, 
             description:        null, 
-            helpLinkUri:        DiagnosticIdentifiers.FixParameterListFormatting, 
+            helpLinkUri:        DiagnosticIdentifiers.FixFormattingOfList, 
             customTags:         Array.Empty<string>());
 
         public static partial class ReportOnly

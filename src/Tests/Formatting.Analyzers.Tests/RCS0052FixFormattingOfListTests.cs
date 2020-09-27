@@ -9,15 +9,15 @@ using Xunit;
 
 namespace Roslynator.Formatting.CSharp.Tests
 {
-    public class RCS0052FixParameterListFormattingTests : AbstractCSharpFixVerifier
+    public class RCS0052FixFormattingOfListTests : AbstractCSharpFixVerifier
     {
-        public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.FixParameterListFormatting;
+        public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.FixFormattingOfList;
 
-        public override DiagnosticAnalyzer Analyzer { get; } = new FixParameterListFormattingAnalyzer();
+        public override DiagnosticAnalyzer Analyzer { get; } = new FixFormattingOfListAnalyzer();
 
         public override CodeFixProvider FixProvider { get; } = new BaseParameterListCodeFixProvider();
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixParameterListFormatting)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task Test_Singleline_AlignedToParenthesis()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -39,7 +39,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixParameterListFormatting)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task Test_Singleline_NoIndentation()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -61,7 +61,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixParameterListFormatting)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task Test_Singleline_EmptyLine()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -85,7 +85,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixParameterListFormatting)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task Test_Singleline_Comment()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -107,7 +107,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixParameterListFormatting)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task Test_Singleline_EmptyLine_Comment()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -131,7 +131,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixParameterListFormatting)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task Test_Multiline_AlignedToParenthesis()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -169,7 +169,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixParameterListFormatting)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task Test_Multiline_AlignedToParenthesis_WhitespaceAfterParenthesis()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -192,7 +192,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixParameterListFormatting)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task Test_Multiline_FirstParameterNotWrapped()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -221,7 +221,7 @@ namespace N
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixParameterListFormatting)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task Test_Multiline_TwoParametersOnSameLine()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -246,7 +246,34 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixParameterListFormatting)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_TwoParametersOnSameLine2()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M(
+        [|object p1,
+        object p2, object p3,
+        object p4|]) 
+    {
+    }
+}
+", @"
+class C
+{
+    void M(
+        object p1,
+        object p2,
+        object p3,
+        object p4) 
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task Test_Multiline_Comment()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -272,7 +299,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixParameterListFormatting)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task TestNoDiagnostic_Singleline()
         {
             await VerifyNoDiagnosticAsync(@"
@@ -290,7 +317,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixParameterListFormatting)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task TestNoDiagnostic_Multiline()
         {
             await VerifyNoDiagnosticAsync(@"
@@ -310,7 +337,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixParameterListFormatting)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task TestNoDiagnostic_Multiline2()
         {
             await VerifyNoDiagnosticAsync(@"

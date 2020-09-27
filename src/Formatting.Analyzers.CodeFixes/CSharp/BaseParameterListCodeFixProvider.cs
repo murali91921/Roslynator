@@ -21,7 +21,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(DiagnosticIdentifiers.FixParameterListFormatting); }
+            get { return ImmutableArray.Create(DiagnosticIdentifiers.FixFormattingOfList); }
         }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)

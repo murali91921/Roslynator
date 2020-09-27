@@ -204,11 +204,7 @@ namespace Roslynator.CSharp
 
         public static IndentationAnalysis AnalyzeIndentation(SyntaxNode node, CancellationToken cancellationToken = default)
         {
-            SyntaxTrivia indentation = DetermineIndentation(node, cancellationToken);
-
-            int size = DetermineIndentationSize(node, cancellationToken);
-
-            return new IndentationAnalysis(indentation, size);
+            return IndentationAnalysis.Create(node, cancellationToken);
         }
 
         public static SyntaxTrivia DetermineIndentation(SyntaxNodeOrToken nodeOrToken, CancellationToken cancellationToken = default)
@@ -436,6 +432,11 @@ namespace Roslynator.CSharp
         public static string GetIncreasedIndentation(SyntaxNode node, CancellationToken cancellationToken = default)
         {
             return AnalyzeIndentation(node, cancellationToken).GetIncreasedIndentation();
+        }
+
+        public static int GetIncreasedIndentationLength(SyntaxNode node, CancellationToken cancellationToken = default)
+        {
+            return AnalyzeIndentation(node, cancellationToken).IncreasedIndentationLength;
         }
 
         public static SyntaxTrivia GetIncreasedIndentationTrivia(SyntaxNode node, CancellationToken cancellationToken = default)
