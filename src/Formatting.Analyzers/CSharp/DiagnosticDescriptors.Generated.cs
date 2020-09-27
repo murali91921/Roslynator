@@ -537,7 +537,7 @@ namespace Roslynator.Formatting.CSharp
             helpLinkUri:        DiagnosticIdentifiers.AddNewLineBetweenClosingBraceAndWhileKeywordOrViceVersa, 
             customTags:         Array.Empty<string>());
 
-        /// <summary>RCS0052</summary>
+        /// <summary>RCS0053</summary>
         public static readonly DiagnosticDescriptor FixFormattingOfList = DiagnosticDescriptorFactory.Default.Create(
             id:                 DiagnosticIdentifiers.FixFormattingOfList, 
             title:              "Fix formatting of a list.", 

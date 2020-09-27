@@ -449,42 +449,72 @@ namespace Roslynator.CSharp
             return AnalyzeIndentation(node, cancellationToken).GetIncreasedIndentationTriviaList();
         }
 
-        public static IEnumerable<SyntaxTrivia> FindIndentationTrivia(SyntaxNode node)
+        public static IEnumerable<IndentationInfo> FindIndentations(SyntaxNode node)
         {
-            return FindIndentationTrivia(node, node.FullSpan);
+            return FindIndentations(node, node.FullSpan);
         }
 
-        public static IEnumerable<SyntaxTrivia> FindIndentationTrivia(SyntaxNode node, TextSpan span)
+        public static IEnumerable<IndentationInfo> FindIndentations(SyntaxNode node, TextSpan span)
         {
             foreach (SyntaxTrivia trivia in node.DescendantTrivia(span))
             {
-                if (trivia.IsEndOfLineTrivia())
+                if (trivia.IsKind(SyntaxKind.EndOfLineTrivia, SyntaxKind.SingleLineDocumentationCommentTrivia))
                 {
-                    int position = trivia.Span.End + 1;
+                    int position = trivia.Span.End;
 
                     if (span.Contains(position))
                     {
                         SyntaxTrivia trivia2 = node.FindTrivia(position);
 
-                        if (trivia2.IsWhitespaceTrivia()
-                            && trivia.Span.End == trivia2.SpanStart
-                            && span.Contains(trivia2.Span))
+                        SyntaxKind kind = trivia2.Kind();
+
+                        if (kind == SyntaxKind.WhitespaceTrivia)
                         {
-                            yield return trivia2;
+                            if (position == trivia2.SpanStart
+                                && span.Contains(trivia2.Span))
+                            {
+                                yield return new IndentationInfo(trivia2.Token, trivia2.Span);
+                            }
+                        }
+                        else if (kind != SyntaxKind.EndOfLineTrivia)
+                        {
+                            SyntaxToken token = node.FindToken(position);
+
+                            if (position == token.SpanStart
+                                && span.Contains(token.SpanStart))
+                            {
+                                yield return new IndentationInfo(token, new TextSpan(token.SpanStart, 0));
+                            }
                         }
                     }
                 }
             }
         }
 
-        public static TNode SetIndentation<TNode>(TNode expression, SyntaxNode containingDeclaration, int increaseCount = 0) where TNode : SyntaxNode
+        public static TNode SetIndentation<TNode>(
+            TNode expression,
+            SyntaxNode containingDeclaration,
+            int increaseCount = 0) where TNode : SyntaxNode
         {
-            ImmutableArray<SyntaxTrivia> triviaToReplace = FindIndentationTrivia(expression, expression.Span).ToImmutableArray();
+            ImmutableDictionary<SyntaxToken, IndentationInfo> indentations = null;
+            int length;
 
-            if (!triviaToReplace.Any())
-                return expression;
+            using (IEnumerator<IndentationInfo> en = FindIndentations(expression, expression.Span).GetEnumerator())
+            {
+                if (!en.MoveNext())
+                    return expression;
 
-            int length = triviaToReplace[0].Span.Length;
+                ImmutableDictionary<SyntaxToken, IndentationInfo>.Builder builder = ImmutableDictionary.CreateBuilder<SyntaxToken, IndentationInfo>();
+                length = en.Current.Span.Length;
+
+                do
+                {
+                    builder.Add(en.Current.Token, en.Current);
+
+                } while (en.MoveNext());
+
+                indentations = builder.ToImmutableDictionary();
+            }
 
             IndentationAnalysis analysis = AnalyzeIndentation(containingDeclaration);
 
@@ -498,12 +528,56 @@ namespace Roslynator.CSharp
 
             SyntaxTrivia replacementTrivia = Whitespace(replacement);
 
-            return expression.ReplaceTrivia(triviaToReplace, (trivia, _) =>
+            return expression.ReplaceTokens(indentations.Select(f => f.Key), (token, _) =>
             {
-                return (trivia.Span.Length > length)
-                    ? Whitespace(replacement + trivia.ToString().Substring(length))
+                IndentationInfo indentationInfo = indentations[token];
+
+                SyntaxTrivia newIndentation = (indentationInfo.Span.Length > length)
+                    ? Whitespace(replacement + indentationInfo.ToString().Substring(length))
                     : replacementTrivia;
+
+                if (indentationInfo.Span.Length == 0)
+                    return token.AppendToLeadingTrivia(newIndentation);
+
+                SyntaxTriviaList leading = token.LeadingTrivia;
+
+                for (int i = leading.Count - 1; i >= 0; i--)
+                {
+                    if (leading[i].Span == indentationInfo.Span)
+                    {
+                        SyntaxTriviaList newLeading = leading.ReplaceAt(i, newIndentation);
+                        return token.WithLeadingTrivia(newLeading);
+                    }
+                }
+
+                Debug.Fail(token.ToString());
+                return token;
             });
+        }
+
+        public static IndentationChange GetIndentationChange<TNode>(
+            TNode expression,
+            SyntaxNode containingDeclaration,
+            int increaseCount = 0) where TNode : SyntaxNode
+        {
+            ImmutableArray<IndentationInfo> triviaToReplace = FindIndentations(expression, expression.Span).ToImmutableArray();
+
+            if (triviaToReplace.Any())
+            {
+                IndentationAnalysis analysis = AnalyzeIndentation(containingDeclaration);
+
+                string increasedIndentation = analysis.GetIncreasedIndentation();
+
+                string replacement = (increaseCount > 0)
+                    ? string.Concat(Enumerable.Repeat(analysis.GetSingleIndentation(), increaseCount))
+                    : "";
+
+                replacement = increasedIndentation + replacement;
+
+                return new IndentationChange(triviaToReplace, replacement);
+            }
+
+            return IndentationChange.Empty;
         }
     }
 }

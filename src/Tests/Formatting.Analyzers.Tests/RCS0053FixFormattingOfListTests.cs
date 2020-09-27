@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Roslynator.Formatting.CSharp.Tests
 {
-    public class RCS0052FixFormattingOfListTests : AbstractCSharpFixVerifier
+    public class RCS0053FixFormattingOfListTests : AbstractCSharpFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.FixFormattingOfList;
 
@@ -300,6 +300,41 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_NoIndentation()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+
+class C
+{
+    void M(object p1, Func<string, string> p2)
+    {
+        M(
+[|p1, f =>
+{
+    return null;
+}|]);
+    }
+}
+", @"
+using System;
+
+class C
+{
+    void M(object p1, Func<string, string> p2)
+    {
+        M(
+            p1,
+            f =>
+            {
+                return null;
+            });
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task TestNoDiagnostic_Singleline()
         {
             await VerifyNoDiagnosticAsync(@"
@@ -349,6 +384,25 @@ void M(
     object p3) 
 {
 }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task TestNoDiagnostic_LastArgumentIsMultilineAnonymousFunction()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System;
+
+class C
+{
+    void M(Func<string, string> func)
+    {
+        M(f =>
+        {
+            return null;
+        });
+    }
 }
 ");
         }

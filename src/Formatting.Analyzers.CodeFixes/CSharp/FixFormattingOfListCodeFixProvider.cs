@@ -174,6 +174,8 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                     SyntaxTriviaList trailing = token.TrailingTrivia;
 
+                    TNode node = nodes[i];
+
                     if (!IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
                     {
                         TextSpan span = (trailing.Any() && trailing.Last().IsWhitespaceTrivia())
@@ -181,22 +183,40 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                             : new TextSpan(token.FullSpan.End, 0);
 
                         textChanges.Add(new TextChange(span, endOfLineAndIndentation));
-                        continue;
+                    }
+                    else
+                    {
+                        SyntaxTriviaList leading = node.GetLeadingTrivia();
+
+                        SyntaxTrivia last = (leading.Any() && leading.Last().IsWhitespaceTrivia())
+                            ? leading.Last()
+                            : default;
+
+                        if (increasedIndentation.Length != last.Span.Length)
+                        {
+                            TextSpan span = (last.Span.Length > 0)
+                                ? last.Span
+                                : new TextSpan(node.SpanStart, 0);
+
+                            textChanges.Add(new TextChange(span, increasedIndentation));
+                        }
                     }
 
-                    SyntaxTriviaList leading = nodes[i].GetLeadingTrivia();
+                    IndentationChange indentationChange = GetIndentationChange(node, list);
 
-                    SyntaxTrivia last = (leading.Any() && leading.Last().IsWhitespaceTrivia())
-                        ? leading.Last()
-                        : default;
-
-                    if (increasedIndentation.Length != last.Span.Length)
+                    if (!indentationChange.IsEmpty)
                     {
-                        TextSpan span = (last.Span.Length > 0)
-                            ? last.Span
-                            : new TextSpan(nodes[i].SpanStart, 0);
+                        int length = indentationChange.Indentations[0].Span.Length;
 
-                        textChanges.Add(new TextChange(span, increasedIndentation));
+                        foreach (IndentationInfo indentationInfo in indentationChange.Indentations)
+                        {
+                            string replacement = indentationChange.Replacement;
+
+                            if (indentationInfo.Span.Length > length)
+                                replacement += indentationInfo.ToString().Substring(length);
+
+                            textChanges.Add(new TextChange(indentationInfo.Span, replacement));
+                        }
                     }
                 }
 

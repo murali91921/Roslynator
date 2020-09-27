@@ -81,7 +81,6 @@ namespace Roslynator.Formatting.CSharp
             Analyze(context, argumentList.LessThanToken, argumentList.Arguments);
         }
 
-        //TODO: last argument is anonymous function
         private static void Analyze<TNode>(
             SyntaxNodeAnalysisContext context,
             SyntaxToken openToken,
@@ -134,6 +133,15 @@ namespace Roslynator.Formatting.CSharp
 
                     if (!IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
                     {
+                        if (i == nodes.Count - 1
+                            && first.IsKind(SyntaxKind.Argument))
+                        {
+                            var argument = (ArgumentSyntax)(SyntaxNode)first;
+
+                            if (CSharpFacts.IsAnonymousFunctionExpression(argument.Expression.Kind()))
+                                break;
+                        }
+
                         ReportDiagnostic();
                         break;
                     }
