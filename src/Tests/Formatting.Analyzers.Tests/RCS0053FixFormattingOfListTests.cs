@@ -24,7 +24,7 @@ namespace Roslynator.Formatting.CSharp.Tests
 class C
 {
     void M(
-           [|object p1, object p2|]) 
+           [|object x, object y|]) 
     {
     }
 }
@@ -32,7 +32,7 @@ class C
 class C
 {
     void M(
-        object p1, object p2) 
+        object x, object y) 
     {
     }
 }
@@ -46,7 +46,7 @@ class C
 class C
 {
     void M(
-[|object p1, object p2|]) 
+[|object x, object y|]) 
     {
     }
 }
@@ -54,7 +54,7 @@ class C
 class C
 {
     void M(
-        object p1, object p2) 
+        object x, object y) 
     {
     }
 }
@@ -69,7 +69,7 @@ class C
 {
     void M(
 
-[|object p1, object p2|]) 
+[|object x, object y|]) 
     {
     }
 }
@@ -78,7 +78,7 @@ class C
 {
     void M(
 
-        object p1, object p2) 
+        object x, object y) 
     {
     }
 }
@@ -92,7 +92,7 @@ class C
 class C
 {
     void M( // x
-    [|object p1, object p2|]) 
+    [|object x, object y|]) 
     {
     }
 }
@@ -100,7 +100,7 @@ class C
 class C
 {
     void M( // x
-        object p1, object p2) 
+        object x, object y) 
     {
     }
 }
@@ -115,7 +115,7 @@ class C
 {
     void M(
 // x
-[|object p1, object p2|]) 
+[|object x, object y|]) 
     {
     }
 }
@@ -124,7 +124,7 @@ class C
 {
     void M(
 // x
-        object p1, object p2) 
+        object x, object y) 
     {
     }
 }
@@ -145,8 +145,8 @@ class C
 
     [Obsolete]
     void M2(
-            [|object p1,
-            object p2|]) 
+            [|object x,
+            object y|]) 
     {
     }
 }
@@ -161,8 +161,8 @@ class C
 
     [Obsolete]
     void M2(
-        object p1,
-        object p2) 
+        object x,
+        object y) 
     {
     }
 }
@@ -175,8 +175,8 @@ class C
             await VerifyDiagnosticAndFixAsync(@"
 class C
 {
-    void M( [|object p1,
-           object p2|]) 
+    void M( [|object x,
+           object y|]) 
     {
     }
 }
@@ -184,8 +184,8 @@ class C
 class C
 {
     void M(
-        object p1,
-        object p2) 
+        object x,
+        object y) 
     {
     }
 }
@@ -200,8 +200,8 @@ namespace N
 {
     class C
     {
-        void M([|object p1,
-            object p2|]) 
+        void M([|object x,
+            object y|]) 
         {
         }
     }
@@ -212,8 +212,8 @@ namespace N
     class C
     {
         void M(
-            object p1,
-            object p2) 
+            object x,
+            object y) 
         {
         }
     }
@@ -228,8 +228,8 @@ namespace N
 class C
 {
     void M(
-        [|object p1,
-        object p2,object p3|]) 
+        [|object x,
+        object y,object z|]) 
     {
     }
 }
@@ -237,9 +237,9 @@ class C
 class C
 {
     void M(
-        object p1,
-        object p2,
-        object p3) 
+        object x,
+        object y,
+        object z) 
     {
     }
 }
@@ -253,8 +253,8 @@ class C
 class C
 {
     void M(
-        [|object p1,
-        object p2, object p3,
+        [|object x,
+        object y, object z,
         object p4|]) 
     {
     }
@@ -263,9 +263,9 @@ class C
 class C
 {
     void M(
-        object p1,
-        object p2,
-        object p3,
+        object x,
+        object y,
+        object z,
         object p4) 
     {
     }
@@ -281,8 +281,8 @@ class C
 {
     void M( // x
  // x
-    [|object p1, // xx
-    object p2|])
+    [|object x, // xx
+    object y|])
     {
     }
 }
@@ -291,8 +291,8 @@ class C
 {
     void M( // x
  // x
-        object p1, // xx
-        object p2)
+        object x, // xx
+        object y)
     {
     }
 }
@@ -307,13 +307,13 @@ using System;
 
 class C
 {
-    void M(Func<string, string> p1, object p2)
+    void M(Func<string, string> x, object y)
     {
         M([|f =>
 {
     return null;
 },
-p2|]);
+y|]);
     }
 }
 ", @"
@@ -321,14 +321,14 @@ using System;
 
 class C
 {
-    void M(Func<string, string> p1, object p2)
+    void M(Func<string, string> x, object y)
     {
         M(
             f =>
             {
                 return null;
             },
-            p2);
+            y);
     }
 }
 ");
@@ -342,13 +342,13 @@ using System;
 
 class C
 {
-    void M(Func<string, string> p1, object p2)
+    void M(Func<string, string> x, object y)
     {
         M([|f =>
         {
             return null;
         },
-p2|]);
+y|]);
     }
 }
 ", @"
@@ -356,39 +356,39 @@ using System;
 
 class C
 {
-    void M(Func<string, string> p1, object p2)
+    void M(Func<string, string> x, object y)
     {
         M(
             f =>
             {
                 return null;
             },
-            p2);
+            y);
     }
 }
 ");
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
-            public async Task Test_Multiline_IndentationsDiffer()
+        public async Task Test_Multiline_IndentationsDiffer()
         {
             await VerifyDiagnosticAndFixAsync(@"
 class C
 {
-    void M(object p1, string p2)
+    void M(object x, string y)
     {
-        M([|p1, p2.ToString()
+        M([|x, y.ToString()
             .ToString()|]);
     }
 }
 ", @"
 class C
 {
-    void M(object p1, string p2)
+    void M(object x, string y)
     {
         M(
-            p1,
-            p2.ToString()
+            x,
+            y.ToString()
                 .ToString());
     }
 }
@@ -396,7 +396,33 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
-            public async Task Test_Multiline_SecondParameterIsAlreadIndented()
+        public async Task Test_Multiline_IndentationsDiffer_Tab()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+	void M(object x, string y)
+	{
+		M([|x, y.ToString()
+			.ToString()|]);
+	}
+}
+", @"
+class C
+{
+	void M(object x, string y)
+	{
+		M(
+			x,
+			y.ToString()
+				.ToString());
+	}
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_SecondParameterIsAlreadIndented()
         {
             await VerifyDiagnosticAndFixAsync(@"
 using System.Linq;
@@ -404,9 +430,9 @@ using System.Collections.Generic;
 
 class C
 {
-    void M(string p1, IEnumerable<string> p2)
+    void M(string x, IEnumerable<string> y)
     {
-        M([|p1,
+        M([|x,
             Enumerable.Empty<string>()
                 .OrderBy(f => f)
                 .Select(f => f)|]
@@ -419,10 +445,10 @@ using System.Collections.Generic;
 
 class C
 {
-    void M(string p1, IEnumerable<string> p2)
+    void M(string x, IEnumerable<string> y)
     {
         M(
-            p1,
+            x,
             Enumerable.Empty<string>()
                 .OrderBy(f => f)
                 .Select(f => f)
@@ -433,27 +459,255 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
-            public async Task Test_Multiline_ConditionalExpression()
+        public async Task Test_Multiline_ConditionalExpression()
         {
             await VerifyDiagnosticAndFixAsync(@"
 class C
 {
-    void M(string p1)
+    void M(string x, string y)
     {
-        M([|(p1 != null)
-            ? p1
+        M([|x, (y != null)
+            ? y
             : """"|]);
     }
 }
 ", @"
 class C
 {
-    void M(string p1)
+    void M(string x, string y)
     {
         M(
-            (p1 != null)
-                ? p1
+            x,
+            (y != null)
+                ? y
                 : """");
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_SingleMultilineParameter_WrongIndentation()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M(string x)
+    {
+        M([|(x != null)
+    ? x
+    : """"|]);
+    }
+}
+", @"
+class C
+{
+    void M(string x)
+    {
+        M((x != null)
+            ? x
+            : """");
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_SingleMultilineParameter_NoIndentation()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M(string x)
+    {
+        M([|(x != null)
+? x
+: """"|]);
+    }
+}
+", @"
+class C
+{
+    void M(string x)
+    {
+        M((x != null)
+            ? x
+            : """");
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_BaseConstructorArguments()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C : B
+{
+    public C(string x, string y) : base([|x, (y != null)
+        ? y
+        : """"|])
+    {
+    }
+}
+
+class B
+{
+    public B(string x, string y)
+    {
+    }
+}
+", @"
+class C : B
+{
+    public C(string x, string y) : base(
+        x,
+        (y != null)
+            ? y
+            : """")
+    {
+    }
+}
+
+class B
+{
+    public B(string x, string y)
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_BaseConstructorArguments2()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C : B
+{
+    public C(string x, string y)
+        : base([|x, (y != null)
+            ? y
+            : """"|])
+    {
+    }
+}
+
+class B
+{
+    public B(string x, string y)
+    {
+    }
+}
+", @"
+class C : B
+{
+    public C(string x, string y)
+        : base(
+            x,
+            (y != null)
+                ? y
+                : """")
+    {
+    }
+}
+
+class B
+{
+    public B(string x, string y)
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_StringLiteral()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M(string x, string y)
+    {
+        M([|x, @""
+a
+b
+c
+""|]);
+    }
+}
+", @"
+class C
+{
+    void M(string x, string y)
+    {
+        M(
+            x,
+            @""
+a
+b
+c
+"");
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_AttributeList()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+
+class C
+{
+    [[|CLSCompliant(false), Obsolete(
+        """", true)|]]
+    void M()
+    {
+    }
+}
+", @"
+using System;
+
+class C
+{
+    [CLSCompliant(false),
+        Obsolete(
+            """",
+            true)]
+    void M()
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_AttributeList_NotIndented()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+
+class C
+{
+    [[|CLSCompliant(false), Obsolete(
+"""",
+true)|]]
+    void M()
+    {
+    }
+}
+", @"
+using System;
+
+class C
+{
+    [CLSCompliant(false),
+        Obsolete(
+            """",
+            true)]
+    void M()
+    {
     }
 }
 ");
@@ -465,12 +719,12 @@ class C
             await VerifyNoDiagnosticAsync(@"
 class C
 {
-    void M(object p1, object p2, object p3) 
+    void M(object x, object y, object z) 
     {
     }
 
     void M2(
-        object p1, object p2, object p3) 
+        object x, object y, object z) 
     {
     }
 }
@@ -488,9 +742,9 @@ class C
     }
 
     void M2(
-        object p1,
-        object p2,
-        object p3) 
+        object x,
+        object y,
+        object z) 
     {
     }
 }
@@ -504,9 +758,9 @@ class C
 class C
 {
 void M(
-    object p1,
-    object p2,
-    object p3) 
+    object x,
+    object y,
+    object z) 
 {
 }
 }
@@ -521,12 +775,30 @@ using System;
 
 class C
 {
-    void M(object p, Func<string, string> func)
+    void M(object x, Func<string, string> func)
     {
-        M(p, f =>
+        M(x, f =>
         {
             return null;
         });
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task TestNoDiagnostic_SingleMultilineParameter()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    void M(string x)
+    {
+        M([|(x != null)
+            ? x
+            : """"|]);
+        {
+        }
     }
 }
 ");

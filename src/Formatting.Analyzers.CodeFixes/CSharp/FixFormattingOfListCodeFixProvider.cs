@@ -180,11 +180,15 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                     if (!IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
                     {
-                        TextSpan span = (trailing.Any() && trailing.Last().IsWhitespaceTrivia())
-                            ? trailing.Last().Span
-                            : new TextSpan(token.FullSpan.End, 0);
+                        if (nodes.Count > 1
+                            && (i > 0 || !list.IsKind(SyntaxKind.AttributeList)))
+                        {
+                            TextSpan span = (trailing.Any() && trailing.Last().IsWhitespaceTrivia())
+                                ? trailing.Last().Span
+                                : new TextSpan(token.FullSpan.End, 0);
 
-                        textChanges.Add(new TextChange(span, endOfLineAndIndentation));
+                            textChanges.Add(new TextChange(span, endOfLineAndIndentation));
+                        }
                     }
                     else
                     {

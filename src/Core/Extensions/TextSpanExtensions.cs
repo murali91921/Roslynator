@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -156,6 +157,22 @@ namespace Roslynator
         {
             return IsEmptyAndContainedInSpan(span, token1)
                 || IsEmptyAndContainedInSpan(span, token2);
+        }
+
+        public static bool IsSingleLine(
+            this TextSpan span,
+            SyntaxTree syntaxTree,
+            CancellationToken cancellationToken = default)
+        {
+            return syntaxTree.GetLineSpan(span, cancellationToken).IsSingleLine();
+        }
+
+        public static bool IsMultiLine(
+            this TextSpan span,
+            SyntaxTree syntaxTree,
+            CancellationToken cancellationToken = default)
+        {
+            return syntaxTree.GetLineSpan(span, cancellationToken).IsMultiLine();
         }
     }
 }

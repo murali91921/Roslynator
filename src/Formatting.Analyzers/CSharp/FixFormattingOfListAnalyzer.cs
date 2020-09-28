@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using Roslynator.CSharp;
 using static Roslynator.CSharp.SyntaxTriviaAnalysis;
 
@@ -30,6 +31,9 @@ namespace Roslynator.Formatting.CSharp
             context.RegisterSyntaxNodeAction(f => AnalyzeBracketedArgumentList(f), SyntaxKind.BracketedArgumentList);
             context.RegisterSyntaxNodeAction(f => AnalyzeAttributeArgumentList(f), SyntaxKind.AttributeArgumentList);
             context.RegisterSyntaxNodeAction(f => AnalyzeTypeArgumentList(f), SyntaxKind.TypeArgumentList);
+
+            context.RegisterSyntaxNodeAction(f => AnalyzeBaseList(f), SyntaxKind.BaseList);
+            context.RegisterSyntaxNodeAction(f => AnalyzeAttributeList(f), SyntaxKind.AttributeList);
         }
 
         private static void AnalyzeParameterList(SyntaxNodeAnalysisContext context)
@@ -81,6 +85,20 @@ namespace Roslynator.Formatting.CSharp
             Analyze(context, argumentList.LessThanToken, argumentList.Arguments);
         }
 
+        private void AnalyzeBaseList(SyntaxNodeAnalysisContext context)
+        {
+            var baseList = (BaseListSyntax)context.Node;
+
+            Analyze(context, baseList.ColonToken, baseList.Types);
+        }
+
+        private void AnalyzeAttributeList(SyntaxNodeAnalysisContext context)
+        {
+            var attributeList = (AttributeListSyntax)context.Node;
+
+            Analyze(context, attributeList.OpenBracketToken, attributeList.Attributes);
+        }
+
         private static void Analyze<TNode>(
             SyntaxNodeAnalysisContext context,
             SyntaxToken openToken,
@@ -91,7 +109,11 @@ namespace Roslynator.Formatting.CSharp
             if (first == null)
                 return;
 
-            if (nodes.IsSingleLine(includeExteriorTrivia: false))
+            TextSpan span = nodes.GetSpan(includeExteriorTrivia: false);
+
+            FileLinePositionSpan lineSpan = first.SyntaxTree.GetLineSpan(span);
+
+            if (lineSpan.IsSingleLine())
             {
                 SyntaxTriviaList trailing = openToken.TrailingTrivia;
 
@@ -142,8 +164,50 @@ namespace Roslynator.Formatting.CSharp
                                 break;
                         }
 
-                        ReportDiagnostic();
-                        break;
+                        if (nodes.Count == 1
+                            || (i == 0
+                                && context.Node.IsKind(SyntaxKind.AttributeList)
+                                && first.IsMultiLine(includeExteriorTrivia: false)))
+                        {
+                            TextSpan span2 = first.Span;
+
+                            int lineStartIndex = span2.Start - first.SyntaxTree.GetLineSpan(span2).StartLinePosition.Character;
+
+                            SyntaxToken token = first.FindToken(lineStartIndex);
+
+                            if (!token.IsKind(SyntaxKind.None))
+                            {
+                                SyntaxTriviaList leading2 = token.LeadingTrivia;
+
+                                if (leading2.Any())
+                                {
+                                    if (leading2.FullSpan.Contains(lineStartIndex))
+                                    {
+                                        SyntaxTrivia trivia = leading2.Last();
+
+                                        if (trivia.IsWhitespaceTrivia()
+                                            && trivia.SpanStart == lineStartIndex
+                                            && trivia.Span.Length != indentationLength)
+                                        {
+                                            ReportDiagnostic();
+                                            break;
+                                        }
+                                    }
+                                }
+                                else if (lineStartIndex == token.SpanStart)
+                                {
+                                    ReportDiagnostic();
+                                    break;
+                                }
+                            }
+
+                            continue;
+                        }
+                        else
+                        {
+                            ReportDiagnostic();
+                            break;
+                        }
                     }
 
                     SyntaxTriviaList leading = nodes[i].GetLeadingTrivia();
