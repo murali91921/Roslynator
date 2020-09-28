@@ -354,6 +354,24 @@ namespace Roslynator.CSharp
 
                                         break;
                                     }
+                                case StatementSyntax statement2:
+                                    {
+                                        int size = GetIndentationSize(statement, statement2);
+
+                                        if (size > 0)
+                                            return size;
+
+                                        break;
+                                    }
+                                case ElseClauseSyntax elseClause:
+                                    {
+                                        int size = GetIndentationSize(statement, elseClause);
+
+                                        if (size > 0)
+                                            return size;
+
+                                        break;
+                                    }
                                 default:
                                     {
                                         Debug.Fail(node.Parent.Kind().ToString());
@@ -529,30 +547,30 @@ namespace Roslynator.CSharp
             SyntaxTrivia replacementTrivia = Whitespace(replacement);
 
             return expression.ReplaceTokens(indentations.Select(f => f.Key), (token, _) =>
-            {
-                IndentationInfo indentationInfo = indentations[token];
-
-                SyntaxTrivia newIndentation = (indentationInfo.Span.Length > length)
-                    ? Whitespace(replacement + indentationInfo.ToString().Substring(length))
-                    : replacementTrivia;
-
-                if (indentationInfo.Span.Length == 0)
-                    return token.AppendToLeadingTrivia(newIndentation);
-
-                SyntaxTriviaList leading = token.LeadingTrivia;
-
-                for (int i = leading.Count - 1; i >= 0; i--)
                 {
-                    if (leading[i].Span == indentationInfo.Span)
-                    {
-                        SyntaxTriviaList newLeading = leading.ReplaceAt(i, newIndentation);
-                        return token.WithLeadingTrivia(newLeading);
-                    }
-                }
+                    IndentationInfo indentationInfo = indentations[token];
 
-                Debug.Fail(token.ToString());
-                return token;
-            });
+                    SyntaxTrivia newIndentation = (indentationInfo.Span.Length > length)
+                        ? Whitespace(replacement + indentationInfo.ToString().Substring(length))
+                        : replacementTrivia;
+
+                    if (indentationInfo.Span.Length == 0)
+                        return token.AppendToLeadingTrivia(newIndentation);
+
+                    SyntaxTriviaList leading = token.LeadingTrivia;
+
+                    for (int i = leading.Count - 1; i >= 0; i--)
+                    {
+                        if (leading[i].Span == indentationInfo.Span)
+                        {
+                            SyntaxTriviaList newLeading = leading.ReplaceAt(i, newIndentation);
+                            return token.WithLeadingTrivia(newLeading);
+                        }
+                    }
+
+                    Debug.Fail(token.ToString());
+                    return token;
+                });
         }
 
         public static IndentationChange GetIndentationChange<TNode>(

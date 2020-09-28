@@ -125,7 +125,7 @@ namespace Roslynator.Formatting.CSharp
                 if (indentationLength == 0)
                     return;
 
-                for (int i = 0; i < nodes.Count; i++)
+                for (int i = nodes.Count - 1; i >= 0; i--)
                 {
                     SyntaxTriviaList trailing = (i == 0)
                         ? openToken.TrailingTrivia
@@ -134,9 +134,9 @@ namespace Roslynator.Formatting.CSharp
                     if (!IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
                     {
                         if (i == nodes.Count - 1
-                            && first.IsKind(SyntaxKind.Argument))
+                            && nodes[i].IsKind(SyntaxKind.Argument))
                         {
-                            var argument = (ArgumentSyntax)(SyntaxNode)first;
+                            var argument = (ArgumentSyntax)(SyntaxNode)nodes[i];
 
                             if (CSharpFacts.IsAnonymousFunctionExpression(argument.Expression.Kind()))
                                 break;

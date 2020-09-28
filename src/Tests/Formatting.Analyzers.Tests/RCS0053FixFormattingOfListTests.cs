@@ -396,9 +396,9 @@ using System;
 
 class C
 {
-    void M(Func<string, string> func)
+    void M(object p, Func<string, string> func)
     {
-        M(f =>
+        M(p, f =>
         {
             return null;
         });
