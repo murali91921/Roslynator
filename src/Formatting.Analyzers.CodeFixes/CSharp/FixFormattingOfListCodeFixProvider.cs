@@ -49,6 +49,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         case SyntaxKind.BracketedArgumentList:
                         case SyntaxKind.AttributeArgumentList:
                         case SyntaxKind.TypeArgumentList:
+                        case SyntaxKind.AttributeList:
                             return true;
                         default:
                             return false;
@@ -128,6 +129,16 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         CodeAction codeAction = CodeAction.Create(
                             Title,
                             ct => FixAsync(document, typeArgumentList, typeArgumentList.Arguments, typeArgumentList.LessThanToken, ct),
+                            GetEquivalenceKey(diagnostic));
+
+                        context.RegisterCodeFix(codeAction, diagnostic);
+                        break;
+                    }
+                case AttributeListSyntax attributeList:
+                    {
+                        CodeAction codeAction = CodeAction.Create(
+                            Title,
+                            ct => FixAsync(document, attributeList, attributeList.Attributes, attributeList.OpenBracketToken, ct),
                             GetEquivalenceKey(diagnostic));
 
                         context.RegisterCodeFix(codeAction, diagnostic);

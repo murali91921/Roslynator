@@ -660,9 +660,10 @@ using System;
 
 class C
 {
-    [[|CLSCompliant(false), Obsolete(
-        """", true)|]]
-    void M()
+    [[|Flags, Obsolete(
+        """",
+        true)|]]
+    enum E
     {
     }
 }
@@ -671,11 +672,11 @@ using System;
 
 class C
 {
-    [CLSCompliant(false),
+    [Flags,
         Obsolete(
             """",
             true)]
-    void M()
+    enum E
     {
     }
 }
@@ -690,10 +691,10 @@ using System;
 
 class C
 {
-    [[|CLSCompliant(false), Obsolete(
-"""",
-true)|]]
-    void M()
+    [[|Flags, Obsolete(
+[|"""",
+true|])|]]
+    enum E
     {
     }
 }
@@ -702,11 +703,11 @@ using System;
 
 class C
 {
-    [CLSCompliant(false),
+    [Flags,
         Obsolete(
             """",
             true)]
-    void M()
+    enum E
     {
     }
 }
@@ -794,11 +795,9 @@ class C
 {
     void M(string x)
     {
-        M([|(x != null)
+        M((x != null)
             ? x
-            : """"|]);
-        {
-        }
+            : """");
     }
 }
 ");

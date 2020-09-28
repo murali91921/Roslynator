@@ -32,7 +32,6 @@ namespace Roslynator.Formatting.CSharp
             context.RegisterSyntaxNodeAction(f => AnalyzeAttributeArgumentList(f), SyntaxKind.AttributeArgumentList);
             context.RegisterSyntaxNodeAction(f => AnalyzeTypeArgumentList(f), SyntaxKind.TypeArgumentList);
 
-            context.RegisterSyntaxNodeAction(f => AnalyzeBaseList(f), SyntaxKind.BaseList);
             context.RegisterSyntaxNodeAction(f => AnalyzeAttributeList(f), SyntaxKind.AttributeList);
         }
 
@@ -83,13 +82,6 @@ namespace Roslynator.Formatting.CSharp
             var argumentList = (TypeArgumentListSyntax)context.Node;
 
             Analyze(context, argumentList.LessThanToken, argumentList.Arguments);
-        }
-
-        private void AnalyzeBaseList(SyntaxNodeAnalysisContext context)
-        {
-            var baseList = (BaseListSyntax)context.Node;
-
-            Analyze(context, baseList.ColonToken, baseList.Types);
         }
 
         private void AnalyzeAttributeList(SyntaxNodeAnalysisContext context)
@@ -166,38 +158,43 @@ namespace Roslynator.Formatting.CSharp
 
                         if (nodes.Count == 1
                             || (i == 0
-                                && context.Node.IsKind(SyntaxKind.AttributeList)
-                                && first.IsMultiLine(includeExteriorTrivia: false)))
+                                && context.Node.IsKind(SyntaxKind.AttributeList)))
                         {
-                            TextSpan span2 = first.Span;
-
-                            int lineStartIndex = span2.Start - first.SyntaxTree.GetLineSpan(span2).StartLinePosition.Character;
-
-                            SyntaxToken token = first.FindToken(lineStartIndex);
-
-                            if (!token.IsKind(SyntaxKind.None))
+                            TextLineCollection lines = first.SyntaxTree.GetText().Lines;
+                            int lineIndex = lines.IndexOf(span.Start);
+                            if (lineIndex < lines.Count - 1)
                             {
-                                SyntaxTriviaList leading2 = token.LeadingTrivia;
+                                int lineStartIndex = lines[lineIndex + 1].Start;
 
-                                if (leading2.Any())
+                                if (first.Span.Contains(lineStartIndex))
                                 {
-                                    if (leading2.FullSpan.Contains(lineStartIndex))
-                                    {
-                                        SyntaxTrivia trivia = leading2.Last();
+                                    SyntaxToken token = first.FindToken(lineStartIndex);
 
-                                        if (trivia.IsWhitespaceTrivia()
-                                            && trivia.SpanStart == lineStartIndex
-                                            && trivia.Span.Length != indentationLength)
+                                    if (!token.IsKind(SyntaxKind.None))
+                                    {
+                                        SyntaxTriviaList leading2 = token.LeadingTrivia;
+
+                                        if (leading2.Any())
+                                        {
+                                            if (leading2.FullSpan.Contains(lineStartIndex))
+                                            {
+                                                SyntaxTrivia trivia = leading2.Last();
+
+                                                if (trivia.IsWhitespaceTrivia()
+                                                    && trivia.SpanStart == lineStartIndex
+                                                    && trivia.Span.Length != indentationLength)
+                                                {
+                                                    ReportDiagnostic();
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        else if (lineStartIndex == token.SpanStart)
                                         {
                                             ReportDiagnostic();
                                             break;
                                         }
                                     }
-                                }
-                                else if (lineStartIndex == token.SpanStart)
-                                {
-                                    ReportDiagnostic();
-                                    break;
                                 }
                             }
 
