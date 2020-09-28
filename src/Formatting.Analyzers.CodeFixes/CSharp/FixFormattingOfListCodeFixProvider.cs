@@ -189,6 +189,8 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                     TNode node = nodes[i];
 
+                    bool indentationAdded = false;
+
                     if (!IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
                     {
                         if (nodes.Count > 1
@@ -199,6 +201,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                                 : new TextSpan(token.FullSpan.End, 0);
 
                             textChanges.Add(new TextChange(span, endOfLineAndIndentation));
+                            indentationAdded = true;
                         }
                     }
                     else
@@ -217,13 +220,14 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                             : new TextSpan(node.SpanStart, 0);
 
                         textChanges.Add(new TextChange(span, increasedIndentation));
+                        indentationAdded = true;
                     }
 
                     ImmutableArray<IndentationInfo> indentations = FindIndentations(node, node.Span).ToImmutableArray();
 
                     if (indentations.Any())
                     {
-                        int length = indentationAnalysis.IndentationLength;
+                        int length = indentations[0].Span.Length;
 
                         for (int j = 0; j < indentations.Length; j++)
                         {
@@ -231,14 +235,20 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                             string replacement = increasedIndentation;
 
-                            if (j == 0)
+                            if (indentationAdded
+                                && node.IsKind(SyntaxKind.Argument))
                             {
-                                if (indentationInfo.Span.Length > length)
-                                    replacement += indentationInfo.ToString().Substring(length);
+                                var argument = (ArgumentSyntax)(SyntaxNode)node;
 
-                                length = Math.Min(length, indentationInfo.Span.Length);
+                                if (CSharpFacts.IsAnonymousFunctionExpression(argument.Expression.Kind()))
+                                    indentationAdded = false;
                             }
-                            else if (indentationInfo.Span.Length > length)
+
+                            if (indentationAdded)
+                                replacement += indentationAnalysis.GetSingleIndentation();
+
+                            if (j > 0
+                                && indentationInfo.Span.Length > length)
                             {
                                 replacement += indentationInfo.ToString().Substring(length);
                             }

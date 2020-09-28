@@ -513,6 +513,36 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_SingleMultilineParameter_WrongIndentation2()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M(string x)
+    {
+        M([|M2(
+                [|x,
+                x|])|]);
+    }
+
+    string M2(string x, string y) => null;
+}
+", @"
+class C
+{
+    void M(string x)
+    {
+        M(M2(
+            x,
+            x));
+    }
+
+    string M2(string x, string y) => null;
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task Test_Multiline_SingleMultilineParameter_NoIndentation()
         {
             await VerifyDiagnosticAndFixAsync(@"
