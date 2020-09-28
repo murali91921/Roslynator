@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -202,18 +203,29 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         }
                     }
 
-                    IndentationChange indentationChange = GetIndentationChange(node, list);
+                    ImmutableArray<IndentationInfo> indentations = FindIndentations(node, node.Span).ToImmutableArray();
 
-                    if (!indentationChange.IsEmpty)
+                    if (indentations.Any())
                     {
-                        int length = indentationChange.Indentations[0].Span.Length;
+                        int length = indentationAnalysis.IndentationLength;
 
-                        foreach (IndentationInfo indentationInfo in indentationChange.Indentations)
+                        for (int j = 0; j < indentations.Length; j++)
                         {
-                            string replacement = indentationChange.Replacement;
+                            IndentationInfo indentationInfo = indentations[j];
 
-                            if (indentationInfo.Span.Length > length)
+                            string replacement = increasedIndentation;
+
+                            if (j == 0)
+                            {
+                                if (indentationInfo.Span.Length > length)
+                                    replacement += indentationInfo.ToString().Substring(length);
+
+                                length = indentationInfo.Span.Length;
+                            }
+                            else if (indentationInfo.Span.Length > length)
+                            {
                                 replacement += indentationInfo.ToString().Substring(length);
+                            }
 
                             textChanges.Add(new TextChange(indentationInfo.Span, replacement));
                         }

@@ -307,13 +307,13 @@ using System;
 
 class C
 {
-    void M(object p1, Func<string, string> p2)
+    void M(Func<string, string> p1, object p2)
     {
-        M(
-[|p1, f =>
+        M([|f =>
 {
     return null;
-}|]);
+},
+p2|]);
     }
 }
 ", @"
@@ -321,14 +321,40 @@ using System;
 
 class C
 {
-    void M(object p1, Func<string, string> p2)
+    void M(Func<string, string> p1, object p2)
     {
         M(
-            p1,
             f =>
             {
                 return null;
-            });
+            },
+            p2);
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+            public async Task Test_Multiline_IndentationsDiffer()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M(object p1, string p2)
+    {
+        M([|p1, p2.ToString()
+            .ToString()|]);
+    }
+}
+", @"
+class C
+{
+    void M(object p1, string p2)
+    {
+        M(
+            p1,
+            p2.ToString()
+                .ToString());
     }
 }
 ");

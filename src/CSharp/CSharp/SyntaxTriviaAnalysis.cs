@@ -572,30 +572,5 @@ namespace Roslynator.CSharp
                     return token;
                 });
         }
-
-        public static IndentationChange GetIndentationChange<TNode>(
-            TNode expression,
-            SyntaxNode containingDeclaration,
-            int increaseCount = 0) where TNode : SyntaxNode
-        {
-            ImmutableArray<IndentationInfo> triviaToReplace = FindIndentations(expression, expression.Span).ToImmutableArray();
-
-            if (triviaToReplace.Any())
-            {
-                IndentationAnalysis analysis = AnalyzeIndentation(containingDeclaration);
-
-                string increasedIndentation = analysis.GetIncreasedIndentation();
-
-                string replacement = (increaseCount > 0)
-                    ? string.Concat(Enumerable.Repeat(analysis.GetSingleIndentation(), increaseCount))
-                    : "";
-
-                replacement = increasedIndentation + replacement;
-
-                return new IndentationChange(triviaToReplace, replacement);
-            }
-
-            return IndentationChange.Empty;
-        }
     }
 }
