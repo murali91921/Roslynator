@@ -300,7 +300,7 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
-        public async Task Test_Multiline_NoIndentation()
+        public async Task Test_Multiline_FirstParameterIsMultilineLambda()
         {
             await VerifyDiagnosticAndFixAsync(@"
 using System;
@@ -313,6 +313,41 @@ class C
 {
     return null;
 },
+p2|]);
+    }
+}
+", @"
+using System;
+
+class C
+{
+    void M(Func<string, string> p1, object p2)
+    {
+        M(
+            f =>
+            {
+                return null;
+            },
+            p2);
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_FirstParameterIsMultilineLambda2()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+
+class C
+{
+    void M(Func<string, string> p1, object p2)
+    {
+        M([|f =>
+        {
+            return null;
+        },
 p2|]);
     }
 }
@@ -355,6 +390,70 @@ class C
             p1,
             p2.ToString()
                 .ToString());
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+            public async Task Test_Multiline_SecondParameterIsAlreadIndented()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void M(string p1, IEnumerable<string> p2)
+    {
+        M([|p1,
+            Enumerable.Empty<string>()
+                .OrderBy(f => f)
+                .Select(f => f)|]
+        );
+    }
+}
+", @"
+using System.Linq;
+using System.Collections.Generic;
+
+class C
+{
+    void M(string p1, IEnumerable<string> p2)
+    {
+        M(
+            p1,
+            Enumerable.Empty<string>()
+                .OrderBy(f => f)
+                .Select(f => f)
+        );
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+            public async Task Test_Multiline_ConditionalExpression()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M(string p1)
+    {
+        M([|(p1 != null)
+            ? p1
+            : """"|]);
+    }
+}
+", @"
+class C
+{
+    void M(string p1)
+    {
+        M(
+            (p1 != null)
+                ? p1
+                : """");
     }
 }
 ");

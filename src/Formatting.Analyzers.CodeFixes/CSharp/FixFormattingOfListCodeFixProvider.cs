@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -193,14 +194,14 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                             ? leading.Last()
                             : default;
 
-                        if (increasedIndentation.Length != last.Span.Length)
-                        {
-                            TextSpan span = (last.Span.Length > 0)
-                                ? last.Span
-                                : new TextSpan(node.SpanStart, 0);
+                        if (increasedIndentation.Length == last.Span.Length)
+                            continue;
 
-                            textChanges.Add(new TextChange(span, increasedIndentation));
-                        }
+                        TextSpan span = (last.Span.Length > 0)
+                            ? last.Span
+                            : new TextSpan(node.SpanStart, 0);
+
+                        textChanges.Add(new TextChange(span, increasedIndentation));
                     }
 
                     ImmutableArray<IndentationInfo> indentations = FindIndentations(node, node.Span).ToImmutableArray();
@@ -220,7 +221,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                                 if (indentationInfo.Span.Length > length)
                                     replacement += indentationInfo.ToString().Substring(length);
 
-                                length = indentationInfo.Span.Length;
+                                length = Math.Min(length, indentationInfo.Span.Length);
                             }
                             else if (indentationInfo.Span.Length > length)
                             {
