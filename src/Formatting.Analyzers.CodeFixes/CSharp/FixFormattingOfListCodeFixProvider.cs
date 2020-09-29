@@ -159,18 +159,21 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 }
                 else
                 {
-                    SyntaxTriviaList leading = node.GetLeadingTrivia();
+                    TextSpan span;
 
-                    SyntaxTrivia last = (leading.Any() && leading.Last().IsWhitespaceTrivia())
-                        ? leading.Last()
-                        : default;
+                    SyntaxTrivia last = node.GetLeadingTrivia().LastOrDefault();
 
-                    if (increasedIndentation.Length == last.Span.Length)
-                        continue;
+                    if (last.IsWhitespaceTrivia())
+                    {
+                        if (last.Span.Length == increasedIndentation.Length)
+                            continue;
 
-                    TextSpan span = (last.Span.Length > 0)
-                        ? last.Span
-                        : new TextSpan(node.SpanStart, 0);
+                        span = last.Span;
+                    }
+                    else
+                    {
+                        span = new TextSpan(node.SpanStart, 0);
+                    }
 
                     textChanges.Add(new TextChange(span, increasedIndentation));
                     indentationAdded = true;
@@ -204,9 +207,8 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                             replacement += indentationInfo.ToString().Substring(firstIndentationLength);
                         }
 
-                        Debug.Assert(indentationInfo.Span.Length != replacement.Length);
-
-                        textChanges.Add(new TextChange(indentationInfo.Span, replacement));
+                        if (indentationInfo.Span.Length != replacement.Length)
+                            textChanges.Add(new TextChange(indentationInfo.Span, replacement));
                     }
                 }
             }
