@@ -132,6 +132,36 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Singleline_BaseList()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace N
+{
+    interface IC :
+[|IEnumerable, IEnumerable<object>|]
+    {
+    }
+}
+", @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace N
+{
+    interface IC :
+        IEnumerable, IEnumerable<object>
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task Test_Multiline_AlignedToParenthesis()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -738,6 +768,62 @@ class C
             """",
             true)]
     enum E
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_BaseList()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace N
+{
+    interface IC : [|IEnumerable,
+IEnumerable<object>|]
+    {
+    }
+}
+", @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace N
+{
+    interface IC :
+        IEnumerable,
+        IEnumerable<object>
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_OneOfParametersIsMultiline()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M([|string x, string y
+        = default(string), string z = default|])
+    {
+    }
+}
+", @"
+class C
+{
+    void M(
+        string x,
+        string y
+            = default(string),
+        string z = default)
     {
     }
 }

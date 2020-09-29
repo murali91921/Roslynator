@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,6 +51,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         case SyntaxKind.AttributeArgumentList:
                         case SyntaxKind.TypeArgumentList:
                         case SyntaxKind.AttributeList:
+                        case SyntaxKind.BaseList:
                             return true;
                         default:
                             return false;
@@ -62,88 +64,40 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             Document document = context.Document;
             Diagnostic diagnostic = context.Diagnostics[0];
 
-            switch (node)
+            Func<CancellationToken, Task<Document>> createChangedDocument = GetCreateChangedDocument();
+
+            CodeAction codeAction = CodeAction.Create(
+                Title,
+                createChangedDocument,
+                GetEquivalenceKey(diagnostic));
+
+            context.RegisterCodeFix(codeAction, diagnostic);
+
+            Func<CancellationToken, Task<Document>> GetCreateChangedDocument()
             {
-                case ParameterListSyntax parameterList:
-                    {
-                        CodeAction codeAction = CodeAction.Create(
-                            Title,
-                            ct => FixAsync(document, parameterList, parameterList.Parameters, parameterList.OpenParenToken, ct),
-                            GetEquivalenceKey(diagnostic));
-
-                        context.RegisterCodeFix(codeAction, diagnostic);
-                        break;
-                    }
-                case BracketedParameterListSyntax bracketedParameterList:
-                    {
-                        CodeAction codeAction = CodeAction.Create(
-                            Title,
-                            ct => FixAsync(document, bracketedParameterList, bracketedParameterList.Parameters, bracketedParameterList.OpenBracketToken, ct),
-                            GetEquivalenceKey(diagnostic));
-
-                        context.RegisterCodeFix(codeAction, diagnostic);
-                        break;
-                    }
-                case TypeParameterListSyntax typeParameterList:
-                    {
-                        CodeAction codeAction = CodeAction.Create(
-                            Title,
-                            ct => FixAsync(document, typeParameterList, typeParameterList.Parameters, typeParameterList.LessThanToken, ct),
-                            GetEquivalenceKey(diagnostic));
-
-                        context.RegisterCodeFix(codeAction, diagnostic);
-                        break;
-                    }
-                case ArgumentListSyntax argumentList:
-                    {
-                        CodeAction codeAction = CodeAction.Create(
-                            Title,
-                            ct => FixAsync(document, argumentList, argumentList.Arguments, argumentList.OpenParenToken, ct),
-                            GetEquivalenceKey(diagnostic));
-
-                        context.RegisterCodeFix(codeAction, diagnostic);
-                        break;
-                    }
-                case BracketedArgumentListSyntax bracketedArgumentList:
-                    {
-                        CodeAction codeAction = CodeAction.Create(
-                            Title,
-                            ct => FixAsync(document, bracketedArgumentList, bracketedArgumentList.Arguments, bracketedArgumentList.OpenBracketToken, ct),
-                            GetEquivalenceKey(diagnostic));
-
-                        context.RegisterCodeFix(codeAction, diagnostic);
-                        break;
-                    }
-                case AttributeArgumentListSyntax attributeArgumentList:
-                    {
-                        CodeAction codeAction = CodeAction.Create(
-                            Title,
-                            ct => FixAsync(document, attributeArgumentList, attributeArgumentList.Arguments, attributeArgumentList.OpenParenToken, ct),
-                            GetEquivalenceKey(diagnostic));
-
-                        context.RegisterCodeFix(codeAction, diagnostic);
-                        break;
-                    }
-                case TypeArgumentListSyntax typeArgumentList:
-                    {
-                        CodeAction codeAction = CodeAction.Create(
-                            Title,
-                            ct => FixAsync(document, typeArgumentList, typeArgumentList.Arguments, typeArgumentList.LessThanToken, ct),
-                            GetEquivalenceKey(diagnostic));
-
-                        context.RegisterCodeFix(codeAction, diagnostic);
-                        break;
-                    }
-                case AttributeListSyntax attributeList:
-                    {
-                        CodeAction codeAction = CodeAction.Create(
-                            Title,
-                            ct => FixAsync(document, attributeList, attributeList.Attributes, attributeList.OpenBracketToken, ct),
-                            GetEquivalenceKey(diagnostic));
-
-                        context.RegisterCodeFix(codeAction, diagnostic);
-                        break;
-                    }
+                switch (node)
+                {
+                    case ParameterListSyntax parameterList:
+                        return ct => FixAsync(document, parameterList, parameterList.Parameters, parameterList.OpenParenToken, ct);
+                    case BracketedParameterListSyntax bracketedParameterList:
+                        return ct => FixAsync(document, bracketedParameterList, bracketedParameterList.Parameters, bracketedParameterList.OpenBracketToken, ct);
+                    case TypeParameterListSyntax typeParameterList:
+                        return ct => FixAsync(document, typeParameterList, typeParameterList.Parameters, typeParameterList.LessThanToken, ct);
+                    case ArgumentListSyntax argumentList:
+                        return ct => FixAsync(document, argumentList, argumentList.Arguments, argumentList.OpenParenToken, ct);
+                    case BracketedArgumentListSyntax bracketedArgumentList:
+                        return ct => FixAsync(document, bracketedArgumentList, bracketedArgumentList.Arguments, bracketedArgumentList.OpenBracketToken, ct);
+                    case AttributeArgumentListSyntax attributeArgumentList:
+                        return ct => FixAsync(document, attributeArgumentList, attributeArgumentList.Arguments, attributeArgumentList.OpenParenToken, ct);
+                    case TypeArgumentListSyntax typeArgumentList:
+                        return ct => FixAsync(document, typeArgumentList, typeArgumentList.Arguments, typeArgumentList.LessThanToken, ct);
+                    case AttributeListSyntax attributeList:
+                        return ct => FixAsync(document, attributeList, attributeList.Attributes, attributeList.OpenBracketToken, ct);
+                    case BaseListSyntax baseList:
+                        return ct => FixAsync(document, baseList, baseList.Types, baseList.ColonToken, ct);
+                    default:
+                        throw new InvalidOperationException();
+                }
             }
         }
 
@@ -158,7 +112,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
             string increasedIndentation = indentationAnalysis.GetIncreasedIndentation();
 
-            if (nodes.IsSingleLine(includeExteriorTrivia: false, cancellationToken:  cancellationToken))
+            if (nodes.IsSingleLine(includeExteriorTrivia: false, cancellationToken: cancellationToken))
             {
                 TNode first = nodes.First();
 
@@ -172,94 +126,92 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                 return document.WithTextChangeAsync(textChange, cancellationToken);
             }
-            else
+
+            var textChanges = new List<TextChange>();
+
+            string endOfLineAndIndentation = DetermineEndOfLine(list).ToString()
+                + increasedIndentation;
+
+            for (int i = 0; i < nodes.Count; i++)
             {
-                var textChanges = new List<TextChange>();
+                SyntaxToken token = (i == 0)
+                    ? openToken
+                    : nodes.GetSeparator(i - 1);
 
-                string endOfLineAndIndentation = DetermineEndOfLine(list).ToString()
-                    + increasedIndentation;
+                SyntaxTriviaList trailing = token.TrailingTrivia;
 
-                for (int i = 0; i < nodes.Count; i++)
+                TNode node = nodes[i];
+
+                var indentationAdded = false;
+
+                if (!IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
                 {
-                    SyntaxToken token = (i == 0)
-                        ? openToken
-                        : nodes.GetSeparator(i - 1);
-
-                    SyntaxTriviaList trailing = token.TrailingTrivia;
-
-                    TNode node = nodes[i];
-
-                    bool indentationAdded = false;
-
-                    if (!IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
+                    if (nodes.Count > 1
+                        && (i > 0 || !list.IsKind(SyntaxKind.AttributeList)))
                     {
-                        if (nodes.Count > 1
-                            && (i > 0 || !list.IsKind(SyntaxKind.AttributeList)))
-                        {
-                            TextSpan span = (trailing.Any() && trailing.Last().IsWhitespaceTrivia())
-                                ? trailing.Last().Span
-                                : new TextSpan(token.FullSpan.End, 0);
+                        TextSpan span = (trailing.Any() && trailing.Last().IsWhitespaceTrivia())
+                            ? trailing.Last().Span
+                            : new TextSpan(token.FullSpan.End, 0);
 
-                            textChanges.Add(new TextChange(span, endOfLineAndIndentation));
-                            indentationAdded = true;
-                        }
-                    }
-                    else
-                    {
-                        SyntaxTriviaList leading = node.GetLeadingTrivia();
-
-                        SyntaxTrivia last = (leading.Any() && leading.Last().IsWhitespaceTrivia())
-                            ? leading.Last()
-                            : default;
-
-                        if (increasedIndentation.Length == last.Span.Length)
-                            continue;
-
-                        TextSpan span = (last.Span.Length > 0)
-                            ? last.Span
-                            : new TextSpan(node.SpanStart, 0);
-
-                        textChanges.Add(new TextChange(span, increasedIndentation));
+                        textChanges.Add(new TextChange(span, endOfLineAndIndentation));
                         indentationAdded = true;
                     }
+                }
+                else
+                {
+                    SyntaxTriviaList leading = node.GetLeadingTrivia();
 
-                    ImmutableArray<IndentationInfo> indentations = FindIndentations(node, node.Span).ToImmutableArray();
+                    SyntaxTrivia last = (leading.Any() && leading.Last().IsWhitespaceTrivia())
+                        ? leading.Last()
+                        : default;
 
-                    if (indentations.Any())
-                    {
-                        int length = indentations[0].Span.Length;
+                    if (increasedIndentation.Length == last.Span.Length)
+                        continue;
 
-                        for (int j = 0; j < indentations.Length; j++)
-                        {
-                            IndentationInfo indentationInfo = indentations[j];
+                    TextSpan span = (last.Span.Length > 0)
+                        ? last.Span
+                        : new TextSpan(node.SpanStart, 0);
 
-                            string replacement = increasedIndentation;
-
-                            if (indentationAdded
-                                && node.IsKind(SyntaxKind.Argument))
-                            {
-                                var argument = (ArgumentSyntax)(SyntaxNode)node;
-
-                                if (CSharpFacts.IsAnonymousFunctionExpression(argument.Expression.Kind()))
-                                    indentationAdded = false;
-                            }
-
-                            if (indentationAdded)
-                                replacement += indentationAnalysis.GetSingleIndentation();
-
-                            if (j > 0
-                                && indentationInfo.Span.Length > length)
-                            {
-                                replacement += indentationInfo.ToString().Substring(length);
-                            }
-
-                            textChanges.Add(new TextChange(indentationInfo.Span, replacement));
-                        }
-                    }
+                    textChanges.Add(new TextChange(span, increasedIndentation));
+                    indentationAdded = true;
                 }
 
-                return document.WithTextChangesAsync(textChanges, cancellationToken);
+                ImmutableArray<IndentationInfo> indentations = FindIndentations(node, node.Span).ToImmutableArray();
+
+                if (indentations.Any())
+                {
+                    int firstIndentationLength = indentations[0].Span.Length;
+
+                    for (int j = 0; j < indentations.Length; j++)
+                    {
+                        IndentationInfo indentationInfo = indentations[j];
+
+                        if (indentationAdded
+                            && node is ArgumentSyntax argument
+                            && CSharpFacts.IsAnonymousFunctionExpression(argument.Expression.Kind()))
+                        {
+                            indentationAdded = false;
+                        }
+
+                        string replacement = increasedIndentation;
+
+                        if (indentationAdded)
+                            replacement += indentationAnalysis.GetSingleIndentation();
+
+                        if (j > 0
+                            && indentationInfo.Span.Length > firstIndentationLength)
+                        {
+                            replacement += indentationInfo.ToString().Substring(firstIndentationLength);
+                        }
+
+                        Debug.Assert(indentationInfo.Span.Length != replacement.Length);
+
+                        textChanges.Add(new TextChange(indentationInfo.Span, replacement));
+                    }
+                }
             }
+
+            return document.WithTextChangesAsync(textChanges, cancellationToken);
         }
     }
 }

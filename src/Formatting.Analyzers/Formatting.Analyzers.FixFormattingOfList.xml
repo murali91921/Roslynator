@@ -6,7 +6,7 @@
     <Category>Formatting</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>false</IsEnabledByDefault>
-    <Summary>This analyzer fixes indentation and wrapping of items in a list.
+    <Summary>This analyzer fixes indentation and wrapping of items in a parameter list, argument list, attribute list and base list.
 
 Following formats are considered as valid:
 ```cs

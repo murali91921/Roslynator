@@ -33,6 +33,7 @@ namespace Roslynator.Formatting.CSharp
             context.RegisterSyntaxNodeAction(f => AnalyzeTypeArgumentList(f), SyntaxKind.TypeArgumentList);
 
             context.RegisterSyntaxNodeAction(f => AnalyzeAttributeList(f), SyntaxKind.AttributeList);
+            context.RegisterSyntaxNodeAction(f => AnalyzeBaseList(f), SyntaxKind.BaseList);
         }
 
         private static void AnalyzeParameterList(SyntaxNodeAnalysisContext context)
@@ -91,6 +92,13 @@ namespace Roslynator.Formatting.CSharp
             Analyze(context, attributeList.OpenBracketToken, attributeList.Attributes);
         }
 
+        private void AnalyzeBaseList(SyntaxNodeAnalysisContext context)
+        {
+            var baseList = (BaseListSyntax)context.Node;
+
+            Analyze(context, baseList.ColonToken, baseList.Types);
+        }
+
         private static void Analyze<TNode>(
             SyntaxNodeAnalysisContext context,
             SyntaxToken openToken,
@@ -103,9 +111,7 @@ namespace Roslynator.Formatting.CSharp
 
             TextSpan span = nodes.GetSpan(includeExteriorTrivia: false);
 
-            FileLinePositionSpan lineSpan = first.SyntaxTree.GetLineSpan(span);
-
-            if (lineSpan.IsSingleLine())
+            if (span.IsSingleLine(first.SyntaxTree))
             {
                 SyntaxTriviaList trailing = openToken.TrailingTrivia;
 
@@ -145,7 +151,28 @@ namespace Roslynator.Formatting.CSharp
                         ? openToken.TrailingTrivia
                         : nodes.GetSeparator(i - 1).TrailingTrivia;
 
-                    if (!IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
+                    if (IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
+                    {
+                        SyntaxTriviaList leading = nodes[i].GetLeadingTrivia();
+
+                        if (!leading.Any())
+                        {
+                            ReportDiagnostic();
+                            break;
+                        }
+                        else
+                        {
+                            SyntaxTrivia last = leading.Last();
+
+                            if (!last.IsWhitespaceTrivia()
+                                || indentationLength != last.Span.Length)
+                            {
+                                ReportDiagnostic();
+                                break;
+                            }
+                        }
+                    }
+                    else
                     {
                         if (i == nodes.Count - 1
                             && nodes[i].IsKind(SyntaxKind.Argument))
@@ -156,73 +183,50 @@ namespace Roslynator.Formatting.CSharp
                                 break;
                         }
 
-                        if (nodes.Count == 1
-                            || (i == 0
-                                && context.Node.IsKind(SyntaxKind.AttributeList)))
+                        if (nodes.Count > 1
+                            && (i > 0
+                                || !context.Node.IsKind(SyntaxKind.AttributeList)))
                         {
-                            TextLineCollection lines = first.SyntaxTree.GetText().Lines;
-                            int lineIndex = lines.IndexOf(span.Start);
-                            if (lineIndex < lines.Count - 1)
+                            ReportDiagnostic();
+                            break;
+                        }
+
+                        TextLineCollection lines = first.SyntaxTree.GetText().Lines;
+                        int lineIndex = lines.IndexOf(span.Start);
+                        if (lineIndex < lines.Count - 1)
+                        {
+                            int lineStartIndex = lines[lineIndex + 1].Start;
+
+                            if (first.Span.Contains(lineStartIndex))
                             {
-                                int lineStartIndex = lines[lineIndex + 1].Start;
+                                SyntaxToken token = first.FindToken(lineStartIndex);
 
-                                if (first.Span.Contains(lineStartIndex))
+                                if (!token.IsKind(SyntaxKind.None))
                                 {
-                                    SyntaxToken token = first.FindToken(lineStartIndex);
+                                    SyntaxTriviaList leading = token.LeadingTrivia;
 
-                                    if (!token.IsKind(SyntaxKind.None))
+                                    if (leading.Any())
                                     {
-                                        SyntaxTriviaList leading2 = token.LeadingTrivia;
-
-                                        if (leading2.Any())
+                                        if (leading.FullSpan.Contains(lineStartIndex))
                                         {
-                                            if (leading2.FullSpan.Contains(lineStartIndex))
-                                            {
-                                                SyntaxTrivia trivia = leading2.Last();
+                                            SyntaxTrivia trivia = leading.Last();
 
-                                                if (trivia.IsWhitespaceTrivia()
-                                                    && trivia.SpanStart == lineStartIndex
-                                                    && trivia.Span.Length != indentationLength)
-                                                {
-                                                    ReportDiagnostic();
-                                                    break;
-                                                }
+                                            if (trivia.IsWhitespaceTrivia()
+                                                && trivia.SpanStart == lineStartIndex
+                                                && trivia.Span.Length != indentationLength)
+                                            {
+                                                ReportDiagnostic();
+                                                break;
                                             }
                                         }
-                                        else if (lineStartIndex == token.SpanStart)
-                                        {
-                                            ReportDiagnostic();
-                                            break;
-                                        }
+                                    }
+                                    else if (lineStartIndex == token.SpanStart)
+                                    {
+                                        ReportDiagnostic();
+                                        break;
                                     }
                                 }
                             }
-
-                            continue;
-                        }
-                        else
-                        {
-                            ReportDiagnostic();
-                            break;
-                        }
-                    }
-
-                    SyntaxTriviaList leading = nodes[i].GetLeadingTrivia();
-
-                    if (!leading.Any())
-                    {
-                        ReportDiagnostic();
-                        break;
-                    }
-                    else
-                    {
-                        SyntaxTrivia last = leading.Last();
-
-                        if (!last.IsWhitespaceTrivia()
-                            || indentationLength != last.Span.Length)
-                        {
-                            ReportDiagnostic();
-                            break;
                         }
                     }
                 }
