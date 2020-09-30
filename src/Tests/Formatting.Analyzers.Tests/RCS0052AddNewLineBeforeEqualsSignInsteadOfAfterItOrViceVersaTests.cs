@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Roslynator.Formatting.CSharp.Tests
 {
-    public class RCS0053AddNewLineBeforeEqualsSignInsteadOfAfterItOrViceVersaTests : AbstractCSharpFixVerifier
+    public class RCS0052AddNewLineBeforeEqualsSignInsteadOfAfterItOrViceVersaTests : AbstractCSharpFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.AddNewLineBeforeEqualsSignInsteadOfAfterItOrViceVersa;
 

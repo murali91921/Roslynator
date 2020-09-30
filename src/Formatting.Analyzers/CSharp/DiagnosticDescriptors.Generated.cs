@@ -538,18 +538,6 @@ namespace Roslynator.Formatting.CSharp
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS0052</summary>
-        public static readonly DiagnosticDescriptor LineIsTooLong = DiagnosticDescriptorFactory.Default.Create(
-            id:                 DiagnosticIdentifiers.LineIsTooLong, 
-            title:              "A line is too long.", 
-            messageFormat:      "A line is too long.", 
-            category:           DiagnosticCategories.Formatting, 
-            defaultSeverity:    DiagnosticSeverity.Info, 
-            isEnabledByDefault: false, 
-            description:        null, 
-            helpLinkUri:        DiagnosticIdentifiers.LineIsTooLong, 
-            customTags:         Array.Empty<string>());
-
-        /// <summary>RCS0053</summary>
         public static readonly DiagnosticDescriptor AddNewLineBeforeEqualsSignInsteadOfAfterItOrViceVersa = DiagnosticDescriptorFactory.Default.Create(
             id:                 DiagnosticIdentifiers.AddNewLineBeforeEqualsSignInsteadOfAfterItOrViceVersa, 
             title:              "Add newline before equals sign instead of after it (or vice versa).", 
@@ -559,6 +547,18 @@ namespace Roslynator.Formatting.CSharp
             isEnabledByDefault: false, 
             description:        null, 
             helpLinkUri:        DiagnosticIdentifiers.AddNewLineBeforeEqualsSignInsteadOfAfterItOrViceVersa, 
+            customTags:         Array.Empty<string>());
+
+        /// <summary>RCS0054</summary>
+        public static readonly DiagnosticDescriptor LineIsTooLong = DiagnosticDescriptorFactory.Default.Create(
+            id:                 DiagnosticIdentifiers.LineIsTooLong, 
+            title:              "A line is too long.", 
+            messageFormat:      "A line is too long.", 
+            category:           DiagnosticCategories.Formatting, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: false, 
+            description:        null, 
+            helpLinkUri:        DiagnosticIdentifiers.LineIsTooLong, 
             customTags:         Array.Empty<string>());
 
         public static partial class ReportOnly
@@ -635,7 +635,7 @@ namespace Roslynator.Formatting.CSharp
                 helpLinkUri:        DiagnosticIdentifiers.AddNewLineBetweenClosingBraceAndWhileKeywordOrViceVersa, 
                 customTags:         Array.Empty<string>());
 
-            /// <summary>RCS0053i</summary>
+            /// <summary>RCS0052i</summary>
             public static readonly DiagnosticDescriptor AddNewLineAfterEqualsSignInsteadOfBeforeIt = DiagnosticDescriptorFactory.Default.Create(
                 id:                 DiagnosticIdentifiers.AddNewLineBeforeEqualsSignInsteadOfAfterItOrViceVersa, 
                 title:              "Add newline before equals sign instead of after it (or vice versa).", 
