@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,6 +51,13 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         case SyntaxKind.TypeArgumentList:
                         case SyntaxKind.AttributeList:
                         case SyntaxKind.BaseList:
+                        case SyntaxKind.TupleType:
+                        case SyntaxKind.TupleExpression:
+                        case SyntaxKind.VariableDeclaration:
+                        case SyntaxKind.ArrayInitializerExpression:
+                        case SyntaxKind.CollectionInitializerExpression:
+                        case SyntaxKind.ComplexElementInitializerExpression:
+                        case SyntaxKind.ObjectInitializerExpression:
                             return true;
                         default:
                             return false;
@@ -64,39 +70,109 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             Document document = context.Document;
             Diagnostic diagnostic = context.Diagnostics[0];
 
-            Func<CancellationToken, Task<Document>> createChangedDocument = GetCreateChangedDocument();
-
-            CodeAction codeAction = CodeAction.Create(
-                Title,
-                createChangedDocument,
-                GetEquivalenceKey(diagnostic));
+            CodeAction codeAction = CreateCodeAction();
 
             context.RegisterCodeFix(codeAction, diagnostic);
 
-            Func<CancellationToken, Task<Document>> GetCreateChangedDocument()
+            CodeAction CreateCodeAction()
             {
                 switch (node)
                 {
                     case ParameterListSyntax parameterList:
-                        return ct => FixAsync(document, parameterList, parameterList.Parameters, parameterList.OpenParenToken, ct);
+                        {
+                            return CodeAction.Create(
+                                Title,
+                                ct => FixAsync(document, parameterList, parameterList.Parameters, parameterList.OpenParenToken, ct),
+                                GetEquivalenceKey(diagnostic));
+                        }
                     case BracketedParameterListSyntax bracketedParameterList:
-                        return ct => FixAsync(document, bracketedParameterList, bracketedParameterList.Parameters, bracketedParameterList.OpenBracketToken, ct);
+                        {
+                            return CodeAction.Create(
+                                Title,
+                                ct => FixAsync(document, bracketedParameterList, bracketedParameterList.Parameters, bracketedParameterList.OpenBracketToken, ct),
+                                GetEquivalenceKey(diagnostic));
+                        }
                     case TypeParameterListSyntax typeParameterList:
-                        return ct => FixAsync(document, typeParameterList, typeParameterList.Parameters, typeParameterList.LessThanToken, ct);
+                        {
+                            return CodeAction.Create(
+                                Title,
+                                ct => FixAsync(document, typeParameterList, typeParameterList.Parameters, typeParameterList.LessThanToken, ct),
+                                GetEquivalenceKey(diagnostic));
+                        }
                     case ArgumentListSyntax argumentList:
-                        return ct => FixAsync(document, argumentList, argumentList.Arguments, argumentList.OpenParenToken, ct);
+                        {
+                            return CodeAction.Create(
+                                Title,
+                                ct => FixAsync(document, argumentList, argumentList.Arguments, argumentList.OpenParenToken, ct),
+                                GetEquivalenceKey(diagnostic));
+                        }
                     case BracketedArgumentListSyntax bracketedArgumentList:
-                        return ct => FixAsync(document, bracketedArgumentList, bracketedArgumentList.Arguments, bracketedArgumentList.OpenBracketToken, ct);
+                        {
+                            return CodeAction.Create(
+                                Title,
+                                ct => FixAsync(document, bracketedArgumentList, bracketedArgumentList.Arguments, bracketedArgumentList.OpenBracketToken, ct),
+                                GetEquivalenceKey(diagnostic));
+                        }
                     case AttributeArgumentListSyntax attributeArgumentList:
-                        return ct => FixAsync(document, attributeArgumentList, attributeArgumentList.Arguments, attributeArgumentList.OpenParenToken, ct);
+                        {
+                            return CodeAction.Create(
+                                Title,
+                                ct => FixAsync(document, attributeArgumentList, attributeArgumentList.Arguments, attributeArgumentList.OpenParenToken, ct),
+                                GetEquivalenceKey(diagnostic));
+                        }
                     case TypeArgumentListSyntax typeArgumentList:
-                        return ct => FixAsync(document, typeArgumentList, typeArgumentList.Arguments, typeArgumentList.LessThanToken, ct);
+                        {
+                            return CodeAction.Create(
+                                Title,
+                                ct => FixAsync(document, typeArgumentList, typeArgumentList.Arguments, typeArgumentList.LessThanToken, ct),
+                                GetEquivalenceKey(diagnostic));
+                        }
                     case AttributeListSyntax attributeList:
-                        return ct => FixAsync(document, attributeList, attributeList.Attributes, attributeList.OpenBracketToken, ct);
+                        {
+                            return CodeAction.Create(
+                                Title,
+                                ct => FixAsync(document, attributeList, attributeList.Attributes, attributeList.OpenBracketToken, ct),
+                                GetEquivalenceKey(diagnostic));
+                        }
                     case BaseListSyntax baseList:
-                        return ct => FixAsync(document, baseList, baseList.Types, baseList.ColonToken, ct);
+                        {
+                            return CodeAction.Create(
+                                Title,
+                                ct => FixAsync(document, baseList, baseList.Types, baseList.ColonToken, ct),
+                                GetEquivalenceKey(diagnostic));
+                        }
+                    case TupleTypeSyntax tupleType:
+                        {
+                            return CodeAction.Create(
+                                Title,
+                                ct => FixAsync(document, tupleType, tupleType.Elements, tupleType.OpenParenToken, ct),
+                                GetEquivalenceKey(diagnostic));
+                        }
+                    case TupleExpressionSyntax tupleExpression:
+                        {
+                            return CodeAction.Create(
+                                Title,
+                                ct => FixAsync(document, tupleExpression, tupleExpression.Arguments, tupleExpression.OpenParenToken, ct),
+                                GetEquivalenceKey(diagnostic));
+                        }
+                    case VariableDeclarationSyntax variableDeclaration:
+                        {
+                            return CodeAction.Create(
+                                Title,
+                                ct => FixAsync(document, variableDeclaration, variableDeclaration.Variables, variableDeclaration.Type, ct),
+                                GetEquivalenceKey(diagnostic));
+                        }
+                    case InitializerExpressionSyntax initializerExpression:
+                        {
+                            return CodeAction.Create(
+                                Title,
+                                ct => FixAsync(document, initializerExpression, initializerExpression.Expressions, initializerExpression.OpenBraceToken, ct),
+                                GetEquivalenceKey(diagnostic));
+                        }
                     default:
-                        throw new InvalidOperationException();
+                        {
+                            throw new InvalidOperationException();
+                        }
                 }
             }
         }
@@ -105,7 +181,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             Document document,
             SyntaxNode list,
             SeparatedSyntaxList<TNode> nodes,
-            SyntaxToken openToken,
+            SyntaxNodeOrToken openNodeOrToken,
             CancellationToken cancellationToken) where TNode : SyntaxNode
         {
             IndentationAnalysis indentationAnalysis = AnalyzeIndentation(list, cancellationToken);
@@ -134,9 +210,17 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
             for (int i = 0; i < nodes.Count; i++)
             {
-                SyntaxToken token = (i == 0)
-                    ? openToken
-                    : nodes.GetSeparator(i - 1);
+                SyntaxToken token;
+                if (i == 0)
+                {
+                    token = (openNodeOrToken.IsNode)
+                        ? openNodeOrToken.AsNode().GetLastToken()
+                        : openNodeOrToken.AsToken();
+                }
+                else
+                {
+                    token = nodes.GetSeparator(i - 1);
+                }
 
                 SyntaxTriviaList trailing = token.TrailingTrivia;
 

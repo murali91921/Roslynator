@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -34,6 +35,16 @@ namespace Roslynator.Formatting.CSharp
 
             context.RegisterSyntaxNodeAction(f => AnalyzeAttributeList(f), SyntaxKind.AttributeList);
             context.RegisterSyntaxNodeAction(f => AnalyzeBaseList(f), SyntaxKind.BaseList);
+            context.RegisterSyntaxNodeAction(f => AnalyzeTupleType(f), SyntaxKind.TupleType);
+            context.RegisterSyntaxNodeAction(f => AnalyzeTupleExpression(f), SyntaxKind.TupleExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeVariableDeclaration(f), SyntaxKind.VariableDeclaration);
+
+            context.RegisterSyntaxNodeAction(
+                f => AnalyzeInitializerExpression(f),
+                SyntaxKind.ArrayInitializerExpression,
+                SyntaxKind.CollectionInitializerExpression,
+                SyntaxKind.ComplexElementInitializerExpression,
+                SyntaxKind.ObjectInitializerExpression);
         }
 
         private static void AnalyzeParameterList(SyntaxNodeAnalysisContext context)
@@ -99,9 +110,37 @@ namespace Roslynator.Formatting.CSharp
             Analyze(context, baseList.ColonToken, baseList.Types);
         }
 
+        private void AnalyzeTupleType(SyntaxNodeAnalysisContext context)
+        {
+            var tupleType = (TupleTypeSyntax)context.Node;
+
+            Analyze(context, tupleType.OpenParenToken, tupleType.Elements);
+        }
+
+        private void AnalyzeTupleExpression(SyntaxNodeAnalysisContext context)
+        {
+            var tupleExpression = (TupleExpressionSyntax)context.Node;
+
+            Analyze(context, tupleExpression.OpenParenToken, tupleExpression.Arguments);
+        }
+
+        private void AnalyzeVariableDeclaration(SyntaxNodeAnalysisContext context)
+        {
+            var variableDeclaration = (VariableDeclarationSyntax)context.Node;
+
+            Analyze(context, variableDeclaration.Type, variableDeclaration.Variables);
+        }
+
+        private void AnalyzeInitializerExpression(SyntaxNodeAnalysisContext context)
+        {
+            var initializerExpression = (InitializerExpressionSyntax)context.Node;
+
+            Analyze(context, initializerExpression.OpenBraceToken, initializerExpression.Expressions);
+        }
+
         private static void Analyze<TNode>(
             SyntaxNodeAnalysisContext context,
-            SyntaxToken openToken,
+            SyntaxNodeOrToken openNodeOrToken,
             SeparatedSyntaxList<TNode> nodes) where TNode : SyntaxNode
         {
             TNode first = nodes.FirstOrDefault();
@@ -113,12 +152,12 @@ namespace Roslynator.Formatting.CSharp
 
             if (span.IsSingleLine(first.SyntaxTree))
             {
-                SyntaxTriviaList trailing = openToken.TrailingTrivia;
+                SyntaxTriviaList trailing = openNodeOrToken.GetTrailingTrivia();
 
                 if (!IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
                     return;
 
-                int indentationLength = GetIncreasedIndentationLength(openToken.Parent);
+                int indentationLength = GetIncreasedIndentationLength(openNodeOrToken.Parent);
 
                 if (indentationLength == 0)
                     return;
@@ -140,7 +179,7 @@ namespace Roslynator.Formatting.CSharp
             }
             else
             {
-                int indentationLength = GetIncreasedIndentationLength(openToken.Parent);
+                int indentationLength = GetIncreasedIndentationLength(openNodeOrToken.Parent);
 
                 if (indentationLength == 0)
                     return;
@@ -148,7 +187,7 @@ namespace Roslynator.Formatting.CSharp
                 for (int i = nodes.Count - 1; i >= 0; i--)
                 {
                     SyntaxTriviaList trailing = (i == 0)
-                        ? openToken.TrailingTrivia
+                        ? openNodeOrToken.GetTrailingTrivia()
                         : nodes.GetSeparator(i - 1).TrailingTrivia;
 
                     if (IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
