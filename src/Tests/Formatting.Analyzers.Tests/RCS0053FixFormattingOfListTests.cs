@@ -831,6 +831,123 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_TupleType()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    private ([|string x, string y,
+        string z|]) M()
+    {
+        return ([|null, null,
+            null|]);
+    }
+}
+", @"
+class C
+{
+    private (
+        string x,
+        string y,
+        string z) M()
+    {
+        return (
+            null,
+            null,
+            null);
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_TupleExpression()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M(([|string x, string y,
+        string z|]) p)
+    {
+    }
+}
+", @"
+class C
+{
+    void M((
+        string x,
+        string y,
+        string z) p)
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_VariableDeclaration()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    private string [|x, y, 
+        z|];
+
+    void M()
+    {
+        string [|x, y,
+            z|];
+    }
+}
+", @"
+class C
+{
+    private string
+        x,
+        y, 
+        z;
+
+    void M()
+    {
+        string
+            x,
+            y,
+            z;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_ArrayInitializer()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M()
+    {
+        var x = new string[] { [|"""", default, new string(
+            ' ',
+            1)|] };
+    }
+}
+", @"
+class C
+{
+    void M()
+    {
+        var x = new string[] {
+            """",
+            default,
+            new string(
+                ' ',
+                1) };
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task TestNoDiagnostic_Singleline()
         {
             await VerifyNoDiagnosticAsync(@"

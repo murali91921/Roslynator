@@ -12,9 +12,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslynator.CSharp;
 using Roslynator.Formatting.CSharp;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static Roslynator.CSharp.SyntaxTriviaAnalysis;
 
 namespace Roslynator.Formatting.CodeFixes.CSharp
@@ -82,91 +82,91 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => FixAsync(document, parameterList, parameterList.Parameters, parameterList.OpenParenToken, ct),
+                                ct => FixAsync(document, parameterList, parameterList.OpenParenToken, parameterList.Parameters, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case BracketedParameterListSyntax bracketedParameterList:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => FixAsync(document, bracketedParameterList, bracketedParameterList.Parameters, bracketedParameterList.OpenBracketToken, ct),
+                                ct => FixAsync(document, bracketedParameterList, bracketedParameterList.OpenBracketToken, bracketedParameterList.Parameters, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case TypeParameterListSyntax typeParameterList:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => FixAsync(document, typeParameterList, typeParameterList.Parameters, typeParameterList.LessThanToken, ct),
+                                ct => FixAsync(document, typeParameterList, typeParameterList.LessThanToken, typeParameterList.Parameters, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case ArgumentListSyntax argumentList:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => FixAsync(document, argumentList, argumentList.Arguments, argumentList.OpenParenToken, ct),
+                                ct => FixAsync(document, argumentList, argumentList.OpenParenToken, argumentList.Arguments, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case BracketedArgumentListSyntax bracketedArgumentList:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => FixAsync(document, bracketedArgumentList, bracketedArgumentList.Arguments, bracketedArgumentList.OpenBracketToken, ct),
+                                ct => FixAsync(document, bracketedArgumentList, bracketedArgumentList.OpenBracketToken, bracketedArgumentList.Arguments, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case AttributeArgumentListSyntax attributeArgumentList:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => FixAsync(document, attributeArgumentList, attributeArgumentList.Arguments, attributeArgumentList.OpenParenToken, ct),
+                                ct => FixAsync(document, attributeArgumentList, attributeArgumentList.OpenParenToken, attributeArgumentList.Arguments, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case TypeArgumentListSyntax typeArgumentList:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => FixAsync(document, typeArgumentList, typeArgumentList.Arguments, typeArgumentList.LessThanToken, ct),
+                                ct => FixAsync(document, typeArgumentList, typeArgumentList.LessThanToken, typeArgumentList.Arguments, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case AttributeListSyntax attributeList:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => FixAsync(document, attributeList, attributeList.Attributes, attributeList.OpenBracketToken, ct),
+                                ct => FixAsync(document, attributeList, attributeList.OpenBracketToken, attributeList.Attributes, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case BaseListSyntax baseList:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => FixAsync(document, baseList, baseList.Types, baseList.ColonToken, ct),
+                                ct => FixAsync(document, baseList, baseList.ColonToken, baseList.Types, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case TupleTypeSyntax tupleType:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => FixAsync(document, tupleType, tupleType.Elements, tupleType.OpenParenToken, ct),
+                                ct => FixAsync(document, tupleType, tupleType.OpenParenToken, tupleType.Elements, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case TupleExpressionSyntax tupleExpression:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => FixAsync(document, tupleExpression, tupleExpression.Arguments, tupleExpression.OpenParenToken, ct),
+                                ct => FixAsync(document, tupleExpression, tupleExpression.OpenParenToken, tupleExpression.Arguments, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case VariableDeclarationSyntax variableDeclaration:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => FixAsync(document, variableDeclaration, variableDeclaration.Variables, variableDeclaration.Type, ct),
+                                ct => FixAsync(document, variableDeclaration, variableDeclaration.Type, variableDeclaration.Variables, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case InitializerExpressionSyntax initializerExpression:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => FixAsync(document, initializerExpression, initializerExpression.Expressions, initializerExpression.OpenBraceToken, ct),
+                                ct => FixAsync(document, initializerExpression, initializerExpression.OpenBraceToken, initializerExpression.Expressions, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     default:
@@ -179,14 +179,16 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
         private static Task<Document> FixAsync<TNode>(
             Document document,
-            SyntaxNode list,
-            SeparatedSyntaxList<TNode> nodes,
+            SyntaxNode containingNode,
             SyntaxNodeOrToken openNodeOrToken,
+            SeparatedSyntaxList<TNode> nodes,
             CancellationToken cancellationToken) where TNode : SyntaxNode
         {
-            IndentationAnalysis indentationAnalysis = AnalyzeIndentation(list, cancellationToken);
+            IndentationAnalysis indentationAnalysis = AnalyzeIndentation(containingNode, cancellationToken);
 
             string increasedIndentation = indentationAnalysis.GetIncreasedIndentation();
+
+            SyntaxTrivia increasedIndentationTrivia = Whitespace(increasedIndentation);
 
             if (nodes.IsSingleLine(includeExteriorTrivia: false, cancellationToken: cancellationToken))
             {
@@ -194,19 +196,19 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                 SyntaxTriviaList leading = first.GetLeadingTrivia();
 
-                TextSpan span = (leading.Any() && leading.Last().IsWhitespaceTrivia())
-                    ? leading.Last().Span
-                    : new TextSpan(first.SpanStart, 0);
+                SyntaxTriviaList newLeading = (leading.Any() && leading.Last().IsWhitespaceTrivia())
+                    ? leading.Replace(leading.Last(), increasedIndentationTrivia)
+                    : leading.Add(increasedIndentationTrivia);
 
-                var textChange = new TextChange(span, increasedIndentation);
+                TNode newFirst = first.WithLeadingTrivia(newLeading);
 
-                return document.WithTextChangeAsync(textChange, cancellationToken);
+                return document.ReplaceNodeAsync(first, newFirst, cancellationToken);
             }
 
-            var textChanges = new List<TextChange>();
+            Dictionary<SyntaxNode, SyntaxNode> newNodes = null;
+            Dictionary<SyntaxToken, SyntaxToken> newTokens = null;
 
-            string endOfLineAndIndentation = DetermineEndOfLine(list).ToString()
-                + increasedIndentation;
+            SyntaxTrivia endOfLineTrivia = DetermineEndOfLine(containingNode);
 
             for (int i = 0; i < nodes.Count; i++)
             {
@@ -223,43 +225,42 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 }
 
                 SyntaxTriviaList trailing = token.TrailingTrivia;
-
                 TNode node = nodes[i];
-
+                TNode newNode = node;
+                SyntaxTriviaList leading = node.GetLeadingTrivia();
+                SyntaxTriviaList newLeading = default;
                 var indentationAdded = false;
 
-                if (!IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
+                if (IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
                 {
-                    if (nodes.Count > 1
-                        && (i > 0 || !list.IsKind(SyntaxKind.AttributeList)))
-                    {
-                        TextSpan span = (trailing.Any() && trailing.Last().IsWhitespaceTrivia())
-                            ? trailing.Last().Span
-                            : new TextSpan(token.FullSpan.End, 0);
-
-                        textChanges.Add(new TextChange(span, endOfLineAndIndentation));
-                        indentationAdded = true;
-                    }
-                }
-                else
-                {
-                    TextSpan span;
-
-                    SyntaxTrivia last = node.GetLeadingTrivia().LastOrDefault();
+                    SyntaxTriviaList leadingTrivia = node.GetLeadingTrivia();
+                    SyntaxTrivia last = leadingTrivia.LastOrDefault();
 
                     if (last.IsWhitespaceTrivia())
                     {
                         if (last.Span.Length == increasedIndentation.Length)
                             continue;
 
-                        span = last.Span;
+                        newLeading = leadingTrivia.Replace(leadingTrivia.Last(), increasedIndentationTrivia);
                     }
                     else
                     {
-                        span = new TextSpan(node.SpanStart, 0);
+                        newLeading = leadingTrivia.Add(increasedIndentationTrivia);
                     }
 
-                    textChanges.Add(new TextChange(span, increasedIndentation));
+                    indentationAdded = true;
+                }
+                else if (nodes.Count > 1
+                    && (i > 0 || !containingNode.IsKind(SyntaxKind.AttributeList)))
+                {
+                    SyntaxTriviaList newTrailing = (trailing.Any() && trailing.Last().IsWhitespaceTrivia())
+                        ? trailing.Replace(trailing.Last(), endOfLineTrivia)
+                        : trailing.Add(endOfLineTrivia);
+
+                    (newTokens ??= new Dictionary<SyntaxToken, SyntaxToken>()).Add(token, token.WithTrailingTrivia(newTrailing));
+
+                    newLeading = leading.Insert(0, increasedIndentationTrivia);
+
                     indentationAdded = true;
                 }
 
@@ -267,6 +268,8 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                 if (indentations.Any())
                 {
+                    Dictionary<SyntaxToken, SyntaxToken> newTokens2 = null;
+
                     int firstIndentationLength = indentations[0].Span.Length;
 
                     for (int j = 0; j < indentations.Length; j++)
@@ -292,12 +295,39 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         }
 
                         if (indentationInfo.Span.Length != replacement.Length)
-                            textChanges.Add(new TextChange(indentationInfo.Span, replacement));
+                        {
+                            SyntaxTrivia newTrivia = Whitespace(replacement);
+
+                            SyntaxToken token2 = indentationInfo.Token;
+
+                            SyntaxTriviaList newLeading2 = (indentationInfo.Span.Length > 0)
+                                ? token2.LeadingTrivia.Replace(indentationInfo.GetTrivia(), newTrivia)
+                                : token2.LeadingTrivia.Add(newTrivia);
+
+                            (newTokens2 ??= new Dictionary<SyntaxToken, SyntaxToken>()).Add(token2, token2.WithLeadingTrivia(newLeading2));
+                        }
                     }
+
+                    if (newTokens2 != null)
+                        newNode = newNode.ReplaceTokens(newTokens2.Keys, (n, _) => newTokens2[n]);
                 }
+
+                if (newLeading != default)
+                    newNode = newNode.WithLeadingTrivia(newLeading);
+
+                if (!object.ReferenceEquals(node, newNode))
+                    (newNodes ??= new Dictionary<SyntaxNode, SyntaxNode>()).Add(node, newNode);
             }
 
-            return document.WithTextChangesAsync(textChanges, cancellationToken);
+            SyntaxNode newContainingNode = containingNode.ReplaceSyntax(
+                newNodes?.Keys,
+                (n, _) => newNodes[n],
+                newTokens?.Keys,
+                (t, _) => newTokens[t],
+                default(IEnumerable<SyntaxTrivia>),
+                default(Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia>));
+
+            return document.ReplaceNodeAsync(containingNode, newContainingNode, cancellationToken);
         }
     }
 }
