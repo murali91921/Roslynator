@@ -53,7 +53,6 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         case SyntaxKind.BaseList:
                         case SyntaxKind.TupleType:
                         case SyntaxKind.TupleExpression:
-                        case SyntaxKind.VariableDeclaration:
                         case SyntaxKind.ArrayInitializerExpression:
                         case SyntaxKind.CollectionInitializerExpression:
                         case SyntaxKind.ComplexElementInitializerExpression:
@@ -153,13 +152,6 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                             return CodeAction.Create(
                                 Title,
                                 ct => FixAsync(document, tupleExpression, tupleExpression.OpenParenToken, tupleExpression.Arguments, ct),
-                                GetEquivalenceKey(diagnostic));
-                        }
-                    case VariableDeclarationSyntax variableDeclaration:
-                        {
-                            return CodeAction.Create(
-                                Title,
-                                ct => FixAsync(document, variableDeclaration, variableDeclaration.Type, variableDeclaration.Variables, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case InitializerExpressionSyntax initializerExpression:

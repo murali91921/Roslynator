@@ -885,40 +885,6 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
-        public async Task Test_Multiline_VariableDeclaration()
-        {
-            await VerifyDiagnosticAndFixAsync(@"
-class C
-{
-    private string [|x, y, 
-        z|];
-
-    void M()
-    {
-        string [|x, y,
-            z|];
-    }
-}
-", @"
-class C
-{
-    private string
-        x,
-        y, 
-        z;
-
-    void M()
-    {
-        string
-            x,
-            y,
-            z;
-    }
-}
-");
-        }
-
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task Test_Multiline_ArrayInitializer()
         {
             await VerifyDiagnosticAndFixAsync(@"

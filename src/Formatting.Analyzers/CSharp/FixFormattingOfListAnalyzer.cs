@@ -37,7 +37,6 @@ namespace Roslynator.Formatting.CSharp
             context.RegisterSyntaxNodeAction(f => AnalyzeBaseList(f), SyntaxKind.BaseList);
             context.RegisterSyntaxNodeAction(f => AnalyzeTupleType(f), SyntaxKind.TupleType);
             context.RegisterSyntaxNodeAction(f => AnalyzeTupleExpression(f), SyntaxKind.TupleExpression);
-            context.RegisterSyntaxNodeAction(f => AnalyzeVariableDeclaration(f), SyntaxKind.VariableDeclaration);
 
             context.RegisterSyntaxNodeAction(
                 f => AnalyzeInitializerExpression(f),
@@ -122,13 +121,6 @@ namespace Roslynator.Formatting.CSharp
             var tupleExpression = (TupleExpressionSyntax)context.Node;
 
             Analyze(context, tupleExpression.OpenParenToken, tupleExpression.Arguments);
-        }
-
-        private void AnalyzeVariableDeclaration(SyntaxNodeAnalysisContext context)
-        {
-            var variableDeclaration = (VariableDeclarationSyntax)context.Node;
-
-            Analyze(context, variableDeclaration.Type, variableDeclaration.Variables);
         }
 
         private void AnalyzeInitializerExpression(SyntaxNodeAnalysisContext context)
