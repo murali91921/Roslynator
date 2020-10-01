@@ -10,8 +10,6 @@ namespace Roslynator.CSharp
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     internal readonly struct IndentationAnalysis
     {
-        public static IndentationAnalysis Empty { get; } = new IndentationAnalysis(CSharpFactory.EmptyWhitespace(), 0);
-
         private IndentationAnalysis(SyntaxTrivia indentation, int indentSize)
         {
             Indentation = indentation;
@@ -25,6 +23,8 @@ namespace Roslynator.CSharp
         public int IndentationLength => Indentation.Span.Length;
 
         public int IncreasedIndentationLength => IndentationLength + IndentSize;
+
+        public bool IsDefault => Indentation == default;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay => $"\"{Indentation}\" Length = {Indentation.Span.Length} {nameof(IndentSize)} = {IndentSize}";

@@ -6,12 +6,5 @@
     <Category>Formatting</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>false</IsEnabledByDefault>
-    <Summary></Summary>
-    <Samples>
-      <Sample>
-          <Before><![CDATA[]]></Before>
-          <After><![CDATA[]]></After>
-      </Sample>
-    </Samples>
   </Analyzer>
 </Analyzers>
