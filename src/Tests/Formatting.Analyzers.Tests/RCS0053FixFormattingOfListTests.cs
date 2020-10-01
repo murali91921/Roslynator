@@ -375,9 +375,9 @@ class C
     void M(Func<string, string> x, object y)
     {
         M([|f =>
-        {
-            return null;
-        },
+            {
+                return null;
+            },
 y|]);
     }
 }
@@ -391,6 +391,46 @@ class C
         M(
             f =>
             {
+                return null;
+            },
+            y);
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_MultilineLambda()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+
+class C
+{
+    void M(Func<string, string> x, string y)
+    {
+        M([|f =>
+        {
+            string s = null;
+
+            //x
+            return null;
+        }, y|]);
+    }
+}
+", @"
+using System;
+
+class C
+{
+    void M(Func<string, string> x, string y)
+    {
+        M(
+            f =>
+            {
+                string s = null;
+
+                //x
                 return null;
             },
             y);
