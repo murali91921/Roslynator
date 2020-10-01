@@ -162,6 +162,50 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
+        public async Task Test_Invocation_IndendationsDiffer()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    C M(string s) 
+    {
+        var x = new C();
+
+        return [|x.M("""")
+        .M(new string(
+            ' ',
+            1))
+    .M(new string(
+        ' ',
+        1))
+            .M(new string(
+                ' ',
+                1))|];
+    }
+}
+", @"
+class C
+{
+    C M(string s) 
+    {
+        var x = new C();
+
+        return x.M("""")
+            .M(new string(
+                ' ',
+                1))
+            .M(new string(
+                ' ',
+                1))
+            .M(new string(
+                ' ',
+                1));
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
         public async Task TestNoDiagnostic()
         {
             await VerifyNoDiagnosticAsync(@"

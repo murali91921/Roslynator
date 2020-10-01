@@ -59,24 +59,20 @@ namespace Roslynator.Formatting.CSharp
                 {
                     var memberAccess = (MemberAccessExpressionSyntax)en.Current;
 
-                    if (AnalyzeToken(en.Current, memberAccess.OperatorToken))
+                    if (AnalyzeToken(memberAccess.OperatorToken))
                         return;
-
-                    break;
                 }
                 else if (en.Current.Kind() == SyntaxKind.MemberBindingExpression)
                 {
                     var memberBinding = (MemberBindingExpressionSyntax)en.Current;
 
-                    if (AnalyzeToken(en.Current, memberBinding.OperatorToken))
+                    if (AnalyzeToken(memberBinding.OperatorToken))
                         return;
-
-                    break;
                 }
 
             } while (en.MoveNext());
 
-            bool AnalyzeToken(SyntaxNode node, SyntaxToken token)
+            bool AnalyzeToken(SyntaxToken token)
             {
                 SyntaxTriviaList.Reversed.Enumerator en = token.LeadingTrivia.Reverse().GetEnumerator();
 
