@@ -24,7 +24,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(DiagnosticIdentifiers.FixFormattingOfList); }
+            get { return ImmutableArray.Create(DiagnosticIdentifiers.FixFormattingOfMethodChain); }
         }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -81,11 +81,6 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                             var memberBinding = (MemberBindingExpressionSyntax)node;
 
                             AnalyzeToken(node, memberBinding.OperatorToken);
-                            break;
-                        }
-                    default:
-                        {
-                            Debug.Fail(node.Kind().ToString());
                             break;
                         }
                 }
