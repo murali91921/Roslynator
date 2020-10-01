@@ -18,7 +18,35 @@ namespace Roslynator.Formatting.CSharp.Tests
         public override CodeFixProvider FixProvider { get; } = new FixFormattingOfMethodChainCodeFixProvider();
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
-        public async Task Test_Invocation()
+        public async Task Test_WrongIndentation()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    C M() 
+    {
+        var x = new C();
+
+        return [|x.M().M()
+        .M()|];
+    }
+}
+", @"
+class C
+{
+    C M() 
+    {
+        var x = new C();
+
+        return x.M().M()
+            .M();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
+        public async Task Test_Invocation_NoIndentation()
         {
             await VerifyDiagnosticAndFixAsync(@"
 class C
@@ -28,7 +56,35 @@ class C
         var x = new C();
 
         return [|x.M()
-        .M().M()|];
+.M()|];
+    }
+}
+", @"
+class C
+{
+    C M() 
+    {
+        var x = new C();
+
+        return x.M()
+            .M();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
+        public async Task Test_Invocation_WrapAndIndent()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    C M() 
+    {
+        var x = new C();
+
+        return [|x.M()
+            .M().M()|];
     }
 }
 ", @"
@@ -41,6 +97,81 @@ class C
         return x.M()
             .M()
             .M();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
+        public async Task Test_Invocation_EmptyLineBetween()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    C M() 
+    {
+        var x = new C();
+
+        return [|x.M()
+    
+.M()|];
+    }
+}
+", @"
+class C
+{
+    C M() 
+    {
+        var x = new C();
+
+        return x.M()
+            .M();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
+        public async Task Test_Invocation_CommentBetween()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    C M() 
+    {
+        var x = new C();
+
+        return [|x.M()
+        // x
+        .M()|];
+    }
+}
+", @"
+class C
+{
+    C M() 
+    {
+        var x = new C();
+
+        return x.M()
+        // x
+            .M();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
+        public async Task TestNoDiagnostic()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    C M() 
+    {
+        var x = new C();
+
+        return x.M().M();
     }
 }
 ");

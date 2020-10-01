@@ -2647,7 +2647,10 @@ namespace Roslynator.CSharp
             }
         }
 
-        private static TextSpan GetSpan(SyntaxNode node, bool includeExteriorTrivia, bool trim)
+        internal static TextSpan GetSpan(
+            this SyntaxNode node,
+            bool includeExteriorTrivia = true,
+            bool trim = true)
         {
             return TextSpan.FromBounds(
                 GetStartIndex(node, includeExteriorTrivia, trim),

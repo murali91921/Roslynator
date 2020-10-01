@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using Roslynator.CSharp;
 using static Roslynator.CSharp.SyntaxTriviaAnalysis;
 
@@ -41,35 +42,39 @@ namespace Roslynator.Formatting.CSharp
                 return;
             }
 
-            if (expression.IsSingleLine(includeExteriorTrivia: false))
+            MethodChain.Enumerator en = new MethodChain(expression).GetEnumerator();
+
+            if (!en.MoveNext())
                 return;
 
+            TextLineCollection lines = null;
+            int startLine = -1;
             IndentationAnalysis indentationAnalysis = default;
 
-            foreach (SyntaxNode node in CSharpUtility.EnumerateExpressionChain(expression))
+            do
             {
-                switch (node.Kind())
+                SyntaxKind kind = en.Current.Kind();
+
+                if (kind == SyntaxKind.SimpleMemberAccessExpression)
                 {
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        {
-                            var memberAccess = (MemberAccessExpressionSyntax)node;
+                    var memberAccess = (MemberAccessExpressionSyntax)en.Current;
 
-                            if (AnalyzeToken(node, memberAccess.OperatorToken))
-                                return;
+                    if (AnalyzeToken(en.Current, memberAccess.OperatorToken))
+                        return;
 
-                            break;
-                        }
-                    case SyntaxKind.MemberBindingExpression:
-                        {
-                            var memberBinding = (MemberBindingExpressionSyntax)node;
-
-                            if (AnalyzeToken(node, memberBinding.OperatorToken))
-                                return;
-
-                            break;
-                        }
+                    break;
                 }
-            }
+                else if (en.Current.Kind() == SyntaxKind.MemberBindingExpression)
+                {
+                    var memberBinding = (MemberBindingExpressionSyntax)en.Current;
+
+                    if (AnalyzeToken(en.Current, memberBinding.OperatorToken))
+                        return;
+
+                    break;
+                }
+
+            } while (en.MoveNext());
 
             bool AnalyzeToken(SyntaxNode node, SyntaxToken token)
             {
@@ -77,7 +82,17 @@ namespace Roslynator.Formatting.CSharp
 
                 if (!en.MoveNext())
                 {
-                    ReportDiagnostic();
+                    if (lines == null)
+                    {
+                        lines = expression.SyntaxTree.GetText().Lines;
+                        startLine = lines.IndexOf(expression.SpanStart);
+                    }
+
+                    int endLine = lines.IndexOf(token.SpanStart);
+
+                    if (startLine != endLine)
+                        ReportDiagnostic();
+
                     return true;
                 }
 
@@ -88,12 +103,12 @@ namespace Roslynator.Formatting.CSharp
                             if (indentationAnalysis.IsDefault)
                                 indentationAnalysis = AnalyzeIndentation(expression);
 
-                            if (en.Current.Span.Length != indentationAnalysis.IndentationLength)
+                            if (en.Current.Span.Length != indentationAnalysis.IncreasedIndentationLength)
                             {
                                 if (!en.MoveNext()
                                     || en.Current.IsEndOfLineTrivia())
                                 {
-                                    if (expression.FindTrivia(node.FullSpan.Start - 1).IsEndOfLineTrivia())
+                                    if (expression.FindTrivia(token.FullSpan.Start - 1).IsEndOfLineTrivia())
                                     {
                                         ReportDiagnostic();
                                         return true;
@@ -103,11 +118,11 @@ namespace Roslynator.Formatting.CSharp
                                 break;
                             }
 
-                            return false;
+                            break;
                         }
                     case SyntaxKind.EndOfLineTrivia:
                         {
-                            if (expression.FindTrivia(node.FullSpan.Start - 1).IsEndOfLineTrivia())
+                            if (expression.FindTrivia(token.FullSpan.Start - 1).IsEndOfLineTrivia())
                             {
                                 ReportDiagnostic();
                                 return true;

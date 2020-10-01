@@ -60,77 +60,102 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             CancellationToken cancellationToken)
         {
             IndentationAnalysis indentationAnalysis = AnalyzeIndentation(expression, cancellationToken);
-
             string indentation = indentationAnalysis.GetIncreasedIndentation();
+            string endOfLineAndIndentation = DetermineEndOfLine(expression).ToString() + indentation;
 
             var textChanges = new List<TextChange>();
+            TextLineCollection lines = expression.SyntaxTree.GetText().Lines;
+            int startLine = lines.IndexOf(expression.SpanStart);
 
-            foreach (SyntaxNode node in CSharpUtility.EnumerateExpressionChain(expression))
+            foreach (SyntaxNode node in new MethodChain(expression))
             {
-                switch (node.Kind())
+                SyntaxKind kind = node.Kind();
+
+                if (kind == SyntaxKind.SimpleMemberAccessExpression)
                 {
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        {
-                            var memberAccess = (MemberAccessExpressionSyntax)node;
+                    var memberAccess = (MemberAccessExpressionSyntax)node;
 
-                            AnalyzeToken(node, memberAccess.OperatorToken);
-                            break;
-                        }
-                    case SyntaxKind.MemberBindingExpression:
-                        {
-                            var memberBinding = (MemberBindingExpressionSyntax)node;
+                    if (!SetIndentation(node, memberAccess.OperatorToken))
+                        break;
+                }
+                else if (kind == SyntaxKind.MemberBindingExpression)
+                {
+                    var memberBinding = (MemberBindingExpressionSyntax)node;
 
-                            AnalyzeToken(node, memberBinding.OperatorToken);
-                            break;
-                        }
+                    if (!SetIndentation(node, memberBinding.OperatorToken))
+                        break;
                 }
             }
 
             return document.WithTextChangesAsync(textChanges, cancellationToken);
 
-            void AnalyzeToken(SyntaxNode node, SyntaxToken token)
+            bool SetIndentation(SyntaxNode node, SyntaxToken token)
             {
-                int start = 0;
-                int end = 0;
-
                 SyntaxTriviaList leading = token.LeadingTrivia;
+                SyntaxTriviaList.Reversed.Enumerator en = leading.Reverse().GetEnumerator();
 
-                if (leading.Any())
+                if (!en.MoveNext())
                 {
-                    SyntaxTrivia trivia = leading.Last();
+                    int endLine = lines.IndexOf(token.SpanStart);
 
-                    if (trivia.IsWhitespaceTrivia())
-                    {
-                        if (leading.Count == 1
-                            && trivia.Span.Length == indentation.Length
-                            && node.FindTrivia(trivia.SpanStart - 1).IsEndOfLineTrivia())
+                    if (startLine == endLine)
+                        return false;
+
+                    string newText = (expression.FindTrivia(token.SpanStart - 1).IsEndOfLineTrivia())
+                        ? indentation
+                        : endOfLineAndIndentation;
+
+                    textChanges.Add(new TextChange(new TextSpan(token.SpanStart, 0), newText));
+
+                    return true;
+                }
+
+                SyntaxTrivia last = en.Current;
+
+                switch (en.Current.Kind())
+                {
+                    case SyntaxKind.WhitespaceTrivia:
                         {
-                            return;
+                            if (en.Current.Span.Length == indentation.Length)
+                                return true;
+
+                            if (!en.MoveNext()
+                                || en.Current.IsEndOfLineTrivia())
+                            {
+                                if (expression.FindTrivia(token.FullSpan.Start - 1).IsEndOfLineTrivia())
+                                {
+                                    if (leading.IsEmptyOrWhitespace())
+                                    {
+                                        textChanges.Add(new TextChange(leading.Span, indentation));
+                                    }
+                                    else
+                                    {
+                                        textChanges.Add(new TextChange(last.Span, indentation));
+                                    }
+                                }
+                            }
+
+                            break;
                         }
+                    case SyntaxKind.EndOfLineTrivia:
+                        {
+                            if (expression.FindTrivia(token.FullSpan.Start - 1).IsEndOfLineTrivia())
+                            {
+                                if (leading.IsEmptyOrWhitespace())
+                                {
+                                    textChanges.Add(new TextChange(leading.Span, indentation));
+                                }
+                                else
+                                {
+                                    textChanges.Add(new TextChange(last.Span, indentation));
+                                }
+                            }
 
-                        end = trivia.Span.End;
-                    }
-                    else
-                    {
-                        end = token.SpanStart;
-                    }
-
-                    if (leading.IsEmptyOrWhitespace())
-                    {
-                        start = leading.Span.Start;
-                    }
-                    else
-                    {
-                        start = trivia.SpanStart;
-                    }
-                }
-                else
-                {
-                    start = token.SpanStart;
-                    end = start;
+                            break;
+                        }
                 }
 
-                textChanges.Add(new TextChange(TextSpan.FromBounds(start, end), indentation));
+                return true;
             }
         }
     }
