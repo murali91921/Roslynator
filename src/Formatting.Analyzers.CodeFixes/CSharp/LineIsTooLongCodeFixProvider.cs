@@ -51,9 +51,9 @@ namespace Roslynator.Formatting.CodeFixes
 
                             if (span.Contains(TextSpan.FromBounds(arrowToken.GetPreviousToken().SpanStart, token.SpanStart)))
                             {
-                                CompilationOptions compilationOptions = document.Project.CompilationOptions;
-                                bool addNewLineAfterArrow = !compilationOptions.IsAnalyzerSuppressed(DiagnosticDescriptors.AddNewLineBeforeExpressionBodyArrowInsteadOfAfterItOrViceVersa)
-                                    && !compilationOptions.IsAnalyzerSuppressed(AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
+                                bool addNewLineAfterArrow = AnalyzerOptions.IsEnabled(
+                                    document.Project.CompilationOptions,
+                                    AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
 
                                 if (RegisterCodeFix(token.Parent, expressionBody.Expression, arrowToken, token, addNewLineAfterArrow))
                                     return;
