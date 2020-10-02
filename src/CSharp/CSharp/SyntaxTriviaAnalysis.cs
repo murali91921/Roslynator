@@ -235,12 +235,14 @@ namespace Roslynator.CSharp
                 ? nodeOrToken.AsNode()
                 : nodeOrToken.AsToken().Parent;
 
-            while (!node.FullSpan.Contains(lineStartIndex))
-                node = node.GetParent(ascendOutOfTrivia: true);
+            SyntaxNode node2 = node;
 
-            if (node.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
+            while (!node2.FullSpan.Contains(lineStartIndex))
+                node2 = node2.GetParent(ascendOutOfTrivia: true);
+
+            if (node2.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
             {
-                if (((DocumentationCommentTriviaSyntax)node)
+                if (((DocumentationCommentTriviaSyntax)node2)
                     .ParentTrivia
                     .TryGetContainingList(out leading, allowTrailing: false))
                 {
@@ -252,7 +254,7 @@ namespace Roslynator.CSharp
             }
             else
             {
-                SyntaxToken token = node.FindToken(lineStartIndex);
+                SyntaxToken token = node2.FindToken(lineStartIndex);
 
                 leading = token.LeadingTrivia;
 
@@ -266,7 +268,39 @@ namespace Roslynator.CSharp
                 }
             }
 
+            if (!IsMemberDeclarationOrStatementOrAccessorDeclaration(node))
+            {
+                node = node.Parent;
+
+                while (node != null)
+                {
+                    if (IsMemberDeclarationOrStatementOrAccessorDeclaration(node))
+                    {
+                        leading = node.GetLeadingTrivia();
+
+                        if (leading.Any())
+                        {
+                            SyntaxTrivia trivia = leading.Last();
+
+                            if (trivia.IsWhitespaceTrivia())
+                                return trivia;
+                        }
+
+                        break;
+                    }
+
+                    node = node.Parent;
+                }
+            }
+
             return CSharpFactory.EmptyWhitespace();
+
+            static bool IsMemberDeclarationOrStatementOrAccessorDeclaration(SyntaxNode node)
+            {
+                return node is MemberDeclarationSyntax
+                    || (node is StatementSyntax && !node.IsKind(SyntaxKind.Block))
+                    || node is AccessorDeclarationSyntax;
+            }
         }
 
         public static int DetermineIndentationSize(SyntaxNode node, CancellationToken cancellationToken = default)

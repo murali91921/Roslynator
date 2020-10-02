@@ -76,25 +76,27 @@ namespace Roslynator.Formatting.CSharp
                 return;
             }
 
-            IndentationAnalysis indentationAnalysis = default;
+            //IndentationAnalysis indentationAnalysis = default;
+            int indentationLength = -1;
 
             BinaryExpressionSyntax binaryExpression = topBinaryExpression;
 
             while (true)
             {
-                BinaryExpressionInfo info = SyntaxInfo.BinaryExpressionInfo(binaryExpression);
+                ExpressionSyntax left = binaryExpression.Left;
+                SyntaxToken token = binaryExpression.OperatorToken;
 
-                SyntaxTriviaList leftTrailing = info.Left.GetTrailingTrivia();
-                SyntaxTriviaList tokenTrailing = info.OperatorToken.TrailingTrivia;
+                SyntaxTriviaList leftTrailing = left.GetTrailingTrivia();
+                SyntaxTriviaList tokenTrailing = token.TrailingTrivia;
 
                 if (IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(leftTrailing))
                 {
-                    if (Analyze(info.OperatorToken))
+                    if (Analyze(token))
                         return;
                 }
                 else if (IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(tokenTrailing))
                 {
-                    if (Analyze(info.Right))
+                    if (Analyze(binaryExpression.Right))
                         return;
                 }
                 else if (leftTrailing.IsEmptyOrWhitespace()
@@ -104,10 +106,12 @@ namespace Roslynator.Formatting.CSharp
                     return;
                 }
 
-                if (!info.Left.IsKind(binaryKind))
+                left = left.WalkDownParentheses();
+
+                if (!left.IsKind(binaryKind))
                     break;
 
-                binaryExpression = (BinaryExpressionSyntax)info.Left;
+                binaryExpression = (BinaryExpressionSyntax)left;
             }
 
             bool Analyze(SyntaxNodeOrToken nodeOrToken)
@@ -124,10 +128,18 @@ namespace Roslynator.Formatting.CSharp
                 {
                     case SyntaxKind.WhitespaceTrivia:
                         {
-                            if (indentationAnalysis.IsDefault)
-                                indentationAnalysis = AnalyzeIndentation(topBinaryExpression);
+                            if (indentationLength == -1)
+                            {
+                                IndentationAnalysis indentationAnalysis = AnalyzeIndentation(topBinaryExpression);
 
-                            if (en.Current.Span.Length != indentationAnalysis.IncreasedIndentationLength)
+                                SyntaxTrivia indentation = DetermineIndentation(topBinaryExpression, indentationAnalysis);
+
+                                indentationLength = (indentation == indentationAnalysis.Indentation)
+                                    ? indentationAnalysis.IncreasedIndentationLength
+                                    : indentation.Span.Length;
+                            }
+
+                            if (en.Current.Span.Length != indentationLength)
                             {
                                 if (!en.MoveNext()
                                     || en.Current.IsEndOfLineTrivia())
@@ -166,6 +178,31 @@ namespace Roslynator.Formatting.CSharp
                     DiagnosticDescriptors.FixFormattingOfBinaryExpressionChain,
                     topBinaryExpression);
             }
+        }
+
+        internal static SyntaxTrivia DetermineIndentation(BinaryExpressionSyntax binaryExpression, IndentationAnalysis indentationAnalysis)
+        {
+            SyntaxTrivia indentationTrivia = indentationAnalysis.Indentation;
+
+            if (indentationTrivia.Span.End == binaryExpression.SpanStart)
+            {
+                int position = indentationTrivia.SpanStart - 1;
+
+                SyntaxNode node = binaryExpression;
+
+                while (!node.FullSpan.Contains(position))
+                    node = node.Parent;
+
+                SyntaxTrivia trivia = node.FindTrivia(position);
+
+                if (trivia.IsEndOfLineTrivia()
+                    && trivia.Span.End == indentationTrivia.SpanStart)
+                {
+                    return indentationTrivia;
+                }
+            }
+
+            return indentationAnalysis.Indentation;
         }
     }
 }

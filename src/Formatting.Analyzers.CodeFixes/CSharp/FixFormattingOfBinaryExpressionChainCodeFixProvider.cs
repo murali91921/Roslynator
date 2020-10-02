@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -52,7 +53,12 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             CancellationToken cancellationToken)
         {
             IndentationAnalysis indentationAnalysis = AnalyzeIndentation(binaryExpression, cancellationToken);
-            string indentation = indentationAnalysis.GetIncreasedIndentation();
+            SyntaxTrivia indentationTrivia = FixFormattingOfBinaryExpressionChainAnalyzer.DetermineIndentation(binaryExpression, indentationAnalysis);
+
+            string indentation = (indentationTrivia == indentationAnalysis.Indentation)
+                ? indentationAnalysis.GetIncreasedIndentation()
+                : indentationTrivia.ToString();
+
             string endOfLineAndIndentation = DetermineEndOfLine(binaryExpression).ToString() + indentation;
 
             var textChanges = new List<TextChange>();
@@ -100,6 +106,22 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                     break;
 
                 binaryExpression = (BinaryExpressionSyntax)left;
+            }
+
+            if (textChanges.Count > 0)
+            {
+                SyntaxTriviaList leading = binaryExpression.GetLeadingTrivia();
+
+                if (!leading.Any())
+                {
+                    SyntaxTrivia trivia = binaryExpression.GetFirstToken().GetPreviousToken().TrailingTrivia.LastOrDefault();
+
+                    if (trivia.IsEndOfLineTrivia()
+                        && trivia.Span.End == binaryExpression.SpanStart)
+                    {
+                        textChanges.Add(new TextChange(new TextSpan(binaryExpression.SpanStart, 0), indentation));
+                    }
+                }
             }
 
             return document.WithTextChangesAsync(textChanges, cancellationToken);

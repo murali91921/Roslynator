@@ -106,6 +106,34 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain)]
+        public async Task Test_NoIndentation2()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    string M(string x) 
+    {
+        return M(
+[|""""
++ """"
++ """"|]);
+    }
+}
+", @"
+class C
+{
+    string M(string x) 
+    {
+        return M(
+            """"
+            + """"
+            + """");
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain)]
         public async Task Test_WrongIndentation()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -133,6 +161,54 @@ class C
     }
 }
 ");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain)]
+        public async Task Test_StartsOnSeparateLine()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M() 
+    {
+        bool x = false, y = false, z = false;
+
+        x = 
+            [|x && y
+        && z|];
+    }
+}
+", @"
+class C
+{
+    void M() 
+    {
+        bool x = false, y = false, z = false;
+
+        x = 
+            x
+            && y
+            && z;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain)]
+        public async Task TestNoDiagnostic()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    void M() 
+    {
+        bool x = false, y = false, z = false;
+
+        x = (x || y)
+            && z;
+    }
+}
+        ");
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain)]
