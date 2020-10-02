@@ -131,16 +131,16 @@ namespace Roslynator.Formatting.CSharp
                             {
                                 IndentationAnalysis indentationAnalysis = AnalyzeIndentation(topBinaryExpression);
 
-                                if (indentationAnalysis.Indentation == topBinaryExpression.GetLeadingTrivia().LastOrDefault()
-                                    && !context.AreAnalyzersSuppressed(
+                                if (indentationAnalysis.Indentation != topBinaryExpression.GetLeadingTrivia().LastOrDefault()
+                                    || context.IsAnyAnalyzerSuppressed(
                                         DiagnosticDescriptors.AddNewLineBeforeBinaryOperatorInsteadOfAfterItOrViceVersa,
                                         AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt))
                                 {
-                                    indentationLength = indentationAnalysis.IndentationLength;
+                                    indentationLength = indentationAnalysis.IncreasedIndentationLength;
                                 }
                                 else
                                 {
-                                    indentationLength = indentationAnalysis.IncreasedIndentationLength;
+                                    indentationLength = indentationAnalysis.IndentationLength;
                                 }
                             }
 

@@ -55,16 +55,16 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             IndentationAnalysis indentationAnalysis = AnalyzeIndentation(binaryExpression, cancellationToken);
 
             string indentation;
-            if (indentationAnalysis.Indentation == binaryExpression.GetLeadingTrivia().LastOrDefault()
-                && !document.Project.CompilationOptions.AreAnalyzersSuppressed(
+            if (indentationAnalysis.Indentation != binaryExpression.GetLeadingTrivia().LastOrDefault()
+                || document.Project.CompilationOptions.IsAnyAnalyzerSuppressed(
                     DiagnosticDescriptors.AddNewLineBeforeBinaryOperatorInsteadOfAfterItOrViceVersa,
                     AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt))
             {
-                indentation = indentationAnalysis.Indentation.ToString();
+                indentation = indentationAnalysis.GetIncreasedIndentation();
             }
             else
             {
-                indentation = indentationAnalysis.GetIncreasedIndentation();
+                indentation = indentationAnalysis.Indentation.ToString();
             }
 
             string endOfLineAndIndentation = DetermineEndOfLine(binaryExpression).ToString() + indentation;
