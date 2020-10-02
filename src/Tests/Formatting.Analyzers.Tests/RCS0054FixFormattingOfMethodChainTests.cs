@@ -74,6 +74,34 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
+        public async Task Test_Invocation_NoIndentation_EmptyLineBetween()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    C M() 
+    {
+        var x = new C();
+
+        return [|x.M()
+.M()|];
+    }
+}
+", @"
+class C
+{
+    C M() 
+    {
+        var x = new C();
+
+        return x.M()
+            .M();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
         public async Task Test_Invocation_WrapAndIndent()
         {
             await VerifyDiagnosticAndFixAsync(@"

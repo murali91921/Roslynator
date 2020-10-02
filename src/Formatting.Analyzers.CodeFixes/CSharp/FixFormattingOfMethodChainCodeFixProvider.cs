@@ -77,21 +77,21 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 {
                     var memberAccess = (MemberAccessExpressionSyntax)node;
 
-                    if (!SetIndentation(node, memberAccess.OperatorToken))
+                    if (!SetIndentation(memberAccess.OperatorToken))
                         break;
                 }
                 else if (kind == SyntaxKind.MemberBindingExpression)
                 {
                     var memberBinding = (MemberBindingExpressionSyntax)node;
 
-                    if (!SetIndentation(node, memberBinding.OperatorToken))
+                    if (!SetIndentation(memberBinding.OperatorToken))
                         break;
                 }
             }
 
             return document.WithTextChangesAsync(textChanges, cancellationToken);
 
-            bool SetIndentation(SyntaxNode node, SyntaxToken token)
+            bool SetIndentation(SyntaxToken token)
             {
                 SyntaxTriviaList leading = token.LeadingTrivia;
                 SyntaxTriviaList.Reversed.Enumerator en = leading.Reverse().GetEnumerator();
@@ -104,14 +104,13 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         return false;
 
                     SyntaxTrivia trivia = expression.FindTrivia(token.SpanStart - 1);
-                    string newText = (trivia.IsEndOfLineTrivia())
-                        ? indentation
-                        : endOfLineAndIndentation;
+
+                    string newText = (trivia.IsEndOfLineTrivia()) ? indentation : endOfLineAndIndentation;
 
                     textChanges.Add(new TextChange(new TextSpan(token.SpanStart, 0), newText));
 
-                    SetIndendation(node, token, prevIndex);
-                    prevIndex = trivia.SpanStart;
+                    SetIndendation(token, prevIndex);
+                    prevIndex = (trivia.IsEndOfLineTrivia()) ? trivia.SpanStart : token.SpanStart;
                     return true;
                 }
 
@@ -130,19 +129,11 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                             if (trivia.IsEndOfLineTrivia())
                             {
-                                if (leading.IsEmptyOrWhitespace())
-                                {
-                                    textChanges.Add(new TextChange(leading.Span, indentation));
-                                }
-                                else
-                                {
-                                    textChanges.Add(new TextChange(last.Span, indentation));
-                                }
+                                AddTextChange((leading.IsEmptyOrWhitespace()) ? leading.Span : last.Span);
+                                SetIndendation(token, prevIndex);
+                                prevIndex = trivia.SpanStart;
+                                return true;
                             }
-
-                            SetIndendation(node, token, prevIndex);
-                            prevIndex = trivia.SpanStart;
-                            return true;
                         }
                     }
                 }
@@ -152,16 +143,8 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                     if (trivia.IsEndOfLineTrivia())
                     {
-                        if (leading.IsEmptyOrWhitespace())
-                        {
-                            textChanges.Add(new TextChange(leading.Span, indentation));
-                        }
-                        else
-                        {
-                            textChanges.Add(new TextChange(last.Span, indentation));
-                        }
-
-                        SetIndendation(node, token, prevIndex);
+                        AddTextChange((leading.IsEmptyOrWhitespace()) ? leading.Span : last.Span);
+                        SetIndendation(token, prevIndex);
                         prevIndex = trivia.SpanStart;
                         return true;
                     }
@@ -169,9 +152,11 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                 prevIndex = leading.Span.Start - 1;
                 return true;
+
+                void AddTextChange(TextSpan span) => textChanges.Add(new TextChange(span, indentation));
             }
 
-            void SetIndendation(SyntaxNode node, SyntaxToken token, int endIndex)
+            void SetIndendation(SyntaxToken token, int endIndex)
             {
                 ImmutableArray<IndentationInfo> indentations = FindIndentations(expression, TextSpan.FromBounds(token.SpanStart, endIndex)).ToImmutableArray();
 
