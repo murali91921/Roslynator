@@ -53,11 +53,19 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             CancellationToken cancellationToken)
         {
             IndentationAnalysis indentationAnalysis = AnalyzeIndentation(binaryExpression, cancellationToken);
-            SyntaxTrivia indentationTrivia = FixFormattingOfBinaryExpressionChainAnalyzer.DetermineIndentation(binaryExpression, indentationAnalysis);
 
-            string indentation = (indentationTrivia == indentationAnalysis.Indentation)
-                ? indentationAnalysis.GetIncreasedIndentation()
-                : indentationTrivia.ToString();
+            string indentation;
+            if (indentationAnalysis.Indentation == binaryExpression.GetLeadingTrivia().LastOrDefault()
+                && !document.Project.CompilationOptions.AreAnalyzersSuppressed(
+                    DiagnosticDescriptors.AddNewLineBeforeBinaryOperatorInsteadOfAfterItOrViceVersa,
+                    AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt))
+            {
+                indentation = indentationAnalysis.Indentation.ToString();
+            }
+            else
+            {
+                indentation = indentationAnalysis.GetIncreasedIndentation();
+            }
 
             string endOfLineAndIndentation = DetermineEndOfLine(binaryExpression).ToString() + indentation;
 
@@ -68,11 +76,9 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
             while (true)
             {
-                BinaryExpressionInfo info = SyntaxInfo.BinaryExpressionInfo(binaryExpression);
-
-                ExpressionSyntax left = info.Left;
-                SyntaxToken token = info.OperatorToken;
-                ExpressionSyntax right = info.Right;
+                ExpressionSyntax left = binaryExpression.Left;
+                SyntaxToken token = binaryExpression.OperatorToken;
+                ExpressionSyntax right = binaryExpression.Right;
 
                 SyntaxTriviaList leftTrailing = left.GetTrailingTrivia();
                 SyntaxTriviaList tokenTrailing = token.TrailingTrivia;
@@ -101,6 +107,8 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         break;
                     }
                 }
+
+                left = left.WalkDownParentheses();
 
                 if (!left.IsKind(binaryKind))
                     break;

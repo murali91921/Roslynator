@@ -536,6 +536,14 @@ namespace Roslynator
             return context.Compilation.IsAnalyzerSuppressed(descriptor);
         }
 
+        internal static bool AreAnalyzersSuppressed(
+            this SyntaxNodeAnalysisContext context,
+            DiagnosticDescriptor descriptor1,
+            DiagnosticDescriptor descriptor2)
+        {
+            return context.Compilation.AreAnalyzersSuppressed(descriptor1, descriptor2);
+        }
+
 #pragma warning disable RS1012
         internal static bool IsAnalyzerSuppressed(this CompilationStartAnalysisContext context, DiagnosticDescriptor descriptor)
         {

@@ -114,9 +114,9 @@ class C
     string M(string x) 
     {
         return M(
-[|""""
-+ """"
-+ """"|]);
+[|"""" +
+"""" +
+""""|]);
     }
 }
 ", @"
@@ -125,12 +125,12 @@ class C
     string M(string x) 
     {
         return M(
-            """"
-            + """"
-            + """");
+            """" +
+            """" +
+            """");
     }
 }
-");
+", options: Options.WithEnabled(DiagnosticDescriptors.AddNewLineBeforeBinaryOperatorInsteadOfAfterItOrViceVersa, AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt));
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain)]
@@ -187,8 +187,8 @@ class C
 
         x = 
             x
-            && y
-            && z;
+                && y
+                && z;
     }
 }
 ");
@@ -224,6 +224,25 @@ class C
         x = y
             .ToString()
             .Equals("""") && z;
+    }
+}
+        ");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain)]
+        public async Task TestNoDiagnostic_StartsOnSeparateLine()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    void M() 
+    {
+        bool x = false, y = false, z = false;
+
+        x = 
+            x
+                && y
+                && z;
     }
 }
         ");

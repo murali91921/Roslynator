@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslynator.CSharp;
-using Roslynator.CSharp.Syntax;
 using static Roslynator.CSharp.SyntaxTriviaAnalysis;
 
 namespace Roslynator.Formatting.CSharp
@@ -76,7 +76,6 @@ namespace Roslynator.Formatting.CSharp
                 return;
             }
 
-            //IndentationAnalysis indentationAnalysis = default;
             int indentationLength = -1;
 
             BinaryExpressionSyntax binaryExpression = topBinaryExpression;
@@ -132,11 +131,17 @@ namespace Roslynator.Formatting.CSharp
                             {
                                 IndentationAnalysis indentationAnalysis = AnalyzeIndentation(topBinaryExpression);
 
-                                SyntaxTrivia indentation = DetermineIndentation(topBinaryExpression, indentationAnalysis);
-
-                                indentationLength = (indentation == indentationAnalysis.Indentation)
-                                    ? indentationAnalysis.IncreasedIndentationLength
-                                    : indentation.Span.Length;
+                                if (indentationAnalysis.Indentation == topBinaryExpression.GetLeadingTrivia().LastOrDefault()
+                                    && !context.AreAnalyzersSuppressed(
+                                        DiagnosticDescriptors.AddNewLineBeforeBinaryOperatorInsteadOfAfterItOrViceVersa,
+                                        AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt))
+                                {
+                                    indentationLength = indentationAnalysis.IndentationLength;
+                                }
+                                else
+                                {
+                                    indentationLength = indentationAnalysis.IncreasedIndentationLength;
+                                }
                             }
 
                             if (en.Current.Span.Length != indentationLength)
@@ -178,31 +183,6 @@ namespace Roslynator.Formatting.CSharp
                     DiagnosticDescriptors.FixFormattingOfBinaryExpressionChain,
                     topBinaryExpression);
             }
-        }
-
-        internal static SyntaxTrivia DetermineIndentation(BinaryExpressionSyntax binaryExpression, IndentationAnalysis indentationAnalysis)
-        {
-            SyntaxTrivia indentationTrivia = indentationAnalysis.Indentation;
-
-            if (indentationTrivia.Span.End == binaryExpression.SpanStart)
-            {
-                int position = indentationTrivia.SpanStart - 1;
-
-                SyntaxNode node = binaryExpression;
-
-                while (!node.FullSpan.Contains(position))
-                    node = node.Parent;
-
-                SyntaxTrivia trivia = node.FindTrivia(position);
-
-                if (trivia.IsEndOfLineTrivia()
-                    && trivia.Span.End == indentationTrivia.SpanStart)
-                {
-                    return indentationTrivia;
-                }
-            }
-
-            return indentationAnalysis.Indentation;
         }
     }
 }
