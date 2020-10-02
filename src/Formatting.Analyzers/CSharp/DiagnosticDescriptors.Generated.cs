@@ -573,6 +573,18 @@ namespace Roslynator.Formatting.CSharp
             helpLinkUri:        DiagnosticIdentifiers.FixFormattingOfMethodChain, 
             customTags:         Array.Empty<string>());
 
+        /// <summary>RCS0055</summary>
+        public static readonly DiagnosticDescriptor FixFormattingOfBinaryExpressionChain = DiagnosticDescriptorFactory.Default.Create(
+            id:                 DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain, 
+            title:              "Fix formatting of a binary expression chain.", 
+            messageFormat:      "Fix formatting of a binary expression chain.", 
+            category:           DiagnosticCategories.Formatting, 
+            defaultSeverity:    DiagnosticSeverity.Info, 
+            isEnabledByDefault: false, 
+            description:        null, 
+            helpLinkUri:        DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain, 
+            customTags:         Array.Empty<string>());
+
         public static partial class ReportOnly
         {
             /// <summary>RCS0011i</summary>

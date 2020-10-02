@@ -13,42 +13,34 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslynator.CSharp;
+using Roslynator.CSharp.Syntax;
 using Roslynator.Formatting.CSharp;
 using static Roslynator.CSharp.SyntaxTriviaAnalysis;
 
 namespace Roslynator.Formatting.CodeFixes.CSharp
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(FixFormattingOfMethodChainCodeFixProvider))]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(FixFormattingOfBinaryExpressionChainCodeFixProvider))]
     [Shared]
-    internal class FixFormattingOfMethodChainCodeFixProvider : BaseCodeFixProvider
+    internal class FixFormattingOfBinaryExpressionChainCodeFixProvider : BaseCodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(DiagnosticIdentifiers.FixFormattingOfMethodChain); }
+            get { return ImmutableArray.Create(DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain); }
         }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             SyntaxNode root = await context.GetSyntaxRootAsync().ConfigureAwait(false);
 
-            if (!TryFindFirstAncestorOrSelf(
-                root,
-                context.Span,
-                out SyntaxNode node,
-                predicate: f => f.IsKind(
-                    SyntaxKind.InvocationExpression,
-                    SyntaxKind.ElementAccessExpression,
-                    SyntaxKind.ConditionalAccessExpression)))
-            {
+            if (!TryFindFirstAncestorOrSelf(root, context.Span, out BinaryExpressionSyntax binaryExpression))
                 return;
-            }
 
             Document document = context.Document;
             Diagnostic diagnostic = context.Diagnostics[0];
 
             CodeAction codeAction = CodeAction.Create(
                 "Fix formatting",
-                ct => FixAsync(document, (ExpressionSyntax)node, ct),
+                ct => FixAsync(document, binaryExpression, ct),
                 GetEquivalenceKey(diagnostic));
 
             context.RegisterCodeFix(codeAction, diagnostic);
@@ -56,60 +48,78 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
         private static Task<Document> FixAsync(
             Document document,
-            ExpressionSyntax expression,
+            BinaryExpressionSyntax binaryExpression,
             CancellationToken cancellationToken)
         {
-            IndentationAnalysis indentationAnalysis = AnalyzeIndentation(expression, cancellationToken);
+            IndentationAnalysis indentationAnalysis = AnalyzeIndentation(binaryExpression, cancellationToken);
             string indentation = indentationAnalysis.GetIncreasedIndentation();
-            string endOfLineAndIndentation = DetermineEndOfLine(expression).ToString() + indentation;
+            string endOfLineAndIndentation = DetermineEndOfLine(binaryExpression).ToString() + indentation;
 
             var textChanges = new List<TextChange>();
-            TextLineCollection lines = expression.SyntaxTree.GetText().Lines;
-            int startLine = lines.IndexOf(expression.SpanStart);
-            int prevIndex = expression.Span.End;
+            int prevIndex = binaryExpression.Span.End;
 
-            foreach (SyntaxNode node in new MethodChain(expression))
+            SyntaxKind binaryKind = binaryExpression.Kind();
+
+            while (true)
             {
-                SyntaxKind kind = node.Kind();
+                BinaryExpressionInfo info = SyntaxInfo.BinaryExpressionInfo(binaryExpression);
 
-                if (kind == SyntaxKind.SimpleMemberAccessExpression)
+                ExpressionSyntax left = info.Left;
+                SyntaxToken token = info.OperatorToken;
+                ExpressionSyntax right = info.Right;
+
+                SyntaxTriviaList leftTrailing = left.GetTrailingTrivia();
+                SyntaxTriviaList tokenTrailing = token.TrailingTrivia;
+
+                if (IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(leftTrailing))
                 {
-                    var memberAccess = (MemberAccessExpressionSyntax)node;
-
-                    if (!SetIndentation(memberAccess.OperatorToken))
+                    if (!SetIndentation(token))
                         break;
                 }
-                else if (kind == SyntaxKind.MemberBindingExpression)
+                else if (IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(tokenTrailing))
                 {
-                    var memberBinding = (MemberBindingExpressionSyntax)node;
-
-                    if (!SetIndentation(memberBinding.OperatorToken))
+                    if (!SetIndentation(right))
                         break;
                 }
+                else if (leftTrailing.IsEmptyOrWhitespace()
+                    && tokenTrailing.IsEmptyOrWhitespace())
+                {
+                    if (!document.Project.CompilationOptions.IsAnalyzerSuppressed(DiagnosticDescriptors.AddNewLineBeforeBinaryOperatorInsteadOfAfterItOrViceVersa)
+                        && !document.Project.CompilationOptions.IsAnalyzerSuppressed(AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt))
+                    {
+                        if (!SetIndentation(right))
+                            break;
+                    }
+                    else if (!SetIndentation(token))
+                    {
+                        break;
+                    }
+                }
+
+                if (!left.IsKind(binaryKind))
+                    break;
+
+                binaryExpression = (BinaryExpressionSyntax)left;
             }
 
             return document.WithTextChangesAsync(textChanges, cancellationToken);
 
-            bool SetIndentation(SyntaxToken token)
+            bool SetIndentation(SyntaxNodeOrToken nodeOrToken)
             {
-                SyntaxTriviaList leading = token.LeadingTrivia;
+                SyntaxTriviaList leading = nodeOrToken.GetLeadingTrivia();
                 SyntaxTriviaList.Reversed.Enumerator en = leading.Reverse().GetEnumerator();
 
                 if (!en.MoveNext())
                 {
-                    int endLine = lines.IndexOf(token.SpanStart);
-
-                    if (startLine == endLine)
-                        return false;
-
-                    SyntaxTrivia trivia = expression.FindTrivia(token.SpanStart - 1);
+                    SyntaxTrivia trivia = binaryExpression.FindTrivia(nodeOrToken.SpanStart - 1);
 
                     string newText = (trivia.IsEndOfLineTrivia()) ? indentation : endOfLineAndIndentation;
 
-                    textChanges.Add(new TextChange(new TextSpan(token.SpanStart, 0), newText));
+                    int start = (trivia.IsWhitespaceTrivia()) ? trivia.SpanStart : nodeOrToken.SpanStart;
 
-                    SetIndendation(token, prevIndex);
-                    prevIndex = (trivia.IsEndOfLineTrivia()) ? trivia.SpanStart : token.SpanStart;
+                    textChanges.Add(new TextChange(new TextSpan(start, 0), newText));
+                    SetIndendation(nodeOrToken, prevIndex);
+                    prevIndex = start;
                     return true;
                 }
 
@@ -124,12 +134,12 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         if (!en.MoveNext()
                             || en.Current.IsEndOfLineTrivia())
                         {
-                            SyntaxTrivia trivia = expression.FindTrivia(token.FullSpan.Start - 1);
+                            SyntaxTrivia trivia = binaryExpression.FindTrivia(nodeOrToken.FullSpan.Start - 1);
 
                             if (trivia.IsEndOfLineTrivia())
                             {
                                 AddTextChange((leading.IsEmptyOrWhitespace()) ? leading.Span : last.Span);
-                                SetIndendation(token, prevIndex);
+                                SetIndendation(nodeOrToken, prevIndex);
                                 prevIndex = trivia.SpanStart;
                                 return true;
                             }
@@ -138,12 +148,12 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 }
                 else if (kind == SyntaxKind.EndOfLineTrivia)
                 {
-                    SyntaxTrivia trivia = expression.FindTrivia(token.FullSpan.Start - 1);
+                    SyntaxTrivia trivia = binaryExpression.FindTrivia(nodeOrToken.FullSpan.Start - 1);
 
                     if (trivia.IsEndOfLineTrivia())
                     {
                         AddTextChange((leading.IsEmptyOrWhitespace()) ? leading.Span : last.Span);
-                        SetIndendation(token, prevIndex);
+                        SetIndendation(nodeOrToken, prevIndex);
                         prevIndex = trivia.SpanStart;
                         return true;
                     }
@@ -155,9 +165,9 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 void AddTextChange(TextSpan span) => textChanges.Add(new TextChange(span, indentation));
             }
 
-            void SetIndendation(SyntaxToken token, int endIndex)
+            void SetIndendation(SyntaxNodeOrToken nodeOrToken, int endIndex)
             {
-                ImmutableArray<IndentationInfo> indentations = FindIndentations(expression, TextSpan.FromBounds(token.SpanStart, endIndex)).ToImmutableArray();
+                ImmutableArray<IndentationInfo> indentations = FindIndentations(binaryExpression, TextSpan.FromBounds(nodeOrToken.SpanStart, endIndex)).ToImmutableArray();
 
                 if (!indentations.Any())
                     return;
