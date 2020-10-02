@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslynator.CSharp;
-using Roslynator.CSharp.Syntax;
 using Roslynator.Formatting.CSharp;
 using static Roslynator.CSharp.SyntaxTriviaAnalysis;
 
@@ -55,16 +53,14 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             IndentationAnalysis indentationAnalysis = AnalyzeIndentation(binaryExpression, cancellationToken);
 
             string indentation;
-            if (indentationAnalysis.Indentation != binaryExpression.GetLeadingTrivia().LastOrDefault()
-                || document.Project.CompilationOptions.IsAnyAnalyzerSuppressed(
-                    DiagnosticDescriptors.AddNewLineBeforeBinaryOperatorInsteadOfAfterItOrViceVersa,
-                    AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt))
+            if (indentationAnalysis.Indentation == binaryExpression.GetLeadingTrivia().LastOrDefault()
+                && document.IsAnalyzerOptionEnabled(AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt))
             {
-                indentation = indentationAnalysis.GetIncreasedIndentation();
+                indentation = indentationAnalysis.Indentation.ToString();
             }
             else
             {
-                indentation = indentationAnalysis.Indentation.ToString();
+                indentation = indentationAnalysis.GetIncreasedIndentation();
             }
 
             string endOfLineAndIndentation = DetermineEndOfLine(binaryExpression).ToString() + indentation;

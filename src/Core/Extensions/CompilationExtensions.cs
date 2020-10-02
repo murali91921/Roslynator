@@ -29,12 +29,6 @@ namespace Roslynator
             }
         }
 
-        internal static bool IsAnyAnalyzerSuppressed(this CompilationOptions compilationOptions, DiagnosticDescriptor descriptor1, DiagnosticDescriptor descriptor2)
-        {
-            return IsAnalyzerSuppressed(compilationOptions, descriptor1)
-                || IsAnalyzerSuppressed(compilationOptions, descriptor2);
-        }
-
         internal static bool AreAnalyzersSuppressed(this CompilationOptions compilationOptions, DiagnosticDescriptor descriptor1, DiagnosticDescriptor descriptor2)
         {
             return IsAnalyzerSuppressed(compilationOptions, descriptor1)
@@ -51,12 +45,6 @@ namespace Roslynator
             }
 
             return true;
-        }
-
-        internal static bool IsAnyAnalyzerSuppressed(this Compilation compilation, DiagnosticDescriptor descriptor1, DiagnosticDescriptor descriptor2)
-        {
-            return IsAnalyzerSuppressed(compilation, descriptor1)
-                || IsAnalyzerSuppressed(compilation, descriptor2);
         }
 
         internal static bool AreAnalyzersSuppressed(this Compilation compilation, DiagnosticDescriptor descriptor1, DiagnosticDescriptor descriptor2)
