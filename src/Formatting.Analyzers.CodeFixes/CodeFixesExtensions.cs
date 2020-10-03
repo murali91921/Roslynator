@@ -8,7 +8,7 @@ namespace Roslynator.Formatting
     {
         public static bool IsAnalyzerOptionEnabled(this Document document, DiagnosticDescriptor diagnosticDescriptor)
         {
-            return FormattingExtensions.IsAnalyzerOptionEnabled(document.Project.CompilationOptions, diagnosticDescriptor);
+            return document.Project.CompilationOptions.IsAnalyzerOptionEnabled(diagnosticDescriptor);
         }
     }
 }

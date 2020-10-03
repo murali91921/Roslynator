@@ -184,7 +184,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
             if (nodes.IsSingleLine(includeExteriorTrivia: false, cancellationToken: cancellationToken))
             {
-                TNode first = nodes.First();
+                TNode first = nodes[0];
 
                 SyntaxTriviaList leading = first.GetLeadingTrivia();
 

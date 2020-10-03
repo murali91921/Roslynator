@@ -14,7 +14,7 @@ namespace Roslynator.Formatting
 
         public static bool IsAnalyzerOptionEnabled(this CompilationOptions compilationOptions, DiagnosticDescriptor diagnosticDescriptor)
         {
-            return  CSharp.AnalyzerOptions.IsEnabled(compilationOptions, diagnosticDescriptor);
+            return CSharp.AnalyzerOptions.IsEnabled(compilationOptions, diagnosticDescriptor);
         }
     }
 }
