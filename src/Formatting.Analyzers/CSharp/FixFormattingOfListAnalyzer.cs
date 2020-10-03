@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -267,7 +268,38 @@ namespace Roslynator.Formatting.CSharp
                 DiagnosticHelpers.ReportDiagnostic(
                     context,
                     DiagnosticDescriptors.FixFormattingOfList,
-                    Location.Create(first.SyntaxTree, nodes.Span));
+                    Location.Create(first.SyntaxTree, nodes.Span),
+                    GetTitle());
+            }
+
+            string GetTitle()
+            {
+                switch (context.Node.Kind())
+                {
+                    case SyntaxKind.ParameterList:
+                    case SyntaxKind.BracketedParameterList:
+                    case SyntaxKind.TypeParameterList:
+                        return "a parameter list";
+                    case SyntaxKind.ArgumentList:
+                    case SyntaxKind.BracketedArgumentList:
+                    case SyntaxKind.AttributeArgumentList:
+                    case SyntaxKind.TypeArgumentList:
+                        return "an argument list";
+                    case SyntaxKind.AttributeList:
+                        return "an attribute list";
+                    case SyntaxKind.BaseList:
+                        return "base types";
+                    case SyntaxKind.TupleType:
+                    case SyntaxKind.TupleExpression:
+                        return "a tuple";
+                    case SyntaxKind.ArrayInitializerExpression:
+                    case SyntaxKind.CollectionInitializerExpression:
+                    case SyntaxKind.ComplexElementInitializerExpression:
+                    case SyntaxKind.ObjectInitializerExpression:
+                        return "an initializer";
+                    default:
+                        throw new InvalidOperationException();
+                }
             }
         }
     }

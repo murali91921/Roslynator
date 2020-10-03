@@ -3,6 +3,7 @@
   <Analyzer Identifier="FixFormattingOfList">
     <Id>RCS0053</Id>
     <Title>Fix formatting of a list.</Title>
+    <MessageFormat>Fix formatting of {0}.</MessageFormat>
     <Category>Formatting</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>false</IsEnabledByDefault>
