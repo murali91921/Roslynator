@@ -106,7 +106,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                     string newText = (trivia.IsEndOfLineTrivia()) ? indentation : endOfLineAndIndentation;
 
-                    textChanges.Add(new TextChange(new TextSpan(token.SpanStart, 0), newText));
+                    textChanges.Add(new TextSpan(token.SpanStart, 0), newText);
 
                     SetIndendation(token, prevIndex);
                     prevIndex = (trivia.IsEndOfLineTrivia()) ? trivia.SpanStart : token.SpanStart;
@@ -152,7 +152,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 prevIndex = leading.Span.Start - 1;
                 return true;
 
-                void AddTextChange(TextSpan span) => textChanges.Add(new TextChange(span, indentation));
+                void AddTextChange(TextSpan span) => textChanges.Add(span, indentation);
             }
 
             void SetIndendation(SyntaxToken token, int endIndex)
@@ -177,7 +177,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                     }
 
                     if (indentationInfo.Span.Length != replacement.Length)
-                        textChanges.Add(new TextChange(indentationInfo.Span, replacement));
+                        textChanges.Add(indentationInfo.Span, replacement);
                 }
             }
         }

@@ -123,7 +123,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                     if (trivia.IsEndOfLineTrivia()
                         && trivia.Span.End == binaryExpression.SpanStart)
                     {
-                        textChanges.Add(new TextChange(new TextSpan(binaryExpression.SpanStart, 0), indentation));
+                        textChanges.Add(new TextSpan(binaryExpression.SpanStart, 0), indentation);
                     }
                 }
             }
@@ -143,7 +143,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                     int start = (trivia.IsWhitespaceTrivia()) ? trivia.SpanStart : nodeOrToken.SpanStart;
 
-                    textChanges.Add(new TextChange(new TextSpan(start, 0), newText));
+                    textChanges.Add(new TextSpan(start, 0), newText);
                     SetIndendation(nodeOrToken, prevIndex);
                     prevIndex = start;
                     return true;
@@ -188,7 +188,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 prevIndex = leading.Span.Start - 1;
                 return true;
 
-                void AddTextChange(TextSpan span) => textChanges.Add(new TextChange(span, indentation));
+                void AddTextChange(TextSpan span) => textChanges.Add(span, indentation);
             }
 
             void SetIndendation(SyntaxNodeOrToken nodeOrToken, int endIndex)
@@ -213,7 +213,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                     }
 
                     if (indentationInfo.Span.Length != replacement.Length)
-                        textChanges.Add(new TextChange(indentationInfo.Span, replacement));
+                        textChanges.Add(indentationInfo.Span, replacement);
                 }
             }
         }
