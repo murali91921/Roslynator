@@ -68,7 +68,6 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
             Document document = context.Document;
             Diagnostic diagnostic = context.Diagnostics[0];
-
             CodeAction codeAction = CreateCodeAction();
 
             context.RegisterCodeFix(codeAction, diagnostic);

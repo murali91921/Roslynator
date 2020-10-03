@@ -471,8 +471,6 @@ namespace Roslynator.CSharp
 
                     int length2 = indentation2.Span.Length;
 
-                    Debug.Assert(length1 >= length2, $"{length1} {length2}");
-
                     if (length1 > length2)
                         return length1 - length2;
                 }

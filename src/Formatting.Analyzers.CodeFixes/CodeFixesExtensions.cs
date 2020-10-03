@@ -6,9 +6,9 @@ namespace Roslynator.Formatting
 {
     internal static class CodeFixesExtensions
     {
-        public static bool IsAnalyzerOptionEnabled(this Document document, DiagnosticDescriptor diagnosticDescriptor)
+        public static bool IsAnalyzerOptionEnabled(this Document document, DiagnosticDescriptor analyzerOption)
         {
-            return document.Project.CompilationOptions.IsAnalyzerOptionEnabled(diagnosticDescriptor);
+            return document.Project.CompilationOptions.IsAnalyzerOptionEnabled(analyzerOption);
         }
     }
 }

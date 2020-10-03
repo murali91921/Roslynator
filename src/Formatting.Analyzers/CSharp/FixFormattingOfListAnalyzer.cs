@@ -279,14 +279,14 @@ namespace Roslynator.Formatting.CSharp
                     case SyntaxKind.ParameterList:
                     case SyntaxKind.BracketedParameterList:
                     case SyntaxKind.TypeParameterList:
-                        return "a parameter list";
+                        return "parameters";
                     case SyntaxKind.ArgumentList:
                     case SyntaxKind.BracketedArgumentList:
                     case SyntaxKind.AttributeArgumentList:
                     case SyntaxKind.TypeArgumentList:
-                        return "an argument list";
+                        return "arguments";
                     case SyntaxKind.AttributeList:
-                        return "an attribute list";
+                        return "attributes";
                     case SyntaxKind.BaseList:
                         return "base types";
                     case SyntaxKind.TupleType:

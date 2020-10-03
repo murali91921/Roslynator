@@ -23,12 +23,12 @@ namespace Roslynator.Formatting.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(f => Analyze(f), SyntaxKind.InvocationExpression);
-            context.RegisterSyntaxNodeAction(f => Analyze(f), SyntaxKind.ElementAccessExpression);
-            context.RegisterSyntaxNodeAction(f => Analyze(f), SyntaxKind.ConditionalAccessExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeExpression(f), SyntaxKind.InvocationExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeExpression(f), SyntaxKind.ElementAccessExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeExpression(f), SyntaxKind.ConditionalAccessExpression);
         }
 
-        private static void Analyze(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeExpression(SyntaxNodeAnalysisContext context)
         {
             var expression = (ExpressionSyntax)context.Node;
 

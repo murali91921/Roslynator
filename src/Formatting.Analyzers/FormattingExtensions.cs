@@ -7,14 +7,14 @@ namespace Roslynator.Formatting
 {
     internal static class FormattingExtensions
     {
-        public static bool IsAnalyzerOptionEnabled(this SyntaxNodeAnalysisContext context, DiagnosticDescriptor diagnosticDescriptor)
+        public static bool IsAnalyzerOptionEnabled(this SyntaxNodeAnalysisContext context, DiagnosticDescriptor analyzerOption)
         {
-            return IsAnalyzerOptionEnabled(context.Compilation.Options, diagnosticDescriptor);
+            return IsAnalyzerOptionEnabled(context.Compilation.Options, analyzerOption);
         }
 
-        public static bool IsAnalyzerOptionEnabled(this CompilationOptions compilationOptions, DiagnosticDescriptor diagnosticDescriptor)
+        public static bool IsAnalyzerOptionEnabled(this CompilationOptions compilationOptions, DiagnosticDescriptor analyzerOption)
         {
-            return CSharp.AnalyzerOptions.IsEnabled(compilationOptions, diagnosticDescriptor);
+            return CSharp.AnalyzerOptions.IsEnabled(compilationOptions, analyzerOption);
         }
     }
 }

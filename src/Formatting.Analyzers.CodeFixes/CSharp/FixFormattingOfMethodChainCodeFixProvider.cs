@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +35,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             if (!TryFindFirstAncestorOrSelf(
                 root,
                 context.Span,
-                out SyntaxNode node,
+                out ExpressionSyntax expression,
                 predicate: f => f.IsKind(
                     SyntaxKind.InvocationExpression,
                     SyntaxKind.ElementAccessExpression,
@@ -48,7 +49,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
             CodeAction codeAction = CodeAction.Create(
                 "Fix formatting",
-                ct => FixAsync(document, (ExpressionSyntax)node, ct),
+                ct => FixAsync(document, expression, ct),
                 GetEquivalenceKey(diagnostic));
 
             context.RegisterCodeFix(codeAction, diagnostic);
@@ -87,6 +88,8 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         break;
                 }
             }
+
+            Debug.Assert(textChanges.Count > 0);
 
             return document.WithTextChangesAsync(textChanges, cancellationToken);
 
@@ -128,7 +131,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                             if (trivia.IsEndOfLineTrivia())
                             {
-                                AddTextChange((leading.IsEmptyOrWhitespace()) ? leading.Span : last.Span);
+                                textChanges.Add((leading.IsEmptyOrWhitespace()) ? leading.Span : last.Span, indentation);
                                 SetIndendation(token, prevIndex);
                                 prevIndex = trivia.SpanStart;
                                 return true;
@@ -142,7 +145,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                     if (trivia.IsEndOfLineTrivia())
                     {
-                        AddTextChange((leading.IsEmptyOrWhitespace()) ? leading.Span : last.Span);
+                        textChanges.Add((leading.IsEmptyOrWhitespace()) ? leading.Span : last.Span, indentation);
                         SetIndendation(token, prevIndex);
                         prevIndex = trivia.SpanStart;
                         return true;
@@ -151,8 +154,6 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                 prevIndex = leading.Span.Start - 1;
                 return true;
-
-                void AddTextChange(TextSpan span) => textChanges.Add(span, indentation);
             }
 
             void SetIndendation(SyntaxToken token, int endIndex)

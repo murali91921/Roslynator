@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -92,8 +93,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 else if (leftTrailing.IsEmptyOrWhitespace()
                     && tokenTrailing.IsEmptyOrWhitespace())
                 {
-                    if (!document.Project.CompilationOptions.IsAnalyzerSuppressed(DiagnosticDescriptors.AddNewLineBeforeBinaryOperatorInsteadOfAfterItOrViceVersa)
-                        && !document.Project.CompilationOptions.IsAnalyzerSuppressed(AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt))
+                    if (document.IsAnalyzerOptionEnabled(AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt))
                     {
                         if (!SetIndentation(right))
                             break;
@@ -127,6 +127,8 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                     }
                 }
             }
+
+            Debug.Assert(textChanges.Count > 0);
 
             return document.WithTextChangesAsync(textChanges, cancellationToken);
 
