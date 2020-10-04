@@ -440,6 +440,38 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_MultilineLambda2()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+
+class C
+{
+    void M(Func<string, string> x)
+    {
+        M([|f =>
+            {
+                return null;
+            }|]);
+    }
+}
+", @"
+using System;
+
+class C
+{
+    void M(Func<string, string> x)
+    {
+        M(f =>
+        {
+            return null;
+        });
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task Test_Multiline_IndentationsDiffer()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -1008,19 +1040,55 @@ void M(
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
-        public async Task TestNoDiagnostic_LastArgumentIsMultilineAnonymousFunction()
+        public async Task TestNoDiagnostic_SingleParameterIsMultilineLambdaWithExpressionBody()
         {
             await VerifyNoDiagnosticAsync(@"
 using System;
 
 class C
 {
-    void M(object x, Func<string, string> func)
+    void M(Func<string, string> func)
     {
-        M(x, f =>
+        M(f => f
+            .ToString()
+            .ToString());
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task TestNoDiagnostic_SingleParameterIsMultilineLambdaWithExpressionBody2()
         {
-            return null;
-        });
+            await VerifyNoDiagnosticAsync(@"
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        string s = string.Concat(Enumerable.Empty<string>().Select(f =>
+        {
+            return f;
+        }));
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task TestNoDiagnostic_SingleParameterIsMultilineLambdaWithExpressionBody3()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        string s = string.Concat(Enumerable.Empty<string>().Select(f => {
+            return f;
+        }));
     }
 }
 ");

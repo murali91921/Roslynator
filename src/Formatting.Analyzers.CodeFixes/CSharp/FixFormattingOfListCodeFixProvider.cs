@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using Roslynator.CSharp;
 using Roslynator.Formatting.CSharp;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
@@ -196,6 +197,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 return document.ReplaceNodeAsync(first, newFirst, cancellationToken);
             }
 
+            TextLineCollection lines = null;
             Dictionary<SyntaxNode, SyntaxNode> newNodes = null;
             Dictionary<SyntaxToken, SyntaxToken> newTokens = null;
 
@@ -241,18 +243,28 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                     indentationAdded = true;
                 }
-                else if (nodes.Count > 1
-                    && (i > 0 || !containingNode.IsKind(SyntaxKind.AttributeList)))
+                else
                 {
-                    SyntaxTriviaList newTrailing = (trailing.Any() && trailing.Last().IsWhitespaceTrivia())
-                        ? trailing.Replace(trailing.Last(), endOfLineTrivia)
-                        : trailing.Add(endOfLineTrivia);
+                    if (nodes.Count == 1
+                        && node is ArgumentSyntax argument
+                        && FixFormattingOfListAnalyzer.ShouldDecreaseIndentation(argument, lines ??= argument.SyntaxTree.GetText().Lines))
+                    {
+                        increasedIndentation = indentationAnalysis.Indentation.ToString();
+                    }
 
-                    (newTokens ??= new Dictionary<SyntaxToken, SyntaxToken>()).Add(token, token.WithTrailingTrivia(newTrailing));
+                    if (nodes.Count > 1
+                        && (i > 0 || !containingNode.IsKind(SyntaxKind.AttributeList)))
+                    {
+                        SyntaxTriviaList newTrailing = (trailing.Any() && trailing.Last().IsWhitespaceTrivia())
+                            ? trailing.Replace(trailing.Last(), endOfLineTrivia)
+                            : trailing.Add(endOfLineTrivia);
 
-                    newLeading = leading.Insert(0, increasedIndentationTrivia);
+                        (newTokens ??= new Dictionary<SyntaxToken, SyntaxToken>()).Add(token, token.WithTrailingTrivia(newTrailing));
 
-                    indentationAdded = true;
+                        newLeading = leading.Insert(0, increasedIndentationTrivia);
+
+                        indentationAdded = true;
+                    }
                 }
 
                 Dictionary<SyntaxToken, SyntaxToken> newTokens2 = SetIndentation(node, indentationAdded);

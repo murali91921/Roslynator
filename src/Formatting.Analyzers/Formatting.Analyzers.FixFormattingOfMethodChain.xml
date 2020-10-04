@@ -6,5 +6,15 @@
     <Category>Formatting</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>false</IsEnabledByDefault>
+    <Summary>This analyzer:
+* fixes indentation of multiline method chain
+* formats each method call on a separate line
+</Summary>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[]]></Before>
+        <After><![CDATA[]]></After>
+      </Sample>
+    </Samples>
   </Analyzer>
 </Analyzers>

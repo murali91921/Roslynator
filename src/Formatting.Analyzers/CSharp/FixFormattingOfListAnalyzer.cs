@@ -171,7 +171,11 @@ namespace Roslynator.Formatting.CSharp
             }
             else
             {
-                int indentationLength = GetIncreasedIndentationLength(openNodeOrToken.Parent);
+                TextLineCollection lines = null;
+
+                IndentationAnalysis indentationAnalysis = IndentationAnalysis.Create(openNodeOrToken.Parent);
+
+                int indentationLength = indentationAnalysis.IncreasedIndentationLength;
 
                 if (indentationLength == 0)
                     return;
@@ -205,13 +209,13 @@ namespace Roslynator.Formatting.CSharp
                     }
                     else
                     {
-                        if (i == nodes.Count - 1
-                            && nodes[i].IsKind(SyntaxKind.Argument))
+                        if (nodes.Count == 1
+                            && first.IsKind(SyntaxKind.Argument))
                         {
-                            var argument = (ArgumentSyntax)(SyntaxNode)nodes[i];
+                            var argument = (ArgumentSyntax)(SyntaxNode)first;
 
-                            if (CSharpFacts.IsAnonymousFunctionExpression(argument.Expression.Kind()))
-                                break;
+                            if (ShouldDecreaseIndentation(argument, lines ??= first.SyntaxTree.GetText().Lines))
+                                indentationLength = indentationAnalysis.IndentationLength;
                         }
 
                         if (nodes.Count > 1
@@ -222,7 +226,9 @@ namespace Roslynator.Formatting.CSharp
                             break;
                         }
 
-                        TextLineCollection lines = first.SyntaxTree.GetText().Lines;
+                        if (lines == null)
+                            lines = first.SyntaxTree.GetText().Lines;
+
                         int lineIndex = lines.IndexOf(span.Start);
                         if (lineIndex < lines.Count - 1)
                         {
@@ -301,6 +307,46 @@ namespace Roslynator.Formatting.CSharp
                         throw new InvalidOperationException();
                 }
             }
+        }
+
+        public static bool ShouldDecreaseIndentation(ArgumentSyntax argument, TextLineCollection lines)
+        {
+            TextLine line = lines.GetLineFromPosition(argument.Span.Start);
+            int position = line.EndIncludingLineBreak;
+            SyntaxToken token = argument.FindToken(position);
+
+            if (token.IsKind(SyntaxKind.OpenBraceToken)
+                && token.IsParentKind(SyntaxKind.Block)
+                && CSharpFacts.IsAnonymousFunctionExpression(token.Parent.Parent.Kind()))
+            {
+                SyntaxTriviaList leading = token.LeadingTrivia;
+
+                if ((leading.Any() && leading.Span.Contains(position))
+                    || (!leading.Any() && token.SpanStart == position))
+                {
+                    SyntaxNode block = token.Parent;
+
+                    position = lines.GetLineFromPosition(argument.Span.End).Start;
+
+                    token = argument.FindToken(position);
+
+                    if (token.IsKind(SyntaxKind.CloseBraceToken)
+                        && token.Parent.IsKind(SyntaxKind.Block)
+                        && CSharpFacts.IsAnonymousFunctionExpression(token.Parent.Parent.Kind())
+                        && object.ReferenceEquals(block, token.Parent))
+                    {
+                        leading = token.LeadingTrivia;
+
+                        if ((leading.Any() && leading.Span.Contains(position))
+                            || (!leading.Any() && token.SpanStart == position))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }
