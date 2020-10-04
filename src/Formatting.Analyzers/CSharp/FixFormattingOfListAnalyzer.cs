@@ -209,21 +209,46 @@ namespace Roslynator.Formatting.CSharp
                     }
                     else
                     {
-                        if (nodes.Count == 1
-                            && first.IsKind(SyntaxKind.Argument))
-                        {
-                            var argument = (ArgumentSyntax)(SyntaxNode)first;
-
-                            if (ShouldDecreaseIndentation(argument, lines ??= first.SyntaxTree.GetText().Lines))
-                                indentationLength = indentationAnalysis.IndentationLength;
-                        }
-
                         if (nodes.Count > 1
                             && (i > 0
                                 || !context.Node.IsKind(SyntaxKind.AttributeList)))
                         {
                             ReportDiagnostic();
                             break;
+                        }
+
+                        if (nodes.Count == 1
+                            && first.IsKind(SyntaxKind.Argument))
+                        {
+                            var argument = (ArgumentSyntax)(SyntaxNode)first;
+
+                            LambdaBlock lambdaBlock = GetLambdaBlock(argument, lines ??= first.SyntaxTree.GetText().Lines);
+
+                            if (lambdaBlock.Block != null)
+                            {
+                                SyntaxToken token = lambdaBlock.Token;
+                                SyntaxTriviaList leading = token.LeadingTrivia;
+
+                                if (leading.Any())
+                                {
+                                    SyntaxTrivia trivia = leading.Last();
+
+                                    if (trivia.IsWhitespaceTrivia()
+                                        && trivia.SpanStart == lambdaBlock.LineStartIndex
+                                        && trivia.Span.Length != indentationAnalysis.IndentationLength)
+                                    {
+                                        ReportDiagnostic();
+                                        break;
+                                    }
+                                }
+                                else if (lambdaBlock.LineStartIndex == token.SpanStart)
+                                {
+                                    ReportDiagnostic();
+                                    break;
+                                }
+
+                                return;
+                            }
                         }
 
                         if (lines == null)
@@ -309,44 +334,89 @@ namespace Roslynator.Formatting.CSharp
             }
         }
 
-        public static bool ShouldDecreaseIndentation(ArgumentSyntax argument, TextLineCollection lines)
+        internal static LambdaBlock GetLambdaBlock(SyntaxNode node, TextLineCollection lines)
         {
-            TextLine line = lines.GetLineFromPosition(argument.Span.Start);
-            int position = line.EndIncludingLineBreak;
-            SyntaxToken token = argument.FindToken(position);
+            TextLine line = lines.GetLineFromPosition(node.Span.Start);
 
-            if (token.IsKind(SyntaxKind.OpenBraceToken)
-                && token.IsParentKind(SyntaxKind.Block)
-                && CSharpFacts.IsAnonymousFunctionExpression(token.Parent.Parent.Kind()))
+            int startIndex = line.End;
+            SyntaxToken openBrace = node.FindToken(startIndex);
+            BlockSyntax block = null;
+            var isOpenBraceAtEndOfLine = false;
+
+            if (IsBraceToken(openBrace, SyntaxKind.OpenBraceToken))
             {
-                SyntaxTriviaList leading = token.LeadingTrivia;
+                SyntaxTriviaList trailing = openBrace.TrailingTrivia;
 
-                if ((leading.Any() && leading.Span.Contains(position))
-                    || (!leading.Any() && token.SpanStart == position))
+                if (trailing.Any()
+                    && trailing.Span.Contains(startIndex))
                 {
-                    SyntaxNode block = token.Parent;
+                    block = (BlockSyntax)openBrace.Parent;
+                    isOpenBraceAtEndOfLine = true;
+                }
+            }
 
-                    position = lines.GetLineFromPosition(argument.Span.End).Start;
+            if (block == null)
+            {
+                startIndex = line.EndIncludingLineBreak;
+                openBrace = node.FindToken(startIndex);
 
-                    token = argument.FindToken(position);
+                if (IsBraceToken(openBrace, SyntaxKind.OpenBraceToken))
+                {
+                    SyntaxTriviaList leading = openBrace.LeadingTrivia;
 
-                    if (token.IsKind(SyntaxKind.CloseBraceToken)
-                        && token.Parent.IsKind(SyntaxKind.Block)
-                        && CSharpFacts.IsAnonymousFunctionExpression(token.Parent.Parent.Kind())
-                        && object.ReferenceEquals(block, token.Parent))
+                    if ((leading.Any() && leading.Span.Contains(startIndex))
+                        || (!leading.Any() && openBrace.SpanStart == startIndex))
                     {
-                        leading = token.LeadingTrivia;
-
-                        if ((leading.Any() && leading.Span.Contains(position))
-                            || (!leading.Any() && token.SpanStart == position))
-                        {
-                            return true;
-                        }
+                        block = (BlockSyntax)openBrace.Parent;
                     }
                 }
             }
 
-            return false;
+            if (block != null)
+            {
+                int endIndex = lines.GetLineFromPosition(node.Span.End).Start;
+                SyntaxToken closeBrace = node.FindToken(endIndex);
+
+                if (IsBraceToken(closeBrace, SyntaxKind.CloseBraceToken)
+                    && object.ReferenceEquals(block, closeBrace.Parent))
+                {
+                    SyntaxTriviaList leading = closeBrace.LeadingTrivia;
+
+                    if ((leading.Any() && leading.Span.Contains(endIndex))
+                        || (!leading.Any() && closeBrace.SpanStart == endIndex))
+                    {
+                        return new LambdaBlock(
+                            block,
+                            (isOpenBraceAtEndOfLine) ? closeBrace : openBrace,
+                            (isOpenBraceAtEndOfLine) ? endIndex : startIndex);
+                    }
+                }
+            }
+
+            return default;
+
+            static bool IsBraceToken(SyntaxToken token, SyntaxKind kind)
+            {
+                return token.IsKind(kind)
+                    && token.IsParentKind(SyntaxKind.Block)
+                    && CSharpFacts.IsAnonymousFunctionExpression(token.Parent.Parent.Kind());
+            }
+        }
+
+        internal readonly struct LambdaBlock
+        {
+            public LambdaBlock(BlockSyntax block, SyntaxToken token, int lineStartIndex)
+            {
+                Block = block;
+                Token = token;
+                LineStartIndex = lineStartIndex;
+            }
+
+            public BlockSyntax Block { get; }
+
+            public SyntaxToken Token { get; }
+
+            public int LineStartIndex { get; }
         }
     }
 }

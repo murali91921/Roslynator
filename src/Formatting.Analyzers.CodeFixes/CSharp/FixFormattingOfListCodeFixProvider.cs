@@ -17,6 +17,7 @@ using Roslynator.CSharp;
 using Roslynator.Formatting.CSharp;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static Roslynator.CSharp.SyntaxTriviaAnalysis;
+using static Roslynator.Formatting.CSharp.FixFormattingOfListAnalyzer;
 
 namespace Roslynator.Formatting.CodeFixes.CSharp
 {
@@ -246,10 +247,12 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 else
                 {
                     if (nodes.Count == 1
-                        && node is ArgumentSyntax argument
-                        && FixFormattingOfListAnalyzer.ShouldDecreaseIndentation(argument, lines ??= argument.SyntaxTree.GetText().Lines))
+                        && node is ArgumentSyntax argument)
                     {
-                        increasedIndentation = indentationAnalysis.Indentation.ToString();
+                        LambdaBlock lambdaBlock = GetLambdaBlock(argument, lines ??= argument.SyntaxTree.GetText().Lines);
+
+                        if (lambdaBlock.Block != null)
+                            increasedIndentation = indentationAnalysis.Indentation.ToString();
                     }
 
                     if (nodes.Count > 1
@@ -298,7 +301,13 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                 Dictionary<SyntaxToken, SyntaxToken> newTokens = null;
 
-                int firstIndentationLength = indentations[0].Span.Length;
+                LambdaBlock lambdaBlock = GetLambdaBlock(node, lines ??= node.SyntaxTree.GetText().Lines);
+
+                bool isLambdaBlockWithOpenBraceAtEndOfLine = lambdaBlock.Token == indentations.Last().Token;
+
+                int baseIndentationLength = (isLambdaBlockWithOpenBraceAtEndOfLine)
+                    ? indentations.Last().Span.Length
+                    : indentations[0].Span.Length;
 
                 for (int j = indentations.Length - 1; j >= 0; j--)
                 {
@@ -306,7 +315,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                     if (indentationAdded
                         && node is ArgumentSyntax argument
-                        && CSharpFacts.IsAnonymousFunctionExpression(argument.Expression.Kind()))
+                        && (argument.Expression as AnonymousFunctionExpressionSyntax)?.Block != null)
                     {
                         indentationAdded = false;
                     }
@@ -316,10 +325,10 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                     if (indentationAdded)
                         replacement += indentationAnalysis.GetSingleIndentation();
 
-                    if (j > 0
-                        && indentationInfo.Span.Length > firstIndentationLength)
+                    if ((j > 0 || isLambdaBlockWithOpenBraceAtEndOfLine)
+                        && indentationInfo.Span.Length > baseIndentationLength)
                     {
-                        replacement += indentationInfo.ToString().Substring(firstIndentationLength);
+                        replacement += indentationInfo.ToString().Substring(baseIndentationLength);
                     }
 
                     if (indentationInfo.Span.Length != replacement.Length)

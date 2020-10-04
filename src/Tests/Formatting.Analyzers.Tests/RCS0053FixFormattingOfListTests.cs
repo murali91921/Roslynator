@@ -400,6 +400,112 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_SecondParameterIsMultilineLambdaWithExpressionBody()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+
+class C
+{
+    void M(object x, Func<string, string> y)
+    {
+        M([|x, f => f
+            .ToString()
+            .ToString()|]);
+    }
+}
+", @"
+using System;
+
+class C
+{
+    void M(object x, Func<string, string> y)
+    {
+        M(
+            x,
+            f => f
+                .ToString()
+                .ToString());
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_SecondParameterIsMultilineLambdaWithBlockBody()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+
+class C
+{
+    void M(object x, Func<string, string> y)
+    {
+        M([|x, f =>
+        {
+            return f
+                .ToString()
+                .ToString();
+        }|]);
+    }
+}
+", @"
+using System;
+
+class C
+{
+    void M(object x, Func<string, string> y)
+    {
+        M(
+            x,
+            f =>
+            {
+                return f
+                    .ToString()
+                    .ToString();
+            });
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task Test_Multiline_SecondParameterIsMultilineLambdaWithBlockBody2()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+
+class C
+{
+    void M(object x, Func<string, string> y)
+    {
+        M([|x, f => {
+            return f
+                .ToString()
+                .ToString();
+        }|]);
+    }
+}
+", @"
+using System;
+
+class C
+{
+    void M(object x, Func<string, string> y)
+    {
+        M(
+            x,
+            f => {
+                return f
+                    .ToString()
+                    .ToString();
+            });
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
         public async Task Test_Multiline_MultilineLambda()
         {
             await VerifyDiagnosticAndFixAsync(@"
