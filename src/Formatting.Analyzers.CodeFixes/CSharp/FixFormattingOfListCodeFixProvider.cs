@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslynator.CSharp;
 using Roslynator.Formatting.CSharp;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static Roslynator.CSharp.SyntaxTriviaAnalysis;
 using static Roslynator.Formatting.CSharp.FixFormattingOfListAnalyzer;
 
@@ -170,6 +169,210 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             }
         }
 
+        //TODO: del
+        //private static Task<Document> FixAsync2<TNode>(
+        //    Document document,
+        //    SyntaxNode containingNode,
+        //    SyntaxNodeOrToken openNodeOrToken,
+        //    SeparatedSyntaxList<TNode> nodes,
+        //    CancellationToken cancellationToken) where TNode : SyntaxNode
+        //{
+        //    IndentationAnalysis indentationAnalysis = AnalyzeIndentation(containingNode, cancellationToken);
+
+        //    string increasedIndentation = indentationAnalysis.GetIncreasedIndentation();
+
+        //    SyntaxTrivia increasedIndentationTrivia = Whitespace(increasedIndentation);
+
+        //    if (nodes.IsSingleLine(includeExteriorTrivia: false, cancellationToken: cancellationToken))
+        //    {
+        //        TNode first = nodes[0];
+
+        //        SyntaxTriviaList leading = first.GetLeadingTrivia();
+
+        //        SyntaxTriviaList newLeading = (leading.Any() && leading.Last().IsWhitespaceTrivia())
+        //            ? leading.Replace(leading.Last(), increasedIndentationTrivia)
+        //            : leading.Add(increasedIndentationTrivia);
+
+        //        TNode newFirst = first.WithLeadingTrivia(newLeading);
+
+        //        return document.ReplaceNodeAsync(first, newFirst, cancellationToken);
+        //    }
+
+        //    TextLineCollection lines = null;
+        //    Dictionary<SyntaxNode, SyntaxNode> newNodes = null;
+        //    Dictionary<SyntaxToken, SyntaxToken> newTokens = null;
+
+        //    SyntaxTrivia endOfLineTrivia = DetermineEndOfLine(containingNode);
+
+        //    for (int i = 0; i < nodes.Count; i++)
+        //    {
+        //        SyntaxToken token;
+        //        if (i == 0)
+        //        {
+        //            token = (openNodeOrToken.IsNode)
+        //                ? openNodeOrToken.AsNode().GetLastToken()
+        //                : openNodeOrToken.AsToken();
+        //        }
+        //        else
+        //        {
+        //            token = nodes.GetSeparator(i - 1);
+        //        }
+
+        //        SyntaxTriviaList trailing = token.TrailingTrivia;
+        //        TNode node = nodes[i];
+        //        TNode newNode = node;
+        //        SyntaxTriviaList leading = node.GetLeadingTrivia();
+        //        SyntaxTriviaList newLeading = default;
+        //        var indentationAdded = false;
+
+        //        if (IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
+        //        {
+        //            SyntaxTriviaList leadingTrivia = node.GetLeadingTrivia();
+        //            SyntaxTrivia last = leadingTrivia.LastOrDefault();
+
+        //            if (last.IsWhitespaceTrivia())
+        //            {
+        //                if (last.Span.Length == increasedIndentation.Length)
+        //                    continue;
+
+        //                newLeading = leadingTrivia.Replace(leadingTrivia.Last(), increasedIndentationTrivia);
+        //            }
+        //            else
+        //            {
+        //                newLeading = leadingTrivia.Add(increasedIndentationTrivia);
+        //            }
+
+        //            indentationAdded = true;
+        //        }
+        //        else
+        //        {
+        //            if (nodes.Count == 1
+        //                && node is ArgumentSyntax argument)
+        //            {
+        //                LambdaBlock lambdaBlock = GetLambdaBlock(argument, lines ??= argument.SyntaxTree.GetText().Lines);
+
+        //                if (lambdaBlock.Block != null)
+        //                    increasedIndentation = indentationAnalysis.Indentation.ToString();
+        //            }
+
+        //            if (nodes.Count > 1
+        //                && (i > 0 || !containingNode.IsKind(SyntaxKind.AttributeList)))
+        //            {
+        //                SyntaxTriviaList newTrailing = (trailing.Any() && trailing.Last().IsWhitespaceTrivia())
+        //                    ? trailing.Replace(trailing.Last(), endOfLineTrivia)
+        //                    : trailing.Add(endOfLineTrivia);
+
+        //                (newTokens ??= new Dictionary<SyntaxToken, SyntaxToken>()).Add(token, token.WithTrailingTrivia(newTrailing));
+
+        //                newLeading = leading.Insert(0, increasedIndentationTrivia);
+
+        //                indentationAdded = true;
+        //            }
+        //        }
+
+        //        Dictionary<SyntaxToken, SyntaxToken> newTokens2 = SetIndentation(node, indentationAdded);
+
+        //        if (newTokens2 != null)
+        //            newNode = newNode.ReplaceTokens(newTokens2.Keys, (n, _) => newTokens2[n]);
+
+        //        if (newLeading != default)
+        //            newNode = newNode.WithLeadingTrivia(newLeading);
+
+        //        if (!object.ReferenceEquals(node, newNode))
+        //            (newNodes ??= new Dictionary<SyntaxNode, SyntaxNode>()).Add(node, newNode);
+        //    }
+
+        //    SyntaxNode newContainingNode = containingNode.ReplaceSyntax(
+        //        newNodes?.Keys,
+        //        (n, _) => newNodes[n],
+        //        newTokens?.Keys,
+        //        (t, _) => newTokens[t],
+        //        default(IEnumerable<SyntaxTrivia>),
+        //        default(Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia>));
+
+        //    return document.ReplaceNodeAsync(containingNode, newContainingNode, cancellationToken);
+
+        //    Dictionary<SyntaxToken, SyntaxToken> SetIndentation(SyntaxNode node, bool indentationAdded)
+        //    {
+        //        ImmutableArray<IndentationInfo> indentations = FindIndentations(node, node.Span).ToImmutableArray();
+
+        //        if (!indentations.Any())
+        //            return null;
+
+        //        Dictionary<SyntaxToken, SyntaxToken> newTokens = null;
+
+        //        LambdaBlock lambdaBlock = GetLambdaBlock(node, lines ??= node.SyntaxTree.GetText().Lines);
+
+        //        bool isLambdaBlockWithOpenBraceAtEndOfLine = lambdaBlock.Token == indentations.Last().Token;
+
+        //        int baseIndentationLength = (isLambdaBlockWithOpenBraceAtEndOfLine)
+        //            ? indentations.Last().Span.Length
+        //            : indentations[0].Span.Length;
+
+        //        for (int j = indentations.Length - 1; j >= 0; j--)
+        //        {
+        //            IndentationInfo indentationInfo = indentations[j];
+
+        //            if (indentationAdded
+        //                && node is ArgumentSyntax argument
+        //                && (argument.Expression as AnonymousFunctionExpressionSyntax)?.Block != null)
+        //            {
+        //                indentationAdded = false;
+        //            }
+
+        //            string replacement = increasedIndentation;
+
+        //            if (indentationAdded)
+        //                replacement += indentationAnalysis.GetSingleIndentation();
+
+        //            if ((j > 0 || isLambdaBlockWithOpenBraceAtEndOfLine)
+        //                && indentationInfo.Span.Length > baseIndentationLength)
+        //            {
+        //                replacement += indentationInfo.ToString().Substring(baseIndentationLength);
+        //            }
+
+        //            if (indentationInfo.Span.Length != replacement.Length)
+        //            {
+        //                SyntaxTrivia newTrivia = Whitespace(replacement);
+
+        //                int spanStart = indentationInfo.Span.Start;
+
+        //                if (newTokens != null
+        //                    && newTokens.TryGetValue(indentationInfo.Token, out SyntaxToken token))
+        //                {
+        //                    spanStart -= indentationInfo.Token.FullSpan.Start;
+        //                }
+        //                else
+        //                {
+        //                    token = indentationInfo.Token;
+        //                }
+
+        //                SyntaxTriviaList leading = token.LeadingTrivia;
+
+        //                int index = leading.IndexOf(f => f.SpanStart == spanStart);
+
+        //                SyntaxTriviaList newLeading;
+        //                if (indentationInfo.Span.Length > 0)
+        //                {
+        //                    newLeading = leading.ReplaceAt(index, newTrivia);
+        //                }
+        //                else if (index >= 0)
+        //                {
+        //                    newLeading = leading.Insert(index, newTrivia);
+        //                }
+        //                else
+        //                {
+        //                    newLeading = leading.Add(newTrivia);
+        //                }
+
+        //                (newTokens ??= new Dictionary<SyntaxToken, SyntaxToken>())[indentationInfo.Token] = token.WithLeadingTrivia(newLeading);
+        //            }
+        //        }
+
+        //        return newTokens;
+        //    }
+        //}
+
         private static Task<Document> FixAsync<TNode>(
             Document document,
             SyntaxNode containingNode,
@@ -181,28 +384,24 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
             string increasedIndentation = indentationAnalysis.GetIncreasedIndentation();
 
-            SyntaxTrivia increasedIndentationTrivia = Whitespace(increasedIndentation);
-
             if (nodes.IsSingleLine(includeExteriorTrivia: false, cancellationToken: cancellationToken))
             {
-                TNode first = nodes[0];
+                TNode node = nodes[0];
 
-                SyntaxTriviaList leading = first.GetLeadingTrivia();
+                SyntaxTriviaList leading = node.GetLeadingTrivia();
 
-                SyntaxTriviaList newLeading = (leading.Any() && leading.Last().IsWhitespaceTrivia())
-                    ? leading.Replace(leading.Last(), increasedIndentationTrivia)
-                    : leading.Add(increasedIndentationTrivia);
+                TextSpan span = (leading.Any() && leading.Last().IsWhitespaceTrivia())
+                    ? leading.Last().Span
+                    : new TextSpan(node.SpanStart, 0);
 
-                TNode newFirst = first.WithLeadingTrivia(newLeading);
-
-                return document.ReplaceNodeAsync(first, newFirst, cancellationToken);
+                return document.WithTextChangeAsync(
+                    new TextChange(span, increasedIndentation),
+                    cancellationToken);
             }
 
+            var textChanges = new List<TextChange>();
             TextLineCollection lines = null;
-            Dictionary<SyntaxNode, SyntaxNode> newNodes = null;
-            Dictionary<SyntaxToken, SyntaxToken> newTokens = null;
-
-            SyntaxTrivia endOfLineTrivia = DetermineEndOfLine(containingNode);
+            string endOfLine = DetermineEndOfLine(containingNode).ToString();
 
             for (int i = 0; i < nodes.Count; i++)
             {
@@ -220,26 +419,22 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                 SyntaxTriviaList trailing = token.TrailingTrivia;
                 TNode node = nodes[i];
-                TNode newNode = node;
-                SyntaxTriviaList leading = node.GetLeadingTrivia();
-                SyntaxTriviaList newLeading = default;
                 var indentationAdded = false;
 
                 if (IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
                 {
-                    SyntaxTriviaList leadingTrivia = node.GetLeadingTrivia();
-                    SyntaxTrivia last = leadingTrivia.LastOrDefault();
+                    SyntaxTrivia last = node.GetLeadingTrivia().LastOrDefault();
 
                     if (last.IsWhitespaceTrivia())
                     {
                         if (last.Span.Length == increasedIndentation.Length)
                             continue;
 
-                        newLeading = leadingTrivia.Replace(leadingTrivia.Last(), increasedIndentationTrivia);
+                        textChanges.Add(last.Span, increasedIndentation);
                     }
                     else
                     {
-                        newLeading = leadingTrivia.Add(increasedIndentationTrivia);
+                        textChanges.Add(new TextSpan(node.SpanStart, 0), increasedIndentation);
                     }
 
                     indentationAdded = true;
@@ -258,52 +453,26 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                     if (nodes.Count > 1
                         && (i > 0 || !containingNode.IsKind(SyntaxKind.AttributeList)))
                     {
-                        SyntaxTriviaList newTrailing = (trailing.Any() && trailing.Last().IsWhitespaceTrivia())
-                            ? trailing.Replace(trailing.Last(), endOfLineTrivia)
-                            : trailing.Add(endOfLineTrivia);
+                        textChanges.Add(
+                            (trailing.Any() && trailing.Last().IsWhitespaceTrivia())
+                                ? trailing.Last().Span
+                                : new TextSpan(token.FullSpan.End, 0),
+                            endOfLine);
 
-                        (newTokens ??= new Dictionary<SyntaxToken, SyntaxToken>()).Add(token, token.WithTrailingTrivia(newTrailing));
-
-                        newLeading = leading.Insert(0, increasedIndentationTrivia);
+                        textChanges.Add(new TextSpan(node.FullSpan.Start, 0), increasedIndentation);
 
                         indentationAdded = true;
                     }
                 }
 
-                Dictionary<SyntaxToken, SyntaxToken> newTokens2 = SetIndentation(node, indentationAdded);
-
-                if (newTokens2 != null)
-                    newNode = newNode.ReplaceTokens(newTokens2.Keys, (n, _) => newTokens2[n]);
-
-                if (newLeading != default)
-                    newNode = newNode.WithLeadingTrivia(newLeading);
-
-                if (!object.ReferenceEquals(node, newNode))
-                    (newNodes ??= new Dictionary<SyntaxNode, SyntaxNode>()).Add(node, newNode);
-            }
-
-            SyntaxNode newContainingNode = containingNode.ReplaceSyntax(
-                newNodes?.Keys,
-                (n, _) => newNodes[n],
-                newTokens?.Keys,
-                (t, _) => newTokens[t],
-                default(IEnumerable<SyntaxTrivia>),
-                default(Func<SyntaxTrivia, SyntaxTrivia, SyntaxTrivia>));
-
-            return document.ReplaceNodeAsync(containingNode, newContainingNode, cancellationToken);
-
-            Dictionary<SyntaxToken, SyntaxToken> SetIndentation(SyntaxNode node, bool indentationAdded)
-            {
                 ImmutableArray<IndentationInfo> indentations = FindIndentations(node, node.Span).ToImmutableArray();
 
                 if (!indentations.Any())
-                    return null;
+                    continue;
 
-                Dictionary<SyntaxToken, SyntaxToken> newTokens = null;
+                LambdaBlock lambdaBlock2 = GetLambdaBlock(node, lines ??= node.SyntaxTree.GetText().Lines);
 
-                LambdaBlock lambdaBlock = GetLambdaBlock(node, lines ??= node.SyntaxTree.GetText().Lines);
-
-                bool isLambdaBlockWithOpenBraceAtEndOfLine = lambdaBlock.Token == indentations.Last().Token;
+                bool isLambdaBlockWithOpenBraceAtEndOfLine = lambdaBlock2.Token == indentations.Last().Token;
 
                 int baseIndentationLength = (isLambdaBlockWithOpenBraceAtEndOfLine)
                     ? indentations.Last().Span.Length
@@ -332,45 +501,11 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                     }
 
                     if (indentationInfo.Span.Length != replacement.Length)
-                    {
-                        SyntaxTrivia newTrivia = Whitespace(replacement);
-
-                        int spanStart = indentationInfo.Span.Start;
-
-                        if (newTokens != null
-                            && newTokens.TryGetValue(indentationInfo.Token, out SyntaxToken token))
-                        {
-                            spanStart -= indentationInfo.Token.FullSpan.Start;
-                        }
-                        else
-                        {
-                            token = indentationInfo.Token;
-                        }
-
-                        SyntaxTriviaList leading = token.LeadingTrivia;
-
-                        int index = leading.IndexOf(f => f.SpanStart == spanStart);
-
-                        SyntaxTriviaList newLeading;
-                        if (indentationInfo.Span.Length > 0)
-                        {
-                            newLeading = leading.ReplaceAt(index, newTrivia);
-                        }
-                        else if (index >= 0)
-                        {
-                            newLeading = leading.Insert(index, newTrivia);
-                        }
-                        else
-                        {
-                            newLeading = leading.Add(newTrivia);
-                        }
-
-                        (newTokens ??= new Dictionary<SyntaxToken, SyntaxToken>())[indentationInfo.Token] = token.WithLeadingTrivia(newLeading);
-                    }
+                        textChanges.Add(indentationInfo.Span, replacement);
                 }
-
-                return newTokens;
             }
+
+            return document.WithTextChangesAsync(textChanges, cancellationToken);
         }
     }
 }
