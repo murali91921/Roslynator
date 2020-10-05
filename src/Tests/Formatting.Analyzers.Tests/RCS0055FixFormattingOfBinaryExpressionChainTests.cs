@@ -195,6 +195,37 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain)]
+        public async Task Test_LeftIsMultiline_RightIsSingleLine()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M() 
+    {
+        bool x = false, y = false, z = false;
+
+        x = [|y
+            .ToString()
+            .Equals("""") && z|];
+    }
+}
+", @"
+class C
+{
+    void M() 
+    {
+        bool x = false, y = false, z = false;
+
+        x = y
+            .ToString()
+            .Equals("""")
+            && z;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain)]
         public async Task TestNoDiagnostic()
         {
             await VerifyNoDiagnosticAsync(@"
@@ -206,24 +237,6 @@ class C
 
         x = (x || y)
             && z;
-    }
-}
-        ");
-        }
-
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain)]
-        public async Task TestNoDiagnostic_LeftIsMultiline()
-        {
-            await VerifyNoDiagnosticAsync(@"
-class C
-{
-    void M() 
-    {
-        bool x = false, y = false, z = false;
-
-        x = y
-            .ToString()
-            .Equals("""") && z;
     }
 }
         ");

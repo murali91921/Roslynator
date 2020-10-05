@@ -480,8 +480,8 @@ namespace Roslynator.Formatting.CSharp
         /// <summary>RCS0047</summary>
         public static readonly DiagnosticDescriptor WrapAndIndentEachNodeInList = DiagnosticDescriptorFactory.Default.Create(
             id:                 DiagnosticIdentifiers.WrapAndIndentEachNodeInList, 
-            title:              "Wrap and indent each node in list.", 
-            messageFormat:      "Wrap and indent each node in list.", 
+            title:              "[deprecated] Wrap and indent each node in list.", 
+            messageFormat:      "[deprecated] Use analyzer RCS0053 instead.", 
             category:           DiagnosticCategories.Formatting, 
             defaultSeverity:    DiagnosticSeverity.Info, 
             isEnabledByDefault: false, 
@@ -553,7 +553,7 @@ namespace Roslynator.Formatting.CSharp
         public static readonly DiagnosticDescriptor FixFormattingOfList = DiagnosticDescriptorFactory.Default.Create(
             id:                 DiagnosticIdentifiers.FixFormattingOfList, 
             title:              "Fix formatting of a list.", 
-            messageFormat:      "Fix formatting of a list.", 
+            messageFormat:      "Fix formatting of {0}.", 
             category:           DiagnosticCategories.Formatting, 
             defaultSeverity:    DiagnosticSeverity.Info, 
             isEnabledByDefault: false, 
