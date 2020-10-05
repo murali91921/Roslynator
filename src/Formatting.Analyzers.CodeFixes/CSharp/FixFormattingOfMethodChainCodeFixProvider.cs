@@ -89,7 +89,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 }
             }
 
-            Debug.Assert(textChanges.Count > 0);
+            FormattingHelpers.VerifyChangedSpansAreWhitespace(expression, textChanges);
 
             return document.WithTextChangesAsync(textChanges, cancellationToken);
 

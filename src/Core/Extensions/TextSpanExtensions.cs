@@ -9,6 +9,11 @@ namespace Roslynator
 {
     internal static class TextSpanExtensions
     {
+        public static TextSpan TrimFromStart(this TextSpan span, int length)
+        {
+            return new TextSpan(span.Start + length, span.Length - length);
+        }
+
         public static TextSpan Offset(this TextSpan span, int value)
         {
             return new TextSpan(span.Start + value, span.Length);

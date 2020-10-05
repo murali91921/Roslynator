@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -128,7 +127,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 }
             }
 
-            Debug.Assert(textChanges.Count > 0);
+            FormattingHelpers.VerifyChangedSpansAreWhitespace(binaryExpression, textChanges);
 
             return document.WithTextChangesAsync(textChanges, cancellationToken);
 
@@ -145,7 +144,11 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                     int start = (trivia.IsWhitespaceTrivia()) ? trivia.SpanStart : nodeOrToken.SpanStart;
 
-                    textChanges.Add(new TextSpan(start, 0), newText);
+                    TextSpan span = (trivia.IsWhitespaceTrivia())
+                        ? trivia.Span
+                        : new TextSpan(nodeOrToken.SpanStart, 0);
+
+                    textChanges.Add(span, newText);
                     SetIndendation(nodeOrToken, prevIndex);
                     prevIndex = start;
                     return true;
