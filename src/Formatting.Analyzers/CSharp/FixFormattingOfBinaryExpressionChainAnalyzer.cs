@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 using Roslynator.CSharp;
 using static Roslynator.CSharp.SyntaxTriviaAnalysis;
 
@@ -67,14 +66,6 @@ namespace Roslynator.Formatting.CSharp
                 return;
 
             SyntaxKind binaryKind = topBinaryExpression.Kind();
-
-            if (!topBinaryExpression.Left.WalkDownParentheses().IsKind(binaryKind)
-                && topBinaryExpression
-                    .SyntaxTree
-                    .IsSingleLineSpan(TextSpan.FromBounds(topBinaryExpression.Left.Span.End, topBinaryExpression.Span.End)))
-            {
-                return;
-            }
 
             int indentationLength = -1;
 
