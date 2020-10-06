@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Roslynator.CSharp
 {
-    internal static class FormattingHelpers
+    internal static class FormattingVerifier
     {
         [Conditional("DEBUG")]
-        public static void VerifyChangedSpansAreWhitespace(SyntaxNode node, List<TextChange> textChanges)
+        public static void VerifyChangedSpansAreWhitespace(SyntaxNode node, IList<TextChange> textChanges)
         {
             Debug.Assert(textChanges.Count > 0, $"'{nameof(textChanges)}' is empty\r\n\r\n{node}");
 
@@ -59,51 +59,51 @@ namespace Roslynator.CSharp
                 if (end <= trailing.Span.End)
                     return VerifySpan(span, trailing);
 
-                span = TextSpan.FromBounds(start, trailing.Span.End);
-
-                if (!VerifySpan(span, trailing))
+                if (!VerifySpan(
+                    TextSpan.FromBounds(start, trailing.Span.End),
+                    trailing))
+                {
                     return false;
+                }
 
-                token = node.FindToken(end);
-
-                leading = token.LeadingTrivia;
+                leading = node.FindToken(end).LeadingTrivia;
 
                 if (trailing.Span.End != leading.Span.End)
                     return false;
 
-                span = TextSpan.FromBounds(leading.Span.Start, end);
-
-                return VerifySpan(span, leading);
+                return VerifySpan(
+                    TextSpan.FromBounds(leading.Span.Start, end),
+                    leading);
             }
 
             static bool VerifySpan(TextSpan span, SyntaxTriviaList leading)
             {
-                for (int i = 0; i < leading.Count; i++)
+                SyntaxTriviaList.Enumerator en = leading.GetEnumerator();
+
+                while (en.MoveNext())
                 {
-                    if (!leading[i].IsWhitespaceOrEndOfLineTrivia())
+                    if (!en.Current.IsWhitespaceOrEndOfLineTrivia())
                         continue;
 
-                    if (leading[i].Span.Contains(span.Start))
+                    if (en.Current.Span.Contains(span.Start))
                     {
                         if (span.IsEmpty)
                             return true;
 
-                        if (leading[i].Span.End == span.End)
+                        if (en.Current.Span.End == span.End)
                             return true;
 
-                        span = span.TrimFromStart(leading[i].Span.Length);
-                        i++;
+                        span = span.TrimFromStart(en.Current.Span.Length);
 
-                        while (i < leading.Count)
+                        while (en.MoveNext())
                         {
-                            if (leading[i].Span.End == span.End)
+                            if (en.Current.Span.End == span.End)
                                 return true;
 
-                            if (span.End < leading[i].Span.End)
+                            if (span.End < en.Current.Span.End)
                                 break;
 
-                            span = span.TrimFromStart(leading[i].Span.Length);
-                            i++;
+                            span = span.TrimFromStart(en.Current.Span.Length);
                         }
 
                         break;

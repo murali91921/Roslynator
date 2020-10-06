@@ -125,7 +125,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 }
             }
 
-            FormattingHelpers.VerifyChangedSpansAreWhitespace(binaryExpression, textChanges);
+            FormattingVerifier.VerifyChangedSpansAreWhitespace(binaryExpression, textChanges);
 
             return document.WithTextChangesAsync(textChanges, cancellationToken);
 
