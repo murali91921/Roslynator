@@ -226,6 +226,42 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain)]
+        public async Task Test_NestedBinaryExpressionOfDifferentKind()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M()
+    {
+        bool x = false, y = false, z = false;
+
+        x = ([|y
+            .Equals([|x
+            && y|])
+                || y
+                    .Equals(""b"")|])
+            && z;
+    }
+}
+", @"
+class C
+{
+    void M()
+    {
+        bool x = false, y = false, z = false;
+
+        x = (y
+            .Equals(x
+                && y)
+            || y
+                .Equals(""b""))
+            && z;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain)]
         public async Task TestNoDiagnostic()
         {
             await VerifyNoDiagnosticAsync(@"

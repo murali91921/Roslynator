@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,13 +18,13 @@ using static Roslynator.CSharp.SyntaxTriviaAnalysis;
 
 namespace Roslynator.Formatting.CodeFixes.CSharp
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(FixFormattingOfMethodChainCodeFixProvider))]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(FixFormattingOfCallChainCodeFixProvider))]
     [Shared]
-    internal class FixFormattingOfMethodChainCodeFixProvider : BaseCodeFixProvider
+    internal class FixFormattingOfCallChainCodeFixProvider : BaseCodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(DiagnosticIdentifiers.FixFormattingOfMethodChain); }
+            get { return ImmutableArray.Create(DiagnosticIdentifiers.FixFormattingOfCallChain); }
         }
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)

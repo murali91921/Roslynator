@@ -9,15 +9,15 @@ using Xunit;
 
 namespace Roslynator.Formatting.CSharp.Tests
 {
-    public class RCS0054FixFormattingOfMethodChainTests : AbstractCSharpFixVerifier
+    public class RCS0054FixFormattingOfCallChainTests : AbstractCSharpFixVerifier
     {
-        public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.FixFormattingOfMethodChain;
+        public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.FixFormattingOfCallChain;
 
-        public override DiagnosticAnalyzer Analyzer { get; } = new FixFormattingOfMethodChainAnalyzer();
+        public override DiagnosticAnalyzer Analyzer { get; } = new FixFormattingOfCallChainAnalyzer();
 
-        public override CodeFixProvider FixProvider { get; } = new FixFormattingOfMethodChainCodeFixProvider();
+        public override CodeFixProvider FixProvider { get; } = new FixFormattingOfCallChainCodeFixProvider();
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfCallChain)]
         public async Task Test_WrongIndentation()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -45,7 +45,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfCallChain)]
         public async Task Test_Invocation_NoIndentation()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -73,7 +73,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfCallChain)]
         public async Task Test_Invocation_NoIndentation_EmptyLineBetween()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -101,7 +101,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfCallChain)]
         public async Task Test_Invocation_WrapAndIndent()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -130,7 +130,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfCallChain)]
         public async Task Test_Invocation_EmptyLineBetween()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -159,7 +159,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfCallChain)]
         public async Task Test_Invocation_CommentBetween()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -189,7 +189,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfCallChain)]
         public async Task Test_Invocation_IndendationsDiffer()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -233,7 +233,7 @@ class C
 ");
         }
 
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfMethodChain)]
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfCallChain)]
         public async Task TestNoDiagnostic()
         {
             await VerifyNoDiagnosticAsync(@"

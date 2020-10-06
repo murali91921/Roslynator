@@ -12,11 +12,11 @@ using static Roslynator.CSharp.SyntaxTriviaAnalysis;
 namespace Roslynator.Formatting.CSharp
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class FixFormattingOfMethodChainAnalyzer : BaseDiagnosticAnalyzer
+    internal class FixFormattingOfCallChainAnalyzer : BaseDiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(DiagnosticDescriptors.FixFormattingOfMethodChain); }
+            get { return ImmutableArray.Create(DiagnosticDescriptors.FixFormattingOfCallChain); }
         }
 
         public override void Initialize(AnalysisContext context)
@@ -135,7 +135,7 @@ namespace Roslynator.Formatting.CSharp
             {
                 DiagnosticHelpers.ReportDiagnostic(
                     context,
-                    DiagnosticDescriptors.FixFormattingOfMethodChain,
+                    DiagnosticDescriptors.FixFormattingOfCallChain,
                     expression);
             }
         }

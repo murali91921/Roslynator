@@ -8,7 +8,7 @@ set _msbuildPath="%_visualStudioPath%\MSBuild\Current\Bin"
 "..\src\CommandLine\bin\Debug\net48\roslynator" fix "E:\Projects\DotMarkdown\DotMarkdown.sln" ^
  --msbuild-path %_msbuildPath% ^
  --properties "CodeAnalysisRuleSet=E:\Projects\Roslynator\src\global.ruleset" ^
- --supported-diagnostics RCS0055 ^
+ --supported-diagnostics RCS0053 RCS0054 RCS0055 ^
  --analyzer-assemblies ^
   "..\src\Formatting.Analyzers.CodeFixes\bin\Debug\netstandard2.0\Roslynator.Formatting.Analyzers.dll" ^
   "..\src\Formatting.Analyzers.CodeFixes\bin\Debug\netstandard2.0\Roslynator.Formatting.Analyzers.CodeFixes.dll" ^
@@ -19,7 +19,7 @@ set _msbuildPath="%_visualStudioPath%\MSBuild\Current\Bin"
 "..\src\CommandLine\bin\Debug\net48\roslynator" fix "E:\Projects\LinqToRegex\src\LinqToRegex.sln" ^
  --msbuild-path %_msbuildPath% ^
  --properties "CodeAnalysisRuleSet=E:\Projects\Roslynator\src\global.ruleset" ^
- --supported-diagnostics RCS0055 ^
+ --supported-diagnostics RCS0053 RCS0054 RCS0055 ^
  --analyzer-assemblies ^
   "..\src\Formatting.Analyzers.CodeFixes\bin\Debug\netstandard2.0\Roslynator.Formatting.Analyzers.dll" ^
   "..\src\Formatting.Analyzers.CodeFixes\bin\Debug\netstandard2.0\Roslynator.Formatting.Analyzers.CodeFixes.dll" ^
@@ -30,7 +30,7 @@ set _msbuildPath="%_visualStudioPath%\MSBuild\Current\Bin"
 "..\src\CommandLine\bin\Debug\net48\roslynator" fix "E:\Projects\Orang\src\Orang.sln" ^
  --msbuild-path %_msbuildPath% ^
  --properties "CodeAnalysisRuleSet=E:\Projects\Roslynator\src\global.ruleset" ^
- --supported-diagnostics RCS0055 ^
+ --supported-diagnostics RCS0053 RCS0054 RCS0055 ^
  --analyzer-assemblies ^
   "..\src\Formatting.Analyzers.CodeFixes\bin\Debug\netstandard2.0\Roslynator.Formatting.Analyzers.dll" ^
   "..\src\Formatting.Analyzers.CodeFixes\bin\Debug\netstandard2.0\Roslynator.Formatting.Analyzers.CodeFixes.dll" ^
@@ -41,7 +41,7 @@ set _msbuildPath="%_visualStudioPath%\MSBuild\Current\Bin"
 "..\src\CommandLine\bin\Debug\net48\roslynator" fix "E:\Projects\Snippetica\Snippetica.sln" ^
  --msbuild-path %_msbuildPath% ^
  --properties "CodeAnalysisRuleSet=E:\Projects\Roslynator\src\global.ruleset" ^
- --supported-diagnostics RCS0055 ^
+ --supported-diagnostics RCS0053 RCS0054 RCS0055 ^
  --analyzer-assemblies ^
   "..\src\Formatting.Analyzers.CodeFixes\bin\Debug\netstandard2.0\Roslynator.Formatting.Analyzers.dll" ^
   "..\src\Formatting.Analyzers.CodeFixes\bin\Debug\netstandard2.0\Roslynator.Formatting.Analyzers.CodeFixes.dll" ^
@@ -52,7 +52,7 @@ set _msbuildPath="%_visualStudioPath%\MSBuild\Current\Bin"
 "..\src\CommandLine\bin\Debug\net48\roslynator" fix "E:\Projects\SnippetManager\src\SnippetManager.sln" ^
  --msbuild-path %_msbuildPath% ^
  --properties "CodeAnalysisRuleSet=E:\Projects\Roslynator\src\global.ruleset" ^
- --supported-diagnostics RCS0055 ^
+ --supported-diagnostics RCS0053 RCS0054 RCS0055 ^
  --analyzer-assemblies ^
   "..\src\Formatting.Analyzers.CodeFixes\bin\Debug\netstandard2.0\Roslynator.Formatting.Analyzers.dll" ^
   "..\src\Formatting.Analyzers.CodeFixes\bin\Debug\netstandard2.0\Roslynator.Formatting.Analyzers.CodeFixes.dll" ^

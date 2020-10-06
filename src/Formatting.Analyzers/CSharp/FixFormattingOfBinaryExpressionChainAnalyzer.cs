@@ -44,28 +44,13 @@ namespace Roslynator.Formatting.CSharp
         {
             var topBinaryExpression = (BinaryExpressionSyntax)context.Node;
 
-            switch (topBinaryExpression.WalkUpParentheses().Parent.Kind())
-            {
-                case SyntaxKind.AddExpression:
-                case SyntaxKind.SubtractExpression:
-                case SyntaxKind.MultiplyExpression:
-                case SyntaxKind.DivideExpression:
-                case SyntaxKind.ModuloExpression:
-                case SyntaxKind.LeftShiftExpression:
-                case SyntaxKind.RightShiftExpression:
-                case SyntaxKind.LogicalOrExpression:
-                case SyntaxKind.LogicalAndExpression:
-                case SyntaxKind.BitwiseOrExpression:
-                case SyntaxKind.BitwiseAndExpression:
-                case SyntaxKind.ExclusiveOrExpression:
-                case SyntaxKind.CoalesceExpression:
-                    return;
-            }
+            SyntaxKind binaryKind = topBinaryExpression.Kind();
+
+            if (topBinaryExpression.Parent.IsKind(binaryKind))
+                return;
 
             if (topBinaryExpression.IsSingleLine(includeExteriorTrivia: false))
                 return;
-
-            SyntaxKind binaryKind = topBinaryExpression.Kind();
 
             int indentationLength = -1;
 

@@ -562,15 +562,15 @@ namespace Roslynator.Formatting.CSharp
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS0054</summary>
-        public static readonly DiagnosticDescriptor FixFormattingOfMethodChain = DiagnosticDescriptorFactory.Default.Create(
-            id:                 DiagnosticIdentifiers.FixFormattingOfMethodChain, 
-            title:              "Fix formatting of a method chain.", 
-            messageFormat:      "Fix formatting of a method chain.", 
+        public static readonly DiagnosticDescriptor FixFormattingOfCallChain = DiagnosticDescriptorFactory.Default.Create(
+            id:                 DiagnosticIdentifiers.FixFormattingOfCallChain, 
+            title:              "Fix formatting of a call chain.", 
+            messageFormat:      "Fix formatting of a call chain.", 
             category:           DiagnosticCategories.Formatting, 
             defaultSeverity:    DiagnosticSeverity.Info, 
             isEnabledByDefault: false, 
             description:        null, 
-            helpLinkUri:        DiagnosticIdentifiers.FixFormattingOfMethodChain, 
+            helpLinkUri:        DiagnosticIdentifiers.FixFormattingOfCallChain, 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS0055</summary>

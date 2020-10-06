@@ -1330,15 +1330,15 @@ void M(
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="FixFormattingOfMethodChain">
+  <Analyzer Identifier="FixFormattingOfCallChain">
     <Id>RCS0054</Id>
-    <Title>Fix formatting of a method chain.</Title>
+    <Title>Fix formatting of a call chain.</Title>
     <Category>Formatting</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>false</IsEnabledByDefault>
     <Summary>This analyzer:
-* fixes indentation of multi-line method chain
-* formats each method call on a separate line
+* fixes indentation of multi-line call chain
+* formats each call on a separate line
 </Summary>
     <Samples>
       <Sample>
