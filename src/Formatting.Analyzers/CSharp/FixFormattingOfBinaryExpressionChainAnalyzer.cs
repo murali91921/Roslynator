@@ -81,8 +81,6 @@ namespace Roslynator.Formatting.CSharp
                     return;
                 }
 
-                left = left.WalkDownParentheses();
-
                 if (!left.IsKind(binaryKind))
                     break;
 
@@ -107,7 +105,10 @@ namespace Roslynator.Formatting.CSharp
                             {
                                 IndentationAnalysis indentationAnalysis = AnalyzeIndentation(topBinaryExpression);
 
-                                if (indentationAnalysis.Indentation == topBinaryExpression.GetLeadingTrivia().LastOrDefault()
+                                SyntaxTriviaList leadingTrivia = topBinaryExpression.GetLeadingTrivia();
+
+                                if (leadingTrivia.Any()
+                                    && leadingTrivia.Last() == indentationAnalysis.Indentation
                                     && context.IsAnalyzerOptionEnabled(AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt))
                                 {
                                     indentationLength = indentationAnalysis.IndentationLength;

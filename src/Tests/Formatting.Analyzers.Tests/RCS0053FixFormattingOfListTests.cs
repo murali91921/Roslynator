@@ -1215,5 +1215,22 @@ class C
 }
 ");
         }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfList)]
+        public async Task TestNoDiagnostic_ArrayInitializerWithMultilineComment()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    void M()
+    {
+        var x = new string[]
+        {
+            /* x */ """"
+        };
+    }
+}
+");
+        }
     }
 }

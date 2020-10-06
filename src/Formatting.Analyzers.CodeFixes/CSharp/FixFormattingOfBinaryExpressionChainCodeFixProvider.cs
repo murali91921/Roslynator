@@ -103,8 +103,6 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                     }
                 }
 
-                left = left.WalkDownParentheses();
-
                 if (!left.IsKind(binaryKind))
                     break;
 

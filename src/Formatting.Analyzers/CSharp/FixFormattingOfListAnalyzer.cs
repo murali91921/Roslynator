@@ -154,20 +154,8 @@ namespace Roslynator.Formatting.CSharp
                 if (indentationLength == 0)
                     return;
 
-                SyntaxTriviaList leading = first.GetLeadingTrivia();
-
-                if (leading.Any())
-                {
-                    SyntaxTrivia last = leading.Last();
-
-                    if (last.IsWhitespaceTrivia()
-                        && last.Span.Length == indentationLength)
-                    {
-                        return;
-                    }
-                }
-
-                ReportDiagnostic();
+                if (ShouldFixIndentation(first.GetLeadingTrivia(), indentationLength))
+                    ReportDiagnostic();
             }
             else
             {
@@ -188,23 +176,10 @@ namespace Roslynator.Formatting.CSharp
 
                     if (IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
                     {
-                        SyntaxTriviaList leading = nodes[i].GetLeadingTrivia();
-
-                        if (!leading.Any())
+                        if (ShouldFixIndentation(nodes[i].GetLeadingTrivia(), indentationLength))
                         {
                             ReportDiagnostic();
                             break;
-                        }
-                        else
-                        {
-                            SyntaxTrivia last = leading.Last();
-
-                            if (!last.IsWhitespaceTrivia()
-                                || indentationLength != last.Span.Length)
-                            {
-                                ReportDiagnostic();
-                                break;
-                            }
                         }
                     }
                     else
@@ -301,6 +276,37 @@ namespace Roslynator.Formatting.CSharp
                     DiagnosticDescriptors.FixFormattingOfList,
                     Location.Create(first.SyntaxTree, nodes.Span),
                     GetTitle());
+            }
+
+            static bool ShouldFixIndentation(SyntaxTriviaList leading, int indentationLength)
+            {
+                SyntaxTriviaList.Reversed.Enumerator en = leading.Reverse().GetEnumerator();
+
+                if (!en.MoveNext())
+                    return true;
+
+                switch (en.Current.Kind())
+                {
+                    case SyntaxKind.WhitespaceTrivia:
+                        {
+                            if (en.Current.Span.Length != indentationLength)
+                            {
+                                if (!en.MoveNext()
+                                    || en.Current.IsEndOfLineTrivia())
+                                {
+                                    return true;
+                                }
+                            }
+
+                            break;
+                        }
+                    case SyntaxKind.EndOfLineTrivia:
+                        {
+                            return true;
+                        }
+                }
+
+                return false;
             }
 
             string GetTitle()
