@@ -296,5 +296,20 @@ class C
 }
         ");
         }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain)]
+        public async Task TestNoDiagnostic_IndentationSizeCannotBeDetermined()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System;
+
+[Obsolete(""a""
++ ""b""
++ ""c"")]
+class C
+{
+}
+        ");
+        }
     }
 }
