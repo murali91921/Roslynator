@@ -41,12 +41,16 @@ namespace Roslynator.CSharp.CodeFixes
         {
             SyntaxNode root = await context.GetSyntaxRootAsync().ConfigureAwait(false);
 
-            if (!TryFindFirstAncestorOrSelf(root, context.Span, out SyntaxNode node, predicate: f => f.IsKind(
-                SyntaxKind.InvocationExpression,
-                SyntaxKind.EqualsExpression,
-                SyntaxKind.NotEqualsExpression,
-                SyntaxKind.IsPatternExpression,
-                SyntaxKind.ConditionalExpression)))
+            if (!TryFindFirstAncestorOrSelf(
+                root,
+                context.Span,
+                out SyntaxNode node,
+                predicate: f => f.IsKind(
+                    SyntaxKind.InvocationExpression,
+                    SyntaxKind.EqualsExpression,
+                    SyntaxKind.NotEqualsExpression,
+                    SyntaxKind.IsPatternExpression,
+                    SyntaxKind.ConditionalExpression)))
             {
                 return;
             }
@@ -95,6 +99,17 @@ namespace Roslynator.CSharp.CodeFixes
                                 "Combine 'Where' and 'Any'",
                                 ct => CombineWhereAndAnyAsync(document, invocationInfo, ct),
                                 GetEquivalenceKey(diagnostic, "CombineWhereAndAny"));
+
+                            context.RegisterCodeFix(codeAction, diagnostic);
+                            return;
+                        }
+                    case "ToList":
+                    case "ToImmutableArray":
+                        {
+                            CodeAction codeAction = CodeAction.Create(
+                                "Call 'ConvertAll'",
+                                ct => CallConvertAllInsteadOfSelectAsync(document, invocationInfo, ct),
+                                GetEquivalenceKey(diagnostic, "CallConvertAllInsteadOfSelect"));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
                             return;
@@ -355,9 +370,8 @@ namespace Roslynator.CSharp.CodeFixes
                             Parameter(Identifier(DefaultNames.LambdaParameter)),
                             NotEqualsExpression(
                                 IdentifierName(DefaultNames.LambdaParameter),
-                                NullLiteralExpression()
-                            )
-                        ).WithFormatterAnnotation()
+                                NullLiteralExpression()))
+                            .WithFormatterAnnotation()
                     )
                 );
 
@@ -411,8 +425,8 @@ namespace Roslynator.CSharp.CodeFixes
                     newMemberAccess,
                     ArgumentList(
                         Argument(invocationInfo.Expression.WithoutTrivia()),
-                        argumentList.Arguments[0]
-                    ).WithTriviaFrom(argumentList));
+                        argumentList.Arguments[0])
+                        .WithTriviaFrom(argumentList));
 
                 return document.ReplaceNodeAsync(invocationInfo.InvocationExpression, newInvocation, cancellationToken);
             }
@@ -553,6 +567,18 @@ namespace Roslynator.CSharp.CodeFixes
             return document.ReplaceNodeAsync(invocationInfo.InvocationExpression, newInvocationExpression, cancellationToken);
         }
 
+        private static Task<Document> CallConvertAllInsteadOfSelectAsync(
+            Document document,
+            in SimpleMemberInvocationExpressionInfo invocationInfo,
+            CancellationToken cancellationToken)
+        {
+            InvocationExpressionSyntax invocationExpression2 = SimpleMemberInvocationExpressionInfo(invocationInfo.Expression).InvocationExpression;
+
+            InvocationExpressionSyntax newInvocationExpression = ChangeInvokedMethodName(invocationExpression2, "ConvertAll");
+
+            return document.ReplaceNodeAsync(invocationInfo.InvocationExpression, newInvocationExpression, cancellationToken);
+        }
+
         private static Task<Document> CallSumInsteadOfSelectManyAndCountAsync(
             Document document,
             in SimpleMemberInvocationExpressionInfo invocationInfo,
@@ -579,7 +605,8 @@ namespace Roslynator.CSharp.CodeFixes
 
             MemberAccessExpressionSyntax memberAccessExpression = SimpleMemberAccessExpression(
                 expression.WithoutTrivia(),
-                IdentifierName(propertyName)).WithTriviaFrom(expression);
+                IdentifierName(propertyName))
+                .WithTriviaFrom(expression);
 
             LambdaExpressionSyntax newLambdaExpression = lambdaExpression.ReplaceNode(expression, memberAccessExpression);
 
