@@ -170,7 +170,7 @@ namespace Roslynator.CSharp
         public const string ConvertAnonymousFunctionToMethodGroupOrViceVersa = "RCS1207";
         public const string ReduceIfNesting = "RCS1208";
         public const string OrderTypeParameterConstraints = "RCS1209";
-        public const string ReturnTaskInsteadOfNull = "RCS1210";
+        public const string ReturnCompletedTaskInsteadOfNull = "RCS1210";
         public const string RemoveUnnecessaryElse = "RCS1211";
         public const string RemoveRedundantAssignment = "RCS1212";
         public const string RemoveUnusedMemberDeclaration = "RCS1213";
@@ -179,7 +179,6 @@ namespace Roslynator.CSharp
         public const string UnnecessaryUnsafeContext = "RCS1216";
         public const string ConvertInterpolatedStringToConcatenation = "RCS1217";
         public const string SimplifyCodeBranching = "RCS1218";
-        public const string CallSkipAndAnyInsteadOfCount = "RCS1219";
         public const string UsePatternMatchingInsteadOfIsAndCast = "RCS1220";
         public const string UsePatternMatchingInsteadOfAsAndNullCheck = "RCS1221";
         public const string MergePreprocessorDirectives = "RCS1222";

@@ -204,7 +204,7 @@ namespace Roslynator.CSharp
         /// <summary>RCS1017</summary>
         public static readonly DiagnosticDescriptor AvoidMultilineExpressionBody = DiagnosticDescriptorFactory.Default.Create(
             id:                 DiagnosticIdentifiers.AvoidMultilineExpressionBody, 
-            title:              "Avoid multiline expression body.", 
+            title:              "[deprecated] Avoid multiline expression body.", 
             messageFormat:      "[deprecated] Use analyzer RCS1016a instead.", 
             category:           DiagnosticCategories.Style, 
             defaultSeverity:    DiagnosticSeverity.Info, 
@@ -2002,15 +2002,15 @@ namespace Roslynator.CSharp
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1210</summary>
-        public static readonly DiagnosticDescriptor ReturnTaskInsteadOfNull = DiagnosticDescriptorFactory.Default.Create(
-            id:                 DiagnosticIdentifiers.ReturnTaskInsteadOfNull, 
-            title:              "Return Task.FromResult instead of returning null.", 
-            messageFormat:      "Return Task.FromResult instead of returning null.", 
+        public static readonly DiagnosticDescriptor ReturnCompletedTaskInsteadOfNull = DiagnosticDescriptorFactory.Default.Create(
+            id:                 DiagnosticIdentifiers.ReturnCompletedTaskInsteadOfNull, 
+            title:              "Return completed task instead of returning null.", 
+            messageFormat:      "Return '{0}' instead of returning null.", 
             category:           DiagnosticCategories.Usage, 
             defaultSeverity:    DiagnosticSeverity.Warning, 
             isEnabledByDefault: true, 
             description:        null, 
-            helpLinkUri:        DiagnosticIdentifiers.ReturnTaskInsteadOfNull, 
+            helpLinkUri:        DiagnosticIdentifiers.ReturnCompletedTaskInsteadOfNull, 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1211</summary>
@@ -2113,18 +2113,6 @@ namespace Roslynator.CSharp
             isEnabledByDefault: true, 
             description:        null, 
             helpLinkUri:        DiagnosticIdentifiers.SimplifyCodeBranching, 
-            customTags:         Array.Empty<string>());
-
-        /// <summary>RCS1219</summary>
-        public static readonly DiagnosticDescriptor CallSkipAndAnyInsteadOfCount = DiagnosticDescriptorFactory.Default.Create(
-            id:                 DiagnosticIdentifiers.CallSkipAndAnyInsteadOfCount, 
-            title:              "Call 'Enumerable.Skip' and 'Enumerable.Any' instead of 'Enumerable.Count'.", 
-            messageFormat:      "Call 'Enumerable.Skip' and 'Enumerable.Any' instead of 'Enumerable.Count'.", 
-            category:           DiagnosticCategories.Performance, 
-            defaultSeverity:    DiagnosticSeverity.Info, 
-            isEnabledByDefault: false, 
-            description:        null, 
-            helpLinkUri:        DiagnosticIdentifiers.CallSkipAndAnyInsteadOfCount, 
             customTags:         Array.Empty<string>());
 
         /// <summary>RCS1220</summary>

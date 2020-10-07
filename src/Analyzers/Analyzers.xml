@@ -379,11 +379,12 @@ foreach (var item in items) // [|Id|]
   </Analyzer>
   <Analyzer Identifier="AvoidMultilineExpressionBody">
     <Id>RCS1017</Id>
-    <Title>Avoid multiline expression body.</Title>
+    <Title>[deprecated] Avoid multiline expression body.</Title>
     <MessageFormat>[deprecated] Use analyzer RCS1016a instead.</MessageFormat>
     <Category>Style</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>false</IsEnabledByDefault>
+    <Summary>This analyzer has been deprecated. Use analyzer [RCS1016a](RCS1016a.md) instead.</Summary>
     <Samples>
       <Sample>
         <Before><![CDATA[public string[] Foo() => new string[] // [|Id|]
@@ -4322,9 +4323,10 @@ Foo3();]]></After>
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="ReturnTaskInsteadOfNull">
+  <Analyzer Identifier="ReturnCompletedTaskInsteadOfNull">
     <Id>RCS1210</Id>
-    <Title>Return Task.FromResult instead of returning null.</Title>
+    <Title>Return completed task instead of returning null.</Title>
+    <MessageFormat>Return '{0}' instead of returning null.</MessageFormat>
     <Category>Usage</Category>
     <DefaultSeverity>Warning</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
@@ -4611,7 +4613,7 @@ else
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="CallSkipAndAnyInsteadOfCount">
+  <Analyzer Identifier="CallSkipAndAnyInsteadOfCount" IsObsolete="true">
     <Id>RCS1219</Id>
     <Title>Call 'Enumerable.Skip' and 'Enumerable.Any' instead of 'Enumerable.Count'.</Title>
     <Category>Performance</Category>
