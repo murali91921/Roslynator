@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Roslynator.Formatting.CSharp.Tests
 {
-    public class RCS0054LineIsTooLongTests : AbstractCSharpFixVerifier
+    public class RCS0056LineIsTooLongTests : AbstractCSharpFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.LineIsTooLong;
 

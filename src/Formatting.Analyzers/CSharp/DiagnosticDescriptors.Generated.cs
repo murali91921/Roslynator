@@ -585,7 +585,7 @@ namespace Roslynator.Formatting.CSharp
             helpLinkUri:        DiagnosticIdentifiers.FixFormattingOfBinaryExpressionChain, 
             customTags:         Array.Empty<string>());
 
-        /// <summary>RCS0054</summary>
+        /// <summary>RCS0056</summary>
         public static readonly DiagnosticDescriptor LineIsTooLong = DiagnosticDescriptorFactory.Default.Create(
             id:                 DiagnosticIdentifiers.LineIsTooLong, 
             title:              "A line is too long.", 
