@@ -108,6 +108,21 @@ namespace Roslynator.Formatting.CodeFixes
                                 context.RegisterCodeFix(codeAction, diagnostic);
                                 return;
                             }
+                        case SyntaxKind.ArgumentList:
+                            {
+                                var argumentList = (ArgumentListSyntax)node;
+
+                                if (!CanWrapSeparatedList(argumentList.Arguments, argumentList.OpenParenToken.Span.End))
+                                    break;
+
+                                CodeAction codeAction = CodeAction.Create(
+                                    Title,
+                                    ct => SyntaxFormatter.WrapArgumentsAsync(document, argumentList, ct),
+                                    GetEquivalenceKey(diagnostic));
+
+                                context.RegisterCodeFix(codeAction, diagnostic);
+                                return;
+                            }
                     }
 
                     node = node.Parent;
