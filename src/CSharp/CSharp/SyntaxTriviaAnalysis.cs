@@ -338,7 +338,7 @@ namespace Roslynator.CSharp
                                     }
                                 default:
                                     {
-                                        Debug.Fail(node.Parent.Kind().ToString());
+                                        DebugHelpers.Fail(node.Parent);
                                         return 0;
                                     }
                             }
@@ -360,11 +360,15 @@ namespace Roslynator.CSharp
                                     }
                                 default:
                                     {
-                                        Debug.Fail(node.Parent.Kind().ToString());
+                                        DebugHelpers.Fail(node.Parent);
                                         return 0;
                                     }
                             }
 
+                            break;
+                        }
+                    case BlockSyntax _:
+                        {
                             break;
                         }
                     case StatementSyntax statement:
@@ -409,7 +413,7 @@ namespace Roslynator.CSharp
                                     }
                                 default:
                                     {
-                                        Debug.Fail(node.Parent.Kind().ToString());
+                                        DebugHelpers.Fail(node.Parent);
                                         return 0;
                                     }
                             }

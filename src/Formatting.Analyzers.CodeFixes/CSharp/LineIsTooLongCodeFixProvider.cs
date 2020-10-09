@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -36,99 +38,178 @@ namespace Roslynator.Formatting.CodeFixes
             int maxLength = AnalyzerSettings.Current.MaxLineLength;
             int position = span.End;
 
+            Dictionary<SyntaxKind, SyntaxNode> spans = null;
+
             while (position >= span.Start)
             {
                 SyntaxToken token = root.FindToken(position);
 
                 SyntaxNode node = token.Parent;
 
-                while (node?.SpanStart >= span.Start)
+                for (; node?.SpanStart >= span.Start; node = node.Parent)
                 {
-                    switch (node.Kind())
+                    SyntaxKind kind = node.Kind();
+
+                    if (spans != null
+                        && spans.TryGetValue(kind, out SyntaxNode node2)
+                        && object.ReferenceEquals(node, node2))
                     {
-                        case SyntaxKind.ArrowExpressionClause:
-                            {
-                                var expressionBody = (ArrowExpressionClauseSyntax)node;
-
-                                SyntaxToken arrowToken = expressionBody.ArrowToken;
-                                SyntaxToken previousToken = arrowToken.GetPreviousToken();
-
-                                if (previousToken.SpanStart < span.Start)
-                                    break;
-
-                                bool addNewLineAfter = document.IsAnalyzerOptionEnabled(AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
-
-                                int wrapPosition = (addNewLineAfter) ? arrowToken.Span.End : previousToken.Span.End;
-                                int start = (addNewLineAfter) ? expressionBody.Expression.SpanStart : arrowToken.SpanStart;
-                                int longestLength = expressionBody.GetLastToken().GetNextToken().Span.End - start;
-
-                                if (!CanWrapLine(expressionBody, wrapPosition, longestLength))
-                                    break;
-
-                                CodeAction codeAction = CodeAction.Create(
-                                    Title,
-                                    ct =>
-                                    {
-                                        return (addNewLineAfter)
-                                            ? CodeFixHelpers.AddNewLineAfterAsync(document, arrowToken, indentation, ct)
-                                            : CodeFixHelpers.AddNewLineBeforeAsync(document, arrowToken, indentation, ct);
-                                    },
-                                    GetEquivalenceKey(diagnostic));
-
-                                context.RegisterCodeFix(codeAction, diagnostic);
-                                return;
-                            }
-                        case SyntaxKind.ParameterList:
-                            {
-                                var parameterList = (ParameterListSyntax)node;
-
-                                if (!CanWrapSeparatedList(parameterList.Parameters, parameterList.OpenParenToken.Span.End))
-                                    break;
-
-                                CodeAction codeAction = CodeAction.Create(
-                                    Title,
-                                    ct => SyntaxFormatter.WrapParametersAsync(document, parameterList, ct),
-                                    GetEquivalenceKey(diagnostic));
-
-                                context.RegisterCodeFix(codeAction, diagnostic);
-                                return;
-                            }
-                        case SyntaxKind.BracketedParameterList:
-                            {
-                                var parameterList = (BracketedParameterListSyntax)node;
-
-                                if (!CanWrapSeparatedList(parameterList.Parameters, parameterList.OpenBracketToken.Span.End))
-                                    break;
-
-                                CodeAction codeAction = CodeAction.Create(
-                                    Title,
-                                    ct => SyntaxFormatter.WrapParametersAsync(document, parameterList, ct),
-                                    GetEquivalenceKey(diagnostic));
-
-                                context.RegisterCodeFix(codeAction, diagnostic);
-                                return;
-                            }
-                        case SyntaxKind.ArgumentList:
-                            {
-                                var argumentList = (ArgumentListSyntax)node;
-
-                                if (!CanWrapSeparatedList(argumentList.Arguments, argumentList.OpenParenToken.Span.End))
-                                    break;
-
-                                CodeAction codeAction = CodeAction.Create(
-                                    Title,
-                                    ct => SyntaxFormatter.WrapArgumentsAsync(document, argumentList, ct),
-                                    GetEquivalenceKey(diagnostic));
-
-                                context.RegisterCodeFix(codeAction, diagnostic);
-                                return;
-                            }
+                        continue;
                     }
 
-                    node = node.Parent;
+                    if (kind == SyntaxKind.ArrowExpressionClause)
+                    {
+                        var expressionBody = (ArrowExpressionClauseSyntax)node;
+
+                        SyntaxToken arrowToken = expressionBody.ArrowToken;
+                        SyntaxToken previousToken = arrowToken.GetPreviousToken();
+
+                        if (previousToken.SpanStart < span.Start)
+                            continue;
+
+                        bool addNewLineAfter = document.IsAnalyzerOptionEnabled(AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
+
+                        int wrapPosition = (addNewLineAfter) ? arrowToken.Span.End : previousToken.Span.End;
+                        int start = (addNewLineAfter) ? expressionBody.Expression.SpanStart : arrowToken.SpanStart;
+                        int longestLength = expressionBody.GetLastToken().GetNextToken().Span.End - start;
+
+                        if (!CanWrapNode(expressionBody, wrapPosition, longestLength))
+                            continue;
+
+                        AddSpan(expressionBody);
+                        break;
+                    }
+                    else if (kind == SyntaxKind.ParameterList)
+                    {
+                        var parameterList = (ParameterListSyntax)node;
+
+                        if (!CanWrapSeparatedList(parameterList.Parameters, parameterList.OpenParenToken.Span.End))
+                            continue;
+
+                        AddSpan(parameterList);
+                        break;
+                    }
+                    else if (kind == SyntaxKind.BracketedParameterList)
+                    {
+                        var parameterList = (BracketedParameterListSyntax)node;
+
+                        if (!CanWrapSeparatedList(parameterList.Parameters, parameterList.OpenBracketToken.Span.End))
+                            continue;
+
+                        AddSpan(parameterList);
+                        break;
+                    }
+                    else if (kind == SyntaxKind.ArgumentList)
+                    {
+                        var argumentList = (ArgumentListSyntax)node;
+
+                        if (!CanWrapSeparatedList(argumentList.Arguments, argumentList.OpenParenToken.Span.End))
+                            continue;
+
+                        if (!CanWrapLine(argumentList.Parent))
+                            continue;
+
+                        AddSpan(argumentList);
+                        break;
+                    }
+                    else if (kind == SyntaxKind.SimpleMemberAccessExpression)
+                    {
+                        var memberAccessExpression = (MemberAccessExpressionSyntax)node;
+                        SyntaxToken dotToken = memberAccessExpression.OperatorToken;
+
+                        if (!CanWrapNode(memberAccessExpression, dotToken.SpanStart, span.End - dotToken.SpanStart))
+                            continue;
+
+                        if (!CanWrapLine(memberAccessExpression))
+                            continue;
+
+                        AddSpan(memberAccessExpression);
+                        break;
+                    }
                 }
 
                 position = Math.Min(position, token.FullSpan.Start) - 1;
+            }
+
+            if (spans == null)
+                return;
+
+            foreach (KeyValuePair<SyntaxKind, SyntaxNode> kvp in spans)
+            {
+                SyntaxKind kind = kvp.Key;
+                SyntaxNode node = kvp.Value;
+
+                if (kind == SyntaxKind.ArrowExpressionClause)
+                {
+                    var expressionBody = (ArrowExpressionClauseSyntax)node;
+
+                    CodeAction codeAction = CodeAction.Create(
+                        Title,
+                        ct => AddNewLineBeforeOrAfterEpressionBodyArrowAsync(document, expressionBody.ArrowToken, ct),
+                        GetEquivalenceKey(diagnostic));
+
+                    context.RegisterCodeFix(codeAction, diagnostic);
+                    return;
+                }
+                else if (kind == SyntaxKind.ParameterList)
+                {
+                    var parameterList = (ParameterListSyntax)node;
+
+                    CodeAction codeAction = CodeAction.Create(
+                        Title,
+                        ct => SyntaxFormatter.WrapParametersAsync(document, parameterList, ct),
+                        GetEquivalenceKey(diagnostic));
+
+                    context.RegisterCodeFix(codeAction, diagnostic);
+                    return;
+                }
+                else if (kind == SyntaxKind.BracketedParameterList)
+                {
+                    var parameterList = (BracketedParameterListSyntax)node;
+
+                    CodeAction codeAction = CodeAction.Create(
+                        Title,
+                        ct => SyntaxFormatter.WrapParametersAsync(document, parameterList, ct),
+                        GetEquivalenceKey(diagnostic));
+
+                    context.RegisterCodeFix(codeAction, diagnostic);
+                    return;
+                }
+                else if (kind == SyntaxKind.SimpleMemberAccessExpression)
+                {
+                    var memberAccessExpression = (MemberAccessExpressionSyntax)node;
+
+                    CodeAction codeAction = CodeAction.Create(
+                        Title,
+                        ct => SyntaxFormatter.WrapCallChainAsync(document, memberAccessExpression, ct),
+                        GetEquivalenceKey(diagnostic));
+
+                    context.RegisterCodeFix(codeAction, diagnostic);
+                    return;
+                }
+                else if (kind == SyntaxKind.ArgumentList)
+                {
+                    var argumentList = (ArgumentListSyntax)node;
+
+                    CodeAction codeAction = CodeAction.Create(
+                        Title,
+                        ct => SyntaxFormatter.WrapArgumentsAsync(document, argumentList, ct),
+                        GetEquivalenceKey(diagnostic));
+
+                    context.RegisterCodeFix(codeAction, diagnostic);
+                    return;
+                }
+            }
+
+            void AddSpan(SyntaxNode node)
+            {
+                SyntaxKind kind = node.Kind();
+
+                if (spans == null)
+                    spans = new Dictionary<SyntaxKind, SyntaxNode>();
+
+                if (!spans.ContainsKey(kind))
+                    spans[kind] = node;
             }
 
             bool CanWrapSeparatedList<TNode>(
@@ -140,10 +221,10 @@ namespace Roslynator.Formatting.CodeFixes
 
                 int longestLength = nodes.Max(f => f.Span.Length);
 
-                return CanWrapLine(nodes.First(), wrapPosition, longestLength);
+                return CanWrapNode(nodes.First(), wrapPosition, longestLength);
             }
 
-            bool CanWrapLine(
+            bool CanWrapNode(
                 SyntaxNode node,
                 int wrapPosition,
                 int longestLength)
@@ -155,6 +236,38 @@ namespace Roslynator.Formatting.CodeFixes
 
                 return indentation.Length + longestLength <= maxLength;
             }
+
+            static bool CanWrapLine(SyntaxNode node)
+            {
+                for (SyntaxNode n = node; n != null; n = n.Parent)
+                {
+                    switch (n)
+                    {
+                        case MemberDeclarationSyntax _:
+                        case StatementSyntax _:
+                        case AccessorDeclarationSyntax _:
+                            return true;
+                        case InterpolationSyntax _:
+                            return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        private static Task<Document> AddNewLineBeforeOrAfterEpressionBodyArrowAsync(
+            Document document,
+            SyntaxToken token,
+            CancellationToken cancellationToken = default)
+        {
+            bool addNewLineAfter = document.IsAnalyzerOptionEnabled(AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
+
+            string indentation = SyntaxTriviaAnalysis.GetIncreasedIndentation(token.Parent, cancellationToken);
+
+            return (addNewLineAfter)
+                ? CodeFixHelpers.AddNewLineAfterAsync(document, token, indentation, cancellationToken)
+                : CodeFixHelpers.AddNewLineBeforeAsync(document, token, indentation, cancellationToken);
         }
     }
 }

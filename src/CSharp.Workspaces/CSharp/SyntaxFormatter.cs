@@ -354,6 +354,16 @@ namespace Roslynator.CSharp
                 argumentList.CloseParenToken.WithoutLeadingTrivia());
         }
 
+        public static async Task<Document> WrapCallChainAsync(
+            Document document,
+            ExpressionSyntax expression,
+            CancellationToken cancellationToken = default)
+        {
+            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            return await WrapCallChainAsync(document, expression, semanticModel, cancellationToken).ConfigureAwait(false);
+        }
+
         public static Task<Document> WrapCallChainAsync(
             Document document,
             ExpressionSyntax expression,
