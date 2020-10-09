@@ -41,7 +41,7 @@ namespace Roslynator.Configuration
             IEnumerable<KeyValuePair<string, bool>> refactorings = null,
             IEnumerable<string> ruleSets = null,
             bool prefixFieldIdentifierWithUnderscore = false,
-            int maxLineLength = 120)
+            int maxLineLength = 125)
         {
             Includes = includes?.ToImmutableArray() ?? ImmutableArray<string>.Empty;
             Analyzers = analyzers?.ToImmutableDictionary(_keyComparer) ?? ImmutableDictionary<string, bool>.Empty;
@@ -506,7 +506,7 @@ namespace Roslynator.Configuration
                     "General",
                     new XElement("PrefixFieldIdentifierWithUnderscore", PrefixFieldIdentifierWithUnderscore)),
                 new XElement(
-                    "Formatting",
+                    "Formatting",
                     new XElement("MaxLineLength", MaxLineLength)));
 
             if (Analyzers.Count > 0)

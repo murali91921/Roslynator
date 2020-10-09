@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -30,6 +32,7 @@ namespace Roslynator.Formatting.CodeFixes
             TextSpan span = context.Span;
             Document document = context.Document;
             Diagnostic diagnostic = context.Diagnostics[0];
+            string indentation = null;
             int maxLength = AnalyzerSettings.Current.MaxLineLength;
             int position = span.End;
 
@@ -48,61 +51,94 @@ namespace Roslynator.Formatting.CodeFixes
                                 var expressionBody = (ArrowExpressionClauseSyntax)node;
 
                                 SyntaxToken arrowToken = expressionBody.ArrowToken;
+                                SyntaxToken previousToken = arrowToken.GetPreviousToken();
 
-                                if (arrowToken.GetPreviousToken().SpanStart >= span.Start)
-                                {
-                                    bool addNewLineAfterArrow = document.IsAnalyzerOptionEnabled(
-                                        AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
+                                if (previousToken.SpanStart < span.Start)
+                                    break;
 
-                                    if (RegisterCodeFix(token.Parent, expressionBody.Expression, arrowToken, token, addNewLineAfterArrow))
-                                        return;
-                                }
+                                bool addNewLineAfter = document.IsAnalyzerOptionEnabled(AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
 
-                                break;
+                                int wrapPosition = (addNewLineAfter) ? arrowToken.Span.End : previousToken.Span.End;
+                                int start = (addNewLineAfter) ? expressionBody.Expression.SpanStart : arrowToken.SpanStart;
+                                int longestLength = expressionBody.GetLastToken().GetNextToken().Span.End - start;
+
+                                if (!CanWrapLine(expressionBody, wrapPosition, longestLength))
+                                    break;
+
+                                CodeAction codeAction = CodeAction.Create(
+                                    Title,
+                                    ct =>
+                                    {
+                                        return (addNewLineAfter)
+                                            ? CodeFixHelpers.AddNewLineAfterAsync(document, arrowToken, indentation, ct)
+                                            : CodeFixHelpers.AddNewLineBeforeAsync(document, arrowToken, indentation, ct);
+                                    },
+                                    GetEquivalenceKey(diagnostic));
+
+                                context.RegisterCodeFix(codeAction, diagnostic);
+                                return;
+                            }
+                        case SyntaxKind.ParameterList:
+                            {
+                                var parameterList = (ParameterListSyntax)node;
+
+                                if (!CanWrapSeparatedList(parameterList.Parameters, parameterList.OpenParenToken.Span.End))
+                                    break;
+
+                                CodeAction codeAction = CodeAction.Create(
+                                    Title,
+                                    ct => SyntaxFormatter.WrapParametersAsync(document, parameterList, ct),
+                                    GetEquivalenceKey(diagnostic));
+
+                                context.RegisterCodeFix(codeAction, diagnostic);
+                                return;
+                            }
+                        case SyntaxKind.BracketedParameterList:
+                            {
+                                var parameterList = (BracketedParameterListSyntax)node;
+
+                                if (!CanWrapSeparatedList(parameterList.Parameters, parameterList.OpenBracketToken.Span.End))
+                                    break;
+
+                                CodeAction codeAction = CodeAction.Create(
+                                    Title,
+                                    ct => SyntaxFormatter.WrapParametersAsync(document, parameterList, ct),
+                                    GetEquivalenceKey(diagnostic));
+
+                                context.RegisterCodeFix(codeAction, diagnostic);
+                                return;
                             }
                     }
 
                     node = node.Parent;
                 }
 
-                position--;
+                position = Math.Min(position, token.FullSpan.Start) - 1;
             }
 
-            bool RegisterCodeFix(
-                SyntaxNode declaration,
-                ExpressionSyntax expression,
-                SyntaxToken token,
-                SyntaxToken semicolonToken,
-                bool addNewLineAfter)
+            bool CanWrapSeparatedList<TNode>(
+                SeparatedSyntaxList<TNode> nodes,
+                int wrapPosition) where TNode : SyntaxNode
             {
-                int end = (addNewLineAfter) ? token.Span.End : token.SpanStart;
-
-                if (end - span.Start > maxLength)
+                if (!nodes.Any())
                     return false;
 
-                IndentationAnalysis analysis = SyntaxTriviaAnalysis.AnalyzeIndentation(declaration);
+                int longestLength = nodes.Max(f => f.Span.Length);
 
-                string indentation = analysis.GetIncreasedIndentation();
+                return CanWrapLine(nodes.First(), wrapPosition, longestLength);
+            }
 
-                int start = (addNewLineAfter) ? expression.SpanStart : token.SpanStart;
-
-                int newLength = indentation.Length + semicolonToken.Span.End - start;
-
-                if (newLength > maxLength)
+            bool CanWrapLine(
+                SyntaxNode node,
+                int wrapPosition,
+                int longestLength)
+            {
+                if (wrapPosition - span.Start > maxLength)
                     return false;
 
-                CodeAction codeAction = CodeAction.Create(
-                    Title,
-                    ct =>
-                    {
-                        return (addNewLineAfter)
-                            ? CodeFixHelpers.AddNewLineAfterAsync(document, token, indentation, ct)
-                            : CodeFixHelpers.AddNewLineBeforeAsync(document, token, indentation, ct);
-                    },
-                    GetEquivalenceKey(diagnostic));
+                indentation = SyntaxTriviaAnalysis.GetIncreasedIndentation(node);
 
-                context.RegisterCodeFix(codeAction, diagnostic);
-                return true;
+                return indentation.Length + longestLength <= maxLength;
             }
         }
     }
