@@ -114,7 +114,7 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
-        public async Task Test_PreferWrappingCallChainOverWrappingArgumentList()
+        public async Task Test_PreferCallChainOverArgumentList()
         {
             await VerifyDiagnosticAndFixAsync(@"
 class C
@@ -138,6 +138,35 @@ class C
     {
         return M(x, y, zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz)
             .M(x, y, zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz);
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_PreferArgumentListOverCallChain()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    C M(
+        string x,
+        string yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy)
+    {
+[|        return M(x.ToString(), yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy.ToString().ToString().ToString());|]
+    }
+}
+",
+@"
+class C
+{
+    C M(
+        string x,
+        string yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy)
+    {
+        return M(
+            x.ToString(),
+            yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy.ToString().ToString().ToString());
     }
 }
 ");

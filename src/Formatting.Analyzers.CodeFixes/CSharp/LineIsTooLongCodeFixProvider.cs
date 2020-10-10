@@ -67,7 +67,8 @@ namespace Roslynator.Formatting.CodeFixes
                         if (previousToken.SpanStart < span.Start)
                             continue;
 
-                        bool addNewLineAfter = document.IsAnalyzerOptionEnabled(AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
+                        bool addNewLineAfter = document.IsAnalyzerOptionEnabled(
+                            AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
 
                         int wrapPosition = (addNewLineAfter) ? arrowToken.Span.End : previousToken.Span.End;
                         int start = (addNewLineAfter) ? expressionBody.Expression.SpanStart : arrowToken.SpanStart;
@@ -126,6 +127,20 @@ namespace Roslynator.Formatting.CodeFixes
                         AddSpan(memberAccessExpression);
                         break;
                     }
+                    else if (kind == SyntaxKind.MemberBindingExpression)
+                    {
+                        var memberBindingExpression = (MemberBindingExpressionSyntax)node;
+                        SyntaxToken dotToken = memberBindingExpression.OperatorToken;
+
+                        if (!CanWrapNode(memberBindingExpression, dotToken.SpanStart, span.End - dotToken.SpanStart))
+                            continue;
+
+                        if (!CanWrapLine(memberBindingExpression))
+                            continue;
+
+                        AddSpan(memberBindingExpression);
+                        break;
+                    }
                 }
 
                 position = Math.Min(position, token.FullSpan.Start) - 1;
@@ -134,72 +149,19 @@ namespace Roslynator.Formatting.CodeFixes
             if (spans == null)
                 return;
 
-            foreach (KeyValuePair<SyntaxKind, SyntaxNode> kvp in spans)
-            {
-                SyntaxKind kind = kvp.Key;
-                SyntaxNode node = kvp.Value;
+            SyntaxNode nodeToFix = FindNodeToFix()
+                ?? spans
+                    .Select(f => f.Value)
+                    .OrderBy(f => f, SyntaxKindComparer.Instance)
+                    .First();
 
-                if (kind == SyntaxKind.ArrowExpressionClause)
-                {
-                    var expressionBody = (ArrowExpressionClauseSyntax)node;
+            CodeAction codeAction = CodeAction.Create(
+                Title,
+                GetCreateChangedDocument(nodeToFix),
+                base.GetEquivalenceKey(diagnostic));
 
-                    CodeAction codeAction = CodeAction.Create(
-                        Title,
-                        ct => AddNewLineBeforeOrAfterEpressionBodyArrowAsync(document, expressionBody.ArrowToken, ct),
-                        GetEquivalenceKey(diagnostic));
-
-                    context.RegisterCodeFix(codeAction, diagnostic);
-                    return;
-                }
-                else if (kind == SyntaxKind.ParameterList)
-                {
-                    var parameterList = (ParameterListSyntax)node;
-
-                    CodeAction codeAction = CodeAction.Create(
-                        Title,
-                        ct => SyntaxFormatter.WrapParametersAsync(document, parameterList, ct),
-                        GetEquivalenceKey(diagnostic));
-
-                    context.RegisterCodeFix(codeAction, diagnostic);
-                    return;
-                }
-                else if (kind == SyntaxKind.BracketedParameterList)
-                {
-                    var parameterList = (BracketedParameterListSyntax)node;
-
-                    CodeAction codeAction = CodeAction.Create(
-                        Title,
-                        ct => SyntaxFormatter.WrapParametersAsync(document, parameterList, ct),
-                        GetEquivalenceKey(diagnostic));
-
-                    context.RegisterCodeFix(codeAction, diagnostic);
-                    return;
-                }
-                else if (kind == SyntaxKind.SimpleMemberAccessExpression)
-                {
-                    var memberAccessExpression = (MemberAccessExpressionSyntax)node;
-
-                    CodeAction codeAction = CodeAction.Create(
-                        Title,
-                        ct => SyntaxFormatter.WrapCallChainAsync(document, memberAccessExpression, ct),
-                        GetEquivalenceKey(diagnostic));
-
-                    context.RegisterCodeFix(codeAction, diagnostic);
-                    return;
-                }
-                else if (kind == SyntaxKind.ArgumentList)
-                {
-                    var argumentList = (ArgumentListSyntax)node;
-
-                    CodeAction codeAction = CodeAction.Create(
-                        Title,
-                        ct => SyntaxFormatter.WrapArgumentsAsync(document, argumentList, ct),
-                        GetEquivalenceKey(diagnostic));
-
-                    context.RegisterCodeFix(codeAction, diagnostic);
-                    return;
-                }
-            }
+            context.RegisterCodeFix(codeAction, diagnostic);
+            return;
 
             void AddSpan(SyntaxNode node)
             {
@@ -210,6 +172,123 @@ namespace Roslynator.Formatting.CodeFixes
 
                 if (!spans.ContainsKey(kind))
                     spans[kind] = node;
+            }
+
+            Func<CancellationToken, Task<Document>> GetCreateChangedDocument(SyntaxNode node)
+            {
+                switch (node.Kind())
+                {
+                    case SyntaxKind.ArrowExpressionClause:
+                        return ct => AddNewLineBeforeOrAfterArrowAsync(
+                            document,
+                            ((ArrowExpressionClauseSyntax)node).ArrowToken,
+                            ct);
+                    case SyntaxKind.ParameterList:
+                        return ct => SyntaxFormatter.WrapParametersAsync(document, (ParameterListSyntax)node, ct);
+                    case SyntaxKind.BracketedParameterList:
+                        return ct => SyntaxFormatter.WrapParametersAsync(document, (BracketedParameterListSyntax)node, ct);
+                    case SyntaxKind.SimpleMemberAccessExpression:
+                        return ct => SyntaxFormatter.WrapCallChainAsync(document, (MemberAccessExpressionSyntax)node, ct);
+                    case SyntaxKind.MemberBindingExpression:
+                        return ct => SyntaxFormatter.WrapCallChainAsync(document, (MemberBindingExpressionSyntax)node, ct);
+                    case SyntaxKind.ArgumentList:
+                        return ct => SyntaxFormatter.WrapArgumentsAsync(document, (ArgumentListSyntax)node, ct);
+                    default:
+                        return null;
+                }
+            }
+
+            SyntaxNode FindNodeToFix()
+            {
+                if (!spans.ContainsKey(SyntaxKind.ArgumentList))
+                    return null;
+
+                if (!spans.ContainsKey(SyntaxKind.SimpleMemberAccessExpression)
+                    && !spans.ContainsKey(SyntaxKind.MemberBindingExpression))
+                {
+                    return null;
+                }
+
+                SyntaxNode argumentList = spans[SyntaxKind.ArgumentList];
+
+                SyntaxNode memberExpression = null;
+
+                SyntaxNode memberAccess = (spans.ContainsKey(SyntaxKind.SimpleMemberAccessExpression))
+                    ? spans[SyntaxKind.SimpleMemberAccessExpression]
+                    : null;
+
+                SyntaxNode memberBinding = (spans.ContainsKey(SyntaxKind.MemberBindingExpression))
+                    ? spans[SyntaxKind.MemberBindingExpression]
+                    : null;
+
+                if (memberAccess != null)
+                {
+                    if (memberBinding != null)
+                    {
+                        if (memberAccess.Contains(memberBinding))
+                        {
+                            memberExpression = memberAccess;
+                        }
+                        else if (memberBinding.Contains(memberAccess))
+                        {
+                            memberExpression = memberBinding;
+                        }
+                        else if (memberAccess.SpanStart > memberBinding.SpanStart)
+                        {
+                            memberExpression = memberBinding;
+                        }
+                        else
+                        {
+                            memberExpression = memberAccess;
+                        }
+                    }
+                    else
+                    {
+                        memberExpression = memberAccess;
+                    }
+                }
+                else
+                {
+                    memberExpression = memberBinding;
+                }
+
+                if (memberExpression.Span.End == argumentList.SpanStart)
+                {
+                    ExpressionSyntax expression = null;
+
+                    if (memberExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+                    {
+                        var memberAccess2 = (MemberAccessExpressionSyntax)memberExpression;
+                        expression = memberAccess2.Expression;
+                    }
+                    else
+                    {
+                        var memberBinding2 = (MemberBindingExpressionSyntax)memberExpression;
+
+                        if (memberBinding2.Parent is ConditionalAccessExpressionSyntax conditionalAccess)
+                            expression = conditionalAccess.Expression;
+                    }
+
+                    if (expression is SimpleNameSyntax)
+                        return argumentList;
+
+                    if (expression is CastExpressionSyntax castExpression
+                        && castExpression.Expression is SimpleNameSyntax)
+                    {
+                        return argumentList;
+                    }
+                }
+
+                if (argumentList.Contains(memberExpression))
+                    return argumentList;
+
+                if (memberExpression.Contains(argumentList))
+                    return memberExpression;
+
+                if (argumentList.SpanStart > memberExpression.SpanStart)
+                    return memberExpression;
+
+                return argumentList;
             }
 
             bool CanWrapSeparatedList<TNode>(
@@ -256,18 +335,59 @@ namespace Roslynator.Formatting.CodeFixes
             }
         }
 
-        private static Task<Document> AddNewLineBeforeOrAfterEpressionBodyArrowAsync(
+        private static Task<Document> AddNewLineBeforeOrAfterArrowAsync(
             Document document,
             SyntaxToken token,
             CancellationToken cancellationToken = default)
         {
-            bool addNewLineAfter = document.IsAnalyzerOptionEnabled(AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
+            bool addNewLineAfter = document.IsAnalyzerOptionEnabled(
+                AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
 
             string indentation = SyntaxTriviaAnalysis.GetIncreasedIndentation(token.Parent, cancellationToken);
 
             return (addNewLineAfter)
                 ? CodeFixHelpers.AddNewLineAfterAsync(document, token, indentation, cancellationToken)
                 : CodeFixHelpers.AddNewLineBeforeAsync(document, token, indentation, cancellationToken);
+        }
+
+        private class SyntaxKindComparer : IComparer<SyntaxNode>
+        {
+            public static SyntaxKindComparer Instance { get; } = new SyntaxKindComparer();
+
+            public int Compare(SyntaxNode x, SyntaxNode y)
+            {
+                if (object.ReferenceEquals(x, y))
+                    return 0;
+
+                if (x == null)
+                    return -1;
+
+                if (y == null)
+                    return 1;
+
+                return GetRank(x.Kind()).CompareTo(GetRank(y.Kind()));
+            }
+
+            private static int GetRank(SyntaxKind kind)
+            {
+                switch (kind)
+                {
+                    case SyntaxKind.ArrowExpressionClause:
+                        return 1;
+                    case SyntaxKind.ParameterList:
+                        return 2;
+                    case SyntaxKind.BracketedParameterList:
+                        return 3;
+                    case SyntaxKind.SimpleMemberAccessExpression:
+                        return 4;
+                    case SyntaxKind.MemberBindingExpression:
+                        return 5;
+                    case SyntaxKind.ArgumentList:
+                        return 6;
+                    default:
+                        throw new InvalidOperationException();
+                }
+            }
         }
     }
 }
