@@ -25,7 +25,46 @@ namespace Roslynator.Formatting.CodeFixes
     {
         private const string Title = "Wrap line";
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIdentifiers.LineIsTooLong);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
+            => ImmutableArray.Create(DiagnosticIdentifiers.LineIsTooLong);
+
+        private static readonly SyntaxKind[] _parameterListKinds = new[]
+        {
+            SyntaxKind.ParameterList,
+            SyntaxKind.BracketedParameterList,
+        };
+
+        private static readonly SyntaxKind[] _memberExpressionKinds = new[]
+        {
+            SyntaxKind.SimpleMemberAccessExpression,
+            SyntaxKind.MemberBindingExpression,
+        };
+
+        private static readonly SyntaxKind[] _initializerKinds = new[]
+        {
+            SyntaxKind.ArrayInitializerExpression,
+            SyntaxKind.CollectionInitializerExpression,
+            SyntaxKind.ComplexElementInitializerExpression,
+            SyntaxKind.ObjectInitializerExpression,
+        };
+
+        private static readonly SyntaxKind[] _binaryExpressionKinds = new[]
+        {
+            SyntaxKind.AddExpression,
+            SyntaxKind.SubtractExpression,
+            SyntaxKind.MultiplyExpression,
+            SyntaxKind.DivideExpression,
+            SyntaxKind.ModuloExpression,
+            SyntaxKind.LeftShiftExpression,
+            SyntaxKind.RightShiftExpression,
+            SyntaxKind.LogicalOrExpression,
+            SyntaxKind.LogicalAndExpression,
+            SyntaxKind.BitwiseOrExpression,
+            SyntaxKind.BitwiseAndExpression,
+            SyntaxKind.ExclusiveOrExpression,
+            SyntaxKind.CoalesceExpression,
+        };
+
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -85,6 +124,9 @@ namespace Roslynator.Formatting.CodeFixes
                         if (node.Parent is AnonymousFunctionExpressionSyntax)
                             continue;
 
+                        if (!VerifyKind(node, _parameterListKinds))
+                            continue;
+
                         var parameterList = (ParameterListSyntax)node;
 
                         if (!CanWrapSeparatedList(parameterList.Parameters, parameterList.OpenParenToken.Span.End))
@@ -96,6 +138,9 @@ namespace Roslynator.Formatting.CodeFixes
                     else if (kind == SyntaxKind.BracketedParameterList)
                     {
                         var parameterList = (BracketedParameterListSyntax)node;
+
+                        if (!VerifyKind(node, _parameterListKinds))
+                            continue;
 
                         if (!CanWrapSeparatedList(parameterList.Parameters, parameterList.OpenBracketToken.Span.End))
                             continue;
@@ -121,6 +166,9 @@ namespace Roslynator.Formatting.CodeFixes
                         if (!node.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
                             continue;
 
+                        if (!VerifyKind(node, _memberExpressionKinds))
+                            continue;
+
                         var memberAccessExpression = (MemberAccessExpressionSyntax)node;
                         SyntaxToken dotToken = memberAccessExpression.OperatorToken;
 
@@ -136,6 +184,9 @@ namespace Roslynator.Formatting.CodeFixes
                     else if (kind == SyntaxKind.MemberBindingExpression)
                     {
                         if (!node.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
+                            continue;
+
+                        if (!VerifyKind(node, _memberExpressionKinds))
                             continue;
 
                         var memberBindingExpression = (MemberBindingExpressionSyntax)node;
@@ -163,6 +214,9 @@ namespace Roslynator.Formatting.CodeFixes
                         case SyntaxKind.ComplexElementInitializerExpression:
                         case SyntaxKind.ObjectInitializerExpression:
                             {
+                                if (!VerifyKind(node, _initializerKinds))
+                                    continue;
+
                                 var initializer = (InitializerExpressionSyntax)node;
 
                                 if (!CanWrapSeparatedList(initializer.Expressions, initializer.OpenBraceToken.Span.End))
@@ -185,6 +239,9 @@ namespace Roslynator.Formatting.CodeFixes
                         case SyntaxKind.ExclusiveOrExpression:
                         case SyntaxKind.CoalesceExpression:
                             {
+                                if (!VerifyKind(node, _binaryExpressionKinds))
+                                    continue;
+
                                 var binaryExpression = (BinaryExpressionSyntax)node;
 
                                 SyntaxToken operatorToken = binaryExpression.OperatorToken;
@@ -214,11 +271,52 @@ namespace Roslynator.Formatting.CodeFixes
             if (spans == null)
                 return;
 
-            SyntaxNode nodeToFix = FindNodeToFix()
-                ?? spans
-                    .Select(f => f.Value)
-                    .OrderBy(f => f, SyntaxKindComparer.Instance)
-                    .First();
+            SyntaxNode argumentListOrMemberExpression = ChooseBetweenArgumentListAndMemberExpression();
+
+            if (argumentListOrMemberExpression != null)
+            {
+                if (argumentListOrMemberExpression.IsKind(SyntaxKind.ArgumentList))
+                {
+                    if (spans.ContainsKey(SyntaxKind.SimpleMemberAccessExpression))
+                    {
+                        spans.Remove(SyntaxKind.SimpleMemberAccessExpression);
+                    }
+                    else if (spans.ContainsKey(SyntaxKind.MemberBindingExpression))
+                    {
+                        spans.Remove(SyntaxKind.MemberBindingExpression);
+                    }
+                }
+                else
+                {
+                    spans.Remove(SyntaxKind.ArgumentList);
+                }
+            }
+
+            SyntaxNode binaryExpression2 = spans
+                .Join(_binaryExpressionKinds, f => f.Key, f => f, (f, _) => f.Value)
+                .FirstOrDefault();
+
+            if (binaryExpression2 != null)
+            {
+                if (spans.TryGetValue(SyntaxKind.ArgumentList, out argumentListOrMemberExpression)
+                    || spans.TryGetValue(SyntaxKind.SimpleMemberAccessExpression, out argumentListOrMemberExpression)
+                    || spans.TryGetValue(SyntaxKind.MemberBindingExpression, out argumentListOrMemberExpression))
+                {
+                    if (HasPrecedenceOver(argumentListOrMemberExpression, binaryExpression2))
+                    {
+                        spans.Remove(binaryExpression2.Kind());
+                    }
+                    else
+                    {
+                        spans.Remove(argumentListOrMemberExpression.Kind());
+                    }
+                }
+            }
+
+            SyntaxNode nodeToFix = spans
+                .Select(f => f.Value)
+                .OrderBy(f => f, SyntaxKindComparer.Instance)
+                .First();
 
             CodeAction codeAction = CodeAction.Create(
                 Title,
@@ -239,7 +337,7 @@ namespace Roslynator.Formatting.CodeFixes
                     spans[kind] = node;
             }
 
-            SyntaxNode FindNodeToFix()
+            SyntaxNode ChooseBetweenArgumentListAndMemberExpression()
             {
                 if (!spans.ContainsKey(SyntaxKind.ArgumentList))
                     return null;
@@ -293,32 +391,33 @@ namespace Roslynator.Formatting.CodeFixes
                     memberExpression = memberBinding;
                 }
 
-                if (memberExpression.Span.End == argumentList.SpanStart)
-                {
-                    ExpressionSyntax expression = null;
+                //TODO: 
+                //if (memberExpression.Span.End == argumentList.SpanStart)
+                //{
+                //    ExpressionSyntax expression = null;
 
-                    if (memberExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
-                    {
-                        var memberAccess2 = (MemberAccessExpressionSyntax)memberExpression;
-                        expression = memberAccess2.Expression;
-                    }
-                    else
-                    {
-                        var memberBinding2 = (MemberBindingExpressionSyntax)memberExpression;
+                //    if (memberExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+                //    {
+                //        var memberAccess2 = (MemberAccessExpressionSyntax)memberExpression;
+                //        expression = memberAccess2.Expression;
+                //    }
+                //    else
+                //    {
+                //        var memberBinding2 = (MemberBindingExpressionSyntax)memberExpression;
 
-                        if (memberBinding2.Parent is ConditionalAccessExpressionSyntax conditionalAccess)
-                            expression = conditionalAccess.Expression;
-                    }
+                //        if (memberBinding2.Parent is ConditionalAccessExpressionSyntax conditionalAccess)
+                //            expression = conditionalAccess.Expression;
+                //    }
 
-                    if (expression is SimpleNameSyntax)
-                        return argumentList;
+                //    if (expression is SimpleNameSyntax)
+                //        return argumentList;
 
-                    if (expression is CastExpressionSyntax castExpression
-                        && castExpression.Expression is SimpleNameSyntax)
-                    {
-                        return argumentList;
-                    }
-                }
+                //    if (expression is CastExpressionSyntax castExpression
+                //        && castExpression.Expression is SimpleNameSyntax)
+                //    {
+                //        return argumentList;
+                //    }
+                //}
 
                 if (argumentList.Contains(memberExpression))
                     return argumentList;
@@ -413,6 +512,42 @@ namespace Roslynator.Formatting.CodeFixes
                     default:
                         return null;
                 }
+            }
+
+            bool VerifyKind(SyntaxNode node, SyntaxKind[] parameterListKinds)
+            {
+                if (spans == null)
+                    return true;
+
+                SyntaxKind kind = node.Kind();
+
+                foreach (SyntaxKind kind2 in parameterListKinds)
+                {
+                    if (kind == kind2)
+                        continue;
+
+                    if (!spans.TryGetValue(kind2, out SyntaxNode node2))
+                        continue;
+
+                    if (!HasPrecedenceOver(node, node2))
+                        return false;
+                }
+
+                return true;
+            }
+
+            static bool HasPrecedenceOver(SyntaxNode node1, SyntaxNode node2)
+            {
+                if (node1.Contains(node2))
+                    return true;
+
+                if (node2.Contains(node1))
+                    return false;
+
+                if (node1.SpanStart > node2.SpanStart)
+                    return false;
+
+                return true;
             }
         }
 

@@ -250,6 +250,43 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_PreferArgumentListOverBinaryExpression()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+
+class C
+{
+    void M()
+    {
+[|        if (string.Compare(""xxxxxxxxxxxxxxxxxxxxxx"", 0, ""xxxxxxxxxxxxxxxxxxxxxx"", 1 + 1, 0, StringComparison.OrdinalIgnoreCase) == 0)|]
+        {
+        }
+    }
+}
+",
+@"
+using System;
+
+class C
+{
+    void M()
+    {
+        if (string.Compare(
+            ""xxxxxxxxxxxxxxxxxxxxxx"",
+            0,
+            ""xxxxxxxxxxxxxxxxxxxxxx"",
+            1 + 1,
+            0,
+            StringComparison.OrdinalIgnoreCase) == 0)
+        {
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
         public async Task Test_InitializerExpression()
         {
             await VerifyDiagnosticAndFixAsync(@"
