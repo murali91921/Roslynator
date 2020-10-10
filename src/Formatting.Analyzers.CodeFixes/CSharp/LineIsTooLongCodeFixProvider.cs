@@ -82,6 +82,9 @@ namespace Roslynator.Formatting.CodeFixes
                     }
                     else if (kind == SyntaxKind.ParameterList)
                     {
+                        if (node.Parent is AnonymousFunctionExpressionSyntax)
+                            continue;
+
                         var parameterList = (ParameterListSyntax)node;
 
                         if (!CanWrapSeparatedList(parameterList.Parameters, parameterList.OpenParenToken.Span.End))
@@ -115,6 +118,9 @@ namespace Roslynator.Formatting.CodeFixes
                     }
                     else if (kind == SyntaxKind.SimpleMemberAccessExpression)
                     {
+                        if (!node.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
+                            continue;
+
                         var memberAccessExpression = (MemberAccessExpressionSyntax)node;
                         SyntaxToken dotToken = memberAccessExpression.OperatorToken;
 
@@ -129,6 +135,9 @@ namespace Roslynator.Formatting.CodeFixes
                     }
                     else if (kind == SyntaxKind.MemberBindingExpression)
                     {
+                        if (!node.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
+                            continue;
+
                         var memberBindingExpression = (MemberBindingExpressionSyntax)node;
                         SyntaxToken dotToken = memberBindingExpression.OperatorToken;
 
@@ -140,6 +149,62 @@ namespace Roslynator.Formatting.CodeFixes
 
                         AddSpan(memberBindingExpression);
                         break;
+                    }
+                    else if (kind == SyntaxKind.ConditionalExpression)
+                    {
+                        //TODO: 
+                        break;
+                    }
+
+                    switch (kind)
+                    {
+                        case SyntaxKind.ArrayInitializerExpression:
+                        case SyntaxKind.CollectionInitializerExpression:
+                        case SyntaxKind.ComplexElementInitializerExpression:
+                        case SyntaxKind.ObjectInitializerExpression:
+                            {
+                                var initializer = (InitializerExpressionSyntax)node;
+
+                                if (!CanWrapSeparatedList(initializer.Expressions, initializer.OpenBraceToken.Span.End))
+                                    continue;
+
+                                AddSpan(initializer);
+                                break;
+                            }
+                        case SyntaxKind.AddExpression:
+                        case SyntaxKind.SubtractExpression:
+                        case SyntaxKind.MultiplyExpression:
+                        case SyntaxKind.DivideExpression:
+                        case SyntaxKind.ModuloExpression:
+                        case SyntaxKind.LeftShiftExpression:
+                        case SyntaxKind.RightShiftExpression:
+                        case SyntaxKind.LogicalOrExpression:
+                        case SyntaxKind.LogicalAndExpression:
+                        case SyntaxKind.BitwiseOrExpression:
+                        case SyntaxKind.BitwiseAndExpression:
+                        case SyntaxKind.ExclusiveOrExpression:
+                        case SyntaxKind.CoalesceExpression:
+                            {
+                                var binaryExpression = (BinaryExpressionSyntax)node;
+
+                                SyntaxToken operatorToken = binaryExpression.OperatorToken;
+
+                                bool addNewLineAfter = document.IsAnalyzerOptionEnabled(
+                                    AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt);
+
+                                int wrapPosition = (addNewLineAfter)
+                                    ? operatorToken.Span.End
+                                    : binaryExpression.Left.Span.End;
+
+                                int start = (addNewLineAfter) ? binaryExpression.Right.SpanStart : operatorToken.SpanStart;
+                                int longestLength = span.End - start;
+
+                                if (!CanWrapNode(binaryExpression, wrapPosition, longestLength))
+                                    continue;
+
+                                AddSpan(binaryExpression);
+                                break;
+                            }
                     }
                 }
 
@@ -172,30 +237,6 @@ namespace Roslynator.Formatting.CodeFixes
 
                 if (!spans.ContainsKey(kind))
                     spans[kind] = node;
-            }
-
-            Func<CancellationToken, Task<Document>> GetCreateChangedDocument(SyntaxNode node)
-            {
-                switch (node.Kind())
-                {
-                    case SyntaxKind.ArrowExpressionClause:
-                        return ct => AddNewLineBeforeOrAfterArrowAsync(
-                            document,
-                            ((ArrowExpressionClauseSyntax)node).ArrowToken,
-                            ct);
-                    case SyntaxKind.ParameterList:
-                        return ct => SyntaxFormatter.WrapParametersAsync(document, (ParameterListSyntax)node, ct);
-                    case SyntaxKind.BracketedParameterList:
-                        return ct => SyntaxFormatter.WrapParametersAsync(document, (BracketedParameterListSyntax)node, ct);
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        return ct => SyntaxFormatter.WrapCallChainAsync(document, (MemberAccessExpressionSyntax)node, ct);
-                    case SyntaxKind.MemberBindingExpression:
-                        return ct => SyntaxFormatter.WrapCallChainAsync(document, (MemberBindingExpressionSyntax)node, ct);
-                    case SyntaxKind.ArgumentList:
-                        return ct => SyntaxFormatter.WrapArgumentsAsync(document, (ArgumentListSyntax)node, ct);
-                    default:
-                        return null;
-                }
             }
 
             SyntaxNode FindNodeToFix()
@@ -333,16 +374,80 @@ namespace Roslynator.Formatting.CodeFixes
 
                 return true;
             }
+
+            Func<CancellationToken, Task<Document>> GetCreateChangedDocument(SyntaxNode node)
+            {
+                switch (node.Kind())
+                {
+                    case SyntaxKind.ArrowExpressionClause:
+                        return ct => AddNewLineBeforeOrAfterArrowAsync(document, (ArrowExpressionClauseSyntax)node, ct);
+                    case SyntaxKind.ParameterList:
+                        return ct => SyntaxFormatter.WrapParametersAsync(document, (ParameterListSyntax)node, ct);
+                    case SyntaxKind.BracketedParameterList:
+                        return ct => SyntaxFormatter.WrapParametersAsync(document, (BracketedParameterListSyntax)node, ct);
+                    case SyntaxKind.SimpleMemberAccessExpression:
+                        return ct => SyntaxFormatter.WrapCallChainAsync(document, (MemberAccessExpressionSyntax)node, ct);
+                    case SyntaxKind.MemberBindingExpression:
+                        return ct => SyntaxFormatter.WrapCallChainAsync(document, (MemberBindingExpressionSyntax)node, ct);
+                    case SyntaxKind.ArgumentList:
+                        return ct => SyntaxFormatter.WrapArgumentsAsync(document, (ArgumentListSyntax)node, ct);
+                    case SyntaxKind.ArrayInitializerExpression:
+                        return ct => SyntaxFormatter.ToMultiLineAsync(document, (InitializerExpressionSyntax)node, ct);
+                    case SyntaxKind.CollectionInitializerExpression:
+                    case SyntaxKind.ComplexElementInitializerExpression:
+                    case SyntaxKind.ObjectInitializerExpression:
+                    case SyntaxKind.AddExpression:
+                    case SyntaxKind.SubtractExpression:
+                    case SyntaxKind.MultiplyExpression:
+                    case SyntaxKind.DivideExpression:
+                    case SyntaxKind.ModuloExpression:
+                    case SyntaxKind.LeftShiftExpression:
+                    case SyntaxKind.RightShiftExpression:
+                    case SyntaxKind.LogicalOrExpression:
+                    case SyntaxKind.LogicalAndExpression:
+                    case SyntaxKind.BitwiseOrExpression:
+                    case SyntaxKind.BitwiseAndExpression:
+                    case SyntaxKind.ExclusiveOrExpression:
+                    case SyntaxKind.CoalesceExpression:
+                        return ct => AddNewLineBeforeOrAfterBinaryOperatorAsync(document, (BinaryExpressionSyntax)node, ct);
+                    default:
+                        return null;
+                }
+            }
         }
 
         private static Task<Document> AddNewLineBeforeOrAfterArrowAsync(
             Document document,
-            SyntaxToken token,
+            ArrowExpressionClauseSyntax arrowExpressionClause,
             CancellationToken cancellationToken = default)
         {
-            bool addNewLineAfter = document.IsAnalyzerOptionEnabled(
-                AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
+            return AddNewLineBeforeOrAfterAsync(
+                document,
+                arrowExpressionClause.ArrowToken,
+                document.IsAnalyzerOptionEnabled(
+                    AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt),
+                cancellationToken);
+        }
 
+        private static Task<Document> AddNewLineBeforeOrAfterBinaryOperatorAsync(
+            Document document,
+            BinaryExpressionSyntax binaryExpression,
+            CancellationToken cancellationToken = default)
+        {
+            return AddNewLineBeforeOrAfterAsync(
+                document,
+                binaryExpression.OperatorToken,
+                document.IsAnalyzerOptionEnabled(
+                    AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt),
+                cancellationToken);
+        }
+
+        private static Task<Document> AddNewLineBeforeOrAfterAsync(
+            Document document,
+            SyntaxToken token,
+            bool addNewLineAfter,
+            CancellationToken cancellationToken = default)
+        {
             string indentation = SyntaxTriviaAnalysis.GetIncreasedIndentation(token.Parent, cancellationToken);
 
             return (addNewLineAfter)
@@ -373,17 +478,36 @@ namespace Roslynator.Formatting.CodeFixes
                 switch (kind)
                 {
                     case SyntaxKind.ArrowExpressionClause:
-                        return 1;
+                        return 10;
+                    case SyntaxKind.ArrayInitializerExpression:
+                    case SyntaxKind.CollectionInitializerExpression:
+                    case SyntaxKind.ComplexElementInitializerExpression:
+                    case SyntaxKind.ObjectInitializerExpression:
+                        return 11;
                     case SyntaxKind.ParameterList:
-                        return 2;
+                        return 20;
                     case SyntaxKind.BracketedParameterList:
-                        return 3;
+                        return 30;
+                    case SyntaxKind.AddExpression:
+                    case SyntaxKind.SubtractExpression:
+                    case SyntaxKind.MultiplyExpression:
+                    case SyntaxKind.DivideExpression:
+                    case SyntaxKind.ModuloExpression:
+                    case SyntaxKind.LeftShiftExpression:
+                    case SyntaxKind.RightShiftExpression:
+                    case SyntaxKind.LogicalOrExpression:
+                    case SyntaxKind.LogicalAndExpression:
+                    case SyntaxKind.BitwiseOrExpression:
+                    case SyntaxKind.BitwiseAndExpression:
+                    case SyntaxKind.ExclusiveOrExpression:
+                    case SyntaxKind.CoalesceExpression:
+                        return 31;
                     case SyntaxKind.SimpleMemberAccessExpression:
-                        return 4;
+                        return 40;
                     case SyntaxKind.MemberBindingExpression:
-                        return 5;
+                        return 50;
                     case SyntaxKind.ArgumentList:
-                        return 6;
+                        return 60;
                     default:
                         throw new InvalidOperationException();
                 }

@@ -173,6 +173,113 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_PreferArgumentListOverCallChain_WhenLeftIsSimpleName()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        var items = new List<string>();
+
+[|        foreach ((string ffff, string gggg) item in items.Join(items, ffff => ffff, ffff => ffff, (ffff, gggg) => (ffff, gggg)))|]
+        {
+        }
+    }
+}
+",
+@"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        var items = new List<string>();
+
+        foreach ((string ffff, string gggg) item in items.Join(
+            items,
+            ffff => ffff,
+            ffff => ffff,
+            (ffff, gggg) => (ffff, gggg)))
+        {
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_BinaryExpression()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M()
+    {
+        bool x = false;
+        bool y = false;
+        bool zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz = false;
+
+[|        if (x && y && zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz)|]
+        {
+        }
+    }
+}
+",
+@"
+class C
+{
+    void M()
+    {
+        bool x = false;
+        bool y = false;
+        bool zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz = false;
+
+        if (x && y
+            && zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz)
+        {
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_InitializerExpression()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M()
+    {
+        string sssssssssssssssssssssssssssss = null;
+[|        var arr = new string[] { sssssssssssssssssssssssssssss, sssssssssssssssssssssssssssss, sssssssssssssssssssssssssssss };|]
+    }
+}
+",
+@"
+class C
+{
+    void M()
+    {
+        string sssssssssssssssssssssssssssss = null;
+        var arr = new string[]
+        {
+            sssssssssssssssssssssssssssss,
+            sssssssssssssssssssssssssssss,
+            sssssssssssssssssssssssssssss
+        };
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
         public async Task TestNoFix_ExpressionBody_TooLongAfterWrapping()
         {
             await VerifyDiagnosticAndNoFixAsync(@"
