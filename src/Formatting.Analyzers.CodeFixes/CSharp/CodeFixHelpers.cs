@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,8 +12,10 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslynator.CSharp;
+using Roslynator.Formatting.CSharp;
 using Roslynator.Text;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using static Roslynator.CSharp.SyntaxTriviaAnalysis;
 
 namespace Roslynator.Formatting.CodeFixes.CSharp
 {
@@ -383,6 +388,333 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 TextSpan.FromBounds(token1.Span.End, token2.SpanStart),
                 replacement,
                 cancellationToken);
+        }
+
+        public static Task<Document> FixCallChainAsync(
+            Document document,
+            ExpressionSyntax expression,
+            CancellationToken cancellationToken = default)
+        {
+            return FixCallChainAsync(document, expression, expression.Span, cancellationToken);
+        }
+
+        public static Task<Document> FixCallChainAsync(
+            Document document,
+            ExpressionSyntax expression,
+            TextSpan span,
+            CancellationToken cancellationToken = default)
+        {
+            IndentationAnalysis indentationAnalysis = AnalyzeIndentation(expression, cancellationToken);
+            string indentation = indentationAnalysis.GetIncreasedIndentation();
+            string endOfLineAndIndentation = DetermineEndOfLine(expression).ToString() + indentation;
+
+            var textChanges = new List<TextChange>();
+            int prevIndex = expression.Span.End;
+
+            foreach (SyntaxNode node in new MethodChain(expression))
+            {
+                SyntaxKind kind = node.Kind();
+
+                if (kind == SyntaxKind.SimpleMemberAccessExpression)
+                {
+                    var memberAccess = (MemberAccessExpressionSyntax)node;
+
+                    if (!SetIndentation(memberAccess.OperatorToken))
+                        break;
+                }
+                else if (kind == SyntaxKind.MemberBindingExpression)
+                {
+                    var memberBinding = (MemberBindingExpressionSyntax)node;
+
+                    if (!SetIndentation(memberBinding.OperatorToken))
+                        break;
+                }
+            }
+
+            FormattingVerifier.VerifyChangedSpansAreWhitespace(expression, textChanges);
+
+            return document.WithTextChangesAsync(textChanges, cancellationToken);
+
+            bool SetIndentation(SyntaxToken token)
+            {
+                if (token.Span.End > span.End)
+                    return true;
+
+                if (token.SpanStart < span.Start)
+                    return false;
+
+                SyntaxTriviaList leading = token.LeadingTrivia;
+                SyntaxTriviaList.Reversed.Enumerator en = leading.Reverse().GetEnumerator();
+
+                if (!en.MoveNext())
+                {
+                    SyntaxTrivia trivia = expression.FindTrivia(token.SpanStart - 1);
+
+                    string newText = (trivia.IsEndOfLineTrivia()) ? indentation : endOfLineAndIndentation;
+
+                    textChanges.Add(new TextSpan(token.SpanStart, 0), newText);
+
+                    SetIndendation(token, prevIndex);
+                    prevIndex = (trivia.IsEndOfLineTrivia()) ? trivia.SpanStart : token.SpanStart;
+                    return true;
+                }
+
+                SyntaxTrivia last = en.Current;
+
+                SyntaxKind kind = en.Current.Kind();
+
+                if (kind == SyntaxKind.WhitespaceTrivia)
+                {
+                    if (en.Current.Span.Length != indentation.Length)
+                    {
+                        if (!en.MoveNext()
+                            || en.Current.IsEndOfLineTrivia())
+                        {
+                            SyntaxTrivia trivia = expression.FindTrivia(token.FullSpan.Start - 1);
+
+                            if (trivia.IsEndOfLineTrivia())
+                            {
+                                textChanges.Add((leading.IsEmptyOrWhitespace()) ? leading.Span : last.Span, indentation);
+                                SetIndendation(token, prevIndex);
+                                prevIndex = trivia.SpanStart;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                else if (kind == SyntaxKind.EndOfLineTrivia)
+                {
+                    SyntaxTrivia trivia = expression.FindTrivia(token.FullSpan.Start - 1);
+
+                    if (trivia.IsEndOfLineTrivia())
+                    {
+                        textChanges.Add((leading.IsEmptyOrWhitespace()) ? leading.Span : last.Span, indentation);
+                        SetIndendation(token, prevIndex);
+                        prevIndex = trivia.SpanStart;
+                        return true;
+                    }
+                }
+
+                prevIndex = leading.Span.Start - 1;
+                return true;
+            }
+
+            void SetIndendation(SyntaxToken token, int endIndex)
+            {
+                ImmutableArray<IndentationInfo> indentations = FindIndentations(expression, TextSpan.FromBounds(token.SpanStart, endIndex)).ToImmutableArray();
+
+                if (!indentations.Any())
+                    return;
+
+                int firstIndentationLength = indentations[0].Span.Length;
+
+                for (int j = 0; j < indentations.Length; j++)
+                {
+                    IndentationInfo indentationInfo = indentations[j];
+
+                    string replacement = indentation + indentationAnalysis.GetSingleIndentation();
+
+                    if (j > 0
+                        && indentationInfo.Span.Length > firstIndentationLength)
+                    {
+                        replacement += indentationInfo.ToString().Substring(firstIndentationLength);
+                    }
+
+                    if (indentationInfo.Span.Length != replacement.Length)
+                        textChanges.Add(indentationInfo.Span, replacement);
+                }
+            }
+        }
+
+        public static Task<Document> FixBinaryExpressionAsync(
+            Document document,
+            BinaryExpressionSyntax binaryExpression,
+            CancellationToken cancellationToken)
+        {
+            return FixBinaryExpressionAsync(document, binaryExpression, binaryExpression.Span, cancellationToken);
+        }
+
+        public static Task<Document> FixBinaryExpressionAsync(
+            Document document,
+            BinaryExpressionSyntax binaryExpression,
+            TextSpan span,
+            CancellationToken cancellationToken)
+        {
+            IndentationAnalysis indentationAnalysis = AnalyzeIndentation(binaryExpression, cancellationToken);
+
+            string indentation;
+            if (indentationAnalysis.Indentation == binaryExpression.GetLeadingTrivia().LastOrDefault()
+                && document.IsAnalyzerOptionEnabled(AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt))
+            {
+                indentation = indentationAnalysis.Indentation.ToString();
+            }
+            else
+            {
+                indentation = indentationAnalysis.GetIncreasedIndentation();
+            }
+
+            string endOfLineAndIndentation = DetermineEndOfLine(binaryExpression).ToString() + indentation;
+
+            var textChanges = new List<TextChange>();
+            int prevIndex = binaryExpression.Span.End;
+
+            SyntaxKind binaryKind = binaryExpression.Kind();
+
+            while (true)
+            {
+                SyntaxToken token = binaryExpression.OperatorToken;
+
+                if (token.Span.End > span.End)
+                    continue;
+
+                if (token.SpanStart < span.Start)
+                    break;
+
+                ExpressionSyntax left = binaryExpression.Left;
+                ExpressionSyntax right = binaryExpression.Right;
+                SyntaxTriviaList leftTrailing = left.GetTrailingTrivia();
+                SyntaxTriviaList tokenTrailing = token.TrailingTrivia;
+
+                if (IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(leftTrailing))
+                {
+                    if (!SetIndentation(token))
+                        break;
+                }
+                else if (IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(tokenTrailing))
+                {
+                    if (!SetIndentation(right))
+                        break;
+                }
+                else if (leftTrailing.IsEmptyOrWhitespace()
+                    && tokenTrailing.IsEmptyOrWhitespace())
+                {
+                    if (document.IsAnalyzerOptionEnabled(AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt))
+                    {
+                        if (!SetIndentation(right))
+                            break;
+                    }
+                    else if (!SetIndentation(token))
+                    {
+                        break;
+                    }
+                }
+
+                if (!left.IsKind(binaryKind))
+                    break;
+
+                binaryExpression = (BinaryExpressionSyntax)left;
+            }
+
+            if (textChanges.Count > 0)
+            {
+                SyntaxTriviaList leading = binaryExpression.GetLeadingTrivia();
+
+                if (!leading.Any())
+                {
+                    SyntaxTrivia trivia = binaryExpression.GetFirstToken().GetPreviousToken().TrailingTrivia.LastOrDefault();
+
+                    if (trivia.IsEndOfLineTrivia()
+                        && trivia.Span.End == binaryExpression.SpanStart)
+                    {
+                        textChanges.Add(new TextSpan(binaryExpression.SpanStart, 0), indentation);
+                    }
+                }
+            }
+
+            FormattingVerifier.VerifyChangedSpansAreWhitespace(binaryExpression, textChanges);
+
+            return document.WithTextChangesAsync(textChanges, cancellationToken);
+
+            bool SetIndentation(SyntaxNodeOrToken nodeOrToken)
+            {
+                SyntaxTriviaList leading = nodeOrToken.GetLeadingTrivia();
+                SyntaxTriviaList.Reversed.Enumerator en = leading.Reverse().GetEnumerator();
+
+                if (!en.MoveNext())
+                {
+                    SyntaxTrivia trivia = binaryExpression.FindTrivia(nodeOrToken.SpanStart - 1);
+
+                    string newText = (trivia.IsEndOfLineTrivia()) ? indentation : endOfLineAndIndentation;
+
+                    int start = (trivia.IsWhitespaceTrivia()) ? trivia.SpanStart : nodeOrToken.SpanStart;
+
+                    TextSpan span = (trivia.IsWhitespaceTrivia())
+                        ? trivia.Span
+                        : new TextSpan(nodeOrToken.SpanStart, 0);
+
+                    textChanges.Add(span, newText);
+                    SetIndendation(nodeOrToken, prevIndex);
+                    prevIndex = start;
+                    return true;
+                }
+
+                SyntaxTrivia last = en.Current;
+
+                SyntaxKind kind = en.Current.Kind();
+
+                if (kind == SyntaxKind.WhitespaceTrivia)
+                {
+                    if (en.Current.Span.Length != indentation.Length)
+                    {
+                        if (!en.MoveNext()
+                            || en.Current.IsEndOfLineTrivia())
+                        {
+                            SyntaxTrivia trivia = binaryExpression.FindTrivia(nodeOrToken.FullSpan.Start - 1);
+
+                            if (trivia.IsEndOfLineTrivia())
+                            {
+                                AddTextChange((leading.IsEmptyOrWhitespace()) ? leading.Span : last.Span);
+                                SetIndendation(nodeOrToken, prevIndex);
+                                prevIndex = trivia.SpanStart;
+                                return true;
+                            }
+                        }
+                    }
+                }
+                else if (kind == SyntaxKind.EndOfLineTrivia)
+                {
+                    SyntaxTrivia trivia = binaryExpression.FindTrivia(nodeOrToken.FullSpan.Start - 1);
+
+                    if (trivia.IsEndOfLineTrivia())
+                    {
+                        AddTextChange((leading.IsEmptyOrWhitespace()) ? leading.Span : last.Span);
+                        SetIndendation(nodeOrToken, prevIndex);
+                        prevIndex = trivia.SpanStart;
+                        return true;
+                    }
+                }
+
+                prevIndex = leading.Span.Start - 1;
+                return true;
+
+                void AddTextChange(TextSpan span) => textChanges.Add(span, indentation);
+            }
+
+            void SetIndendation(SyntaxNodeOrToken nodeOrToken, int endIndex)
+            {
+                ImmutableArray<IndentationInfo> indentations = FindIndentations(binaryExpression, TextSpan.FromBounds(nodeOrToken.SpanStart, endIndex)).ToImmutableArray();
+
+                if (!indentations.Any())
+                    return;
+
+                int firstIndentationLength = indentations[0].Span.Length;
+
+                for (int j = 0; j < indentations.Length; j++)
+                {
+                    IndentationInfo indentationInfo = indentations[j];
+
+                    string replacement = indentation + indentationAnalysis.GetSingleIndentation();
+
+                    if (j > 0
+                        && indentationInfo.Span.Length > firstIndentationLength)
+                    {
+                        replacement += indentationInfo.ToString().Substring(firstIndentationLength);
+                    }
+
+                    if (indentationInfo.Span.Length != replacement.Length)
+                        textChanges.Add(indentationInfo.Span, replacement);
+                }
+            }
         }
     }
 }

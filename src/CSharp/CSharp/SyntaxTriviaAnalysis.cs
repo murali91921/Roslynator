@@ -338,7 +338,6 @@ namespace Roslynator.CSharp
                                     }
                                 default:
                                     {
-                                        DebugHelpers.Fail(node.Parent);
                                         return 0;
                                     }
                             }
@@ -360,7 +359,6 @@ namespace Roslynator.CSharp
                                     }
                                 default:
                                     {
-                                        DebugHelpers.Fail(node.Parent);
                                         return 0;
                                     }
                             }
@@ -413,7 +411,6 @@ namespace Roslynator.CSharp
                                     }
                                 default:
                                     {
-                                        DebugHelpers.Fail(node.Parent);
                                         return 0;
                                     }
                             }
@@ -429,8 +426,6 @@ namespace Roslynator.CSharp
                 node = node.Parent;
 
             } while (node != null);
-
-            Debug.Fail("");
 
             return 0;
 

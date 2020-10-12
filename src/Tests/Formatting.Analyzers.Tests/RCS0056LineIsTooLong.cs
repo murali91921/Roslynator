@@ -114,6 +114,33 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_CallChain()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    string Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx()
+    {
+[|        return Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx().ToString().ToString().ToString()|]
+            .ToString();
+    }
+}
+",
+@"
+class C
+{
+    string Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx()
+    {
+        return Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx()
+            .ToString()
+            .ToString()
+            .ToString()
+            .ToString();
+    }
+}
+");
+        }
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
         public async Task Test_PreferCallChainOverArgumentList()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -221,11 +248,9 @@ class C
 {
     void M()
     {
-        bool x = false;
-        bool y = false;
-        bool zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz = false;
+        bool xxxxxxxxxxxxxxxxxxxxxxxxxx = false;
 
-[|        if (x && y && zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz)|]
+[|        if (xxxxxxxxxxxxxxxxxxxxxxxxxx && xxxxxxxxxxxxxxxxxxxxxxxxxx && xxxxxxxxxxxxxxxxxxxxxxxxxx && xxxxxxxxxxxxxxxxxxxxxxxxxx && xxxxxxxxxxxxxxxxxxxxxxxxxx)|]
         {
         }
     }
@@ -236,12 +261,11 @@ class C
 {
     void M()
     {
-        bool x = false;
-        bool y = false;
-        bool zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz = false;
+        bool xxxxxxxxxxxxxxxxxxxxxxxxxx = false;
 
-        if (x && y
-            && zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz)
+        if (xxxxxxxxxxxxxxxxxxxxxxxxxx && xxxxxxxxxxxxxxxxxxxxxxxxxx && xxxxxxxxxxxxxxxxxxxxxxxxxx
+            && xxxxxxxxxxxxxxxxxxxxxxxxxx
+            && xxxxxxxxxxxxxxxxxxxxxxxxxx)
         {
         }
     }
