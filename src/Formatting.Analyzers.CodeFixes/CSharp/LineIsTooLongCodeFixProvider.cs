@@ -119,6 +119,38 @@ namespace Roslynator.Formatting.CodeFixes
                         AddSpan(expressionBody);
                         break;
                     }
+                    else if (kind == SyntaxKind.EqualsValueClause)
+                    {
+                        var equalsValueClause = (EqualsValueClauseSyntax)node;
+
+                        if (!(equalsValueClause.Parent is PropertyDeclarationSyntax propertyDeclaration))
+                            continue;
+
+                        if (!span.Contains(propertyDeclaration.SemicolonToken.Span))
+                            continue;
+
+                        if (!equalsValueClause.IsParentKind(SyntaxKind.PropertyDeclaration))
+                            continue;
+
+                        SyntaxToken arrowToken = equalsValueClause.EqualsToken;
+                        SyntaxToken previousToken = arrowToken.GetPreviousToken();
+
+                        if (previousToken.SpanStart < span.Start)
+                            continue;
+
+                        bool addNewLineAfter = document.IsAnalyzerOptionEnabled(
+                            AnalyzerOptions.AddNewLineAfterEqualsSignInsteadOfBeforeIt);
+
+                        int wrapPosition = (addNewLineAfter) ? arrowToken.Span.End : previousToken.Span.End;
+                        int start = (addNewLineAfter) ? equalsValueClause.Value.SpanStart : arrowToken.SpanStart;
+                        int longestLength = equalsValueClause.GetLastToken().GetNextToken().Span.End - start;
+
+                        if (!CanWrapNode(equalsValueClause, wrapPosition, longestLength))
+                            continue;
+
+                        AddSpan(equalsValueClause);
+                        break;
+                    }
                     else if (kind == SyntaxKind.ParameterList)
                     {
                         if (node.Parent is AnonymousFunctionExpressionSyntax)
@@ -486,6 +518,8 @@ namespace Roslynator.Formatting.CodeFixes
                 {
                     case SyntaxKind.ArrowExpressionClause:
                         return ct => AddNewLineBeforeOrAfterArrowAsync(document, (ArrowExpressionClauseSyntax)node, ct);
+                    case SyntaxKind.EqualsValueClause:
+                        return ct => AddNewLineBeforeOrAfterEqualsSignAsync(document, (EqualsValueClauseSyntax)node, ct);
                     case SyntaxKind.ParameterList:
                         return ct => SyntaxFormatter.WrapParametersAsync(document, (ParameterListSyntax)node, ct);
                     case SyntaxKind.BracketedParameterList:
@@ -580,21 +614,19 @@ namespace Roslynator.Formatting.CodeFixes
             return AddNewLineBeforeOrAfterAsync(
                 document,
                 arrowExpressionClause.ArrowToken,
-                document.IsAnalyzerOptionEnabled(
-                    AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt),
+                document.IsAnalyzerOptionEnabled(AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt),
                 cancellationToken);
         }
 
-        private static Task<Document> AddNewLineBeforeOrAfterBinaryOperatorAsync(
+        private static Task<Document> AddNewLineBeforeOrAfterEqualsSignAsync(
             Document document,
-            BinaryExpressionSyntax binaryExpression,
+            EqualsValueClauseSyntax equalsValueClause,
             CancellationToken cancellationToken = default)
         {
             return AddNewLineBeforeOrAfterAsync(
                 document,
-                binaryExpression.OperatorToken,
-                document.IsAnalyzerOptionEnabled(
-                    AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt),
+                equalsValueClause.EqualsToken,
+                document.IsAnalyzerOptionEnabled(AnalyzerOptions.AddNewLineAfterEqualsSignInsteadOfBeforeIt),
                 cancellationToken);
         }
 
@@ -650,11 +682,13 @@ namespace Roslynator.Formatting.CodeFixes
                 {
                     case SyntaxKind.ArrowExpressionClause:
                         return 10;
+                    case SyntaxKind.EqualsValueClause:
+                        return 11;
                     case SyntaxKind.ArrayInitializerExpression:
                     case SyntaxKind.CollectionInitializerExpression:
                     case SyntaxKind.ComplexElementInitializerExpression:
                     case SyntaxKind.ObjectInitializerExpression:
-                        return 11;
+                        return 12;
                     case SyntaxKind.ParameterList:
                         return 20;
                     case SyntaxKind.BracketedParameterList:

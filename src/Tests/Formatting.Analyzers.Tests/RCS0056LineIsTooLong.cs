@@ -341,6 +341,24 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_PropertyInitializer()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+[|    string P { get; } = """".ToString().ToString().ToString().ToString().ToString().ToString().ToString().ToString().ToString();|]
+}
+",
+@"
+class C
+{
+    string P { get; }
+        = """".ToString().ToString().ToString().ToString().ToString().ToString().ToString().ToString().ToString();
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
         public async Task TestNoFix_ExpressionBody_TooLongAfterWrapping()
         {
             await VerifyDiagnosticAndNoFixAsync(@"
