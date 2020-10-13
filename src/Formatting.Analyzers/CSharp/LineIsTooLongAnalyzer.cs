@@ -68,6 +68,13 @@ namespace Roslynator.Formatting
                 if (lines[i].Span.Length <= maxLength)
                     continue;
 
+                if (root.FindTrivia(lines[i].End).IsKind(
+                    SyntaxKind.SingleLineDocumentationCommentTrivia,
+                    SyntaxKind.MultiLineDocumentationCommentTrivia))
+                {
+                    continue;
+                }
+
                 DiagnosticHelpers.ReportDiagnostic(
                     context,
                     DiagnosticDescriptors.LineIsTooLong,

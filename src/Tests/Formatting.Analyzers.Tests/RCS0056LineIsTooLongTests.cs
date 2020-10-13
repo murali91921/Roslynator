@@ -568,5 +568,21 @@ class C
 }
 ");
         }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task TestNoDiagnostic_DocumentationComment()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    /// <summary>
+    /// xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    /// </summary>
+    void M()
+    {
+    }
+}
+");
+        }
     }
 }
