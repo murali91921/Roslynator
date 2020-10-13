@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslynator.CSharp;
 using Roslynator.Formatting.CodeFixes.CSharp;
 using Roslynator.Formatting.CSharp;
+using static Roslynator.Formatting.CodeFixes.CSharp.CodeFixHelpers;
 
 namespace Roslynator.Formatting.CodeFixes
 {
@@ -64,7 +65,6 @@ namespace Roslynator.Formatting.CodeFixes
             SyntaxKind.ExclusiveOrExpression,
             SyntaxKind.CoalesceExpression,
         };
-
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -184,6 +184,14 @@ namespace Roslynator.Formatting.CodeFixes
                     {
                         var argumentList = (ArgumentListSyntax)node;
 
+                        if (argumentList.Arguments.Count == 1
+                            && argumentList.Parent is InvocationExpressionSyntax invocationExpression
+                            && invocationExpression.Expression is IdentifierNameSyntax identifierName
+                            && identifierName.Identifier.ValueText == "nameof")
+                        {
+                            continue;
+                        }
+
                         if (!CanWrapSeparatedList(argumentList.Arguments, argumentList.OpenParenToken.Span.End))
                             continue;
 
@@ -202,6 +210,7 @@ namespace Roslynator.Formatting.CodeFixes
                             continue;
 
                         var memberAccessExpression = (MemberAccessExpressionSyntax)node;
+
                         SyntaxToken dotToken = memberAccessExpression.OperatorToken;
 
                         if (!CanWrapNode(memberAccessExpression, dotToken.SpanStart, span.End - dotToken.SpanStart))
@@ -521,17 +530,35 @@ namespace Roslynator.Formatting.CodeFixes
                     case SyntaxKind.EqualsValueClause:
                         return ct => AddNewLineBeforeOrAfterEqualsSignAsync(document, (EqualsValueClauseSyntax)node, ct);
                     case SyntaxKind.ParameterList:
-                        return ct => SyntaxFormatter.WrapParametersAsync(document, (ParameterListSyntax)node, ct);
+                        return ct => FixListAsync(document, (ParameterListSyntax)node, ct);
                     case SyntaxKind.BracketedParameterList:
-                        return ct => SyntaxFormatter.WrapParametersAsync(document, (BracketedParameterListSyntax)node, ct);
+                        return ct => FixListAsync(document, (BracketedParameterListSyntax)node, ct);
                     case SyntaxKind.SimpleMemberAccessExpression:
+                        return ct =>
+                        {
+                            var memberAccess = (MemberAccessExpressionSyntax)node;
+                            ExpressionSyntax topExpression = CSharpUtility.GetTopmostExpressionInCallChain(memberAccess);
+
+                            return FixCallChainAsync(
+                                document,
+                                topExpression,
+                                TextSpan.FromBounds(memberAccess.OperatorToken.SpanStart, topExpression.Span.End),
+                                ct);
+                        };
                     case SyntaxKind.MemberBindingExpression:
-                        return ct => CodeFixHelpers.FixCallChainAsync(
-                            document,
-                            CSharpUtility.GetTopmostExpressionInCallChain((ExpressionSyntax)node),
-                            ct);
+                        return ct =>
+                        {
+                            var memberBinding = (MemberBindingExpressionSyntax)node;
+                            ExpressionSyntax topExpression = CSharpUtility.GetTopmostExpressionInCallChain(memberBinding);
+
+                            return FixCallChainAsync(
+                                document,
+                                topExpression,
+                                TextSpan.FromBounds(memberBinding.OperatorToken.SpanStart, topExpression.Span.End),
+                                ct);
+                        };
                     case SyntaxKind.ArgumentList:
-                        return ct => SyntaxFormatter.WrapArgumentsAsync(document, (ArgumentListSyntax)node, ct);
+                        return ct => FixListAsync(document, (ArgumentListSyntax)node, ct);
                     case SyntaxKind.ArrayInitializerExpression:
                     case SyntaxKind.CollectionInitializerExpression:
                     case SyntaxKind.ComplexElementInitializerExpression:
@@ -556,7 +583,7 @@ namespace Roslynator.Formatting.CodeFixes
                             var binaryExpression2 = (BinaryExpressionSyntax)binaryExpression
                                 .WalkUp(f => f.IsKind(binaryExpression.Kind()));
 
-                            return CodeFixHelpers.FixBinaryExpressionAsync(
+                            return FixBinaryExpressionAsync(
                                 document,
                                 binaryExpression2,
                                 TextSpan.FromBounds(
@@ -639,8 +666,8 @@ namespace Roslynator.Formatting.CodeFixes
             string indentation = SyntaxTriviaAnalysis.GetIncreasedIndentation(token.Parent, cancellationToken);
 
             return (addNewLineAfter)
-                ? CodeFixHelpers.AddNewLineAfterAsync(document, token, indentation, cancellationToken)
-                : CodeFixHelpers.AddNewLineBeforeAsync(document, token, indentation, cancellationToken);
+                ? AddNewLineAfterAsync(document, token, indentation, cancellationToken)
+                : AddNewLineBeforeAsync(document, token, indentation, cancellationToken);
         }
 
         private static ExpressionSyntax FindNextExpressionInChain(BinaryExpressionSyntax binaryExpression)

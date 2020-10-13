@@ -16,6 +16,7 @@ using Roslynator.Formatting.CSharp;
 using Roslynator.Text;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static Roslynator.CSharp.SyntaxTriviaAnalysis;
+using static Roslynator.Formatting.CSharp.FixFormattingOfListAnalyzer;
 
 namespace Roslynator.Formatting.CodeFixes.CSharp
 {
@@ -715,6 +716,290 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         textChanges.Add(indentationInfo.Span, replacement);
                 }
             }
+        }
+
+        public static Task<Document> FixListAsync(
+            Document document,
+            ParameterListSyntax parameterList,
+            CancellationToken cancellationToken = default)
+        {
+            return FixListAsync(
+                document,
+                parameterList,
+                parameterList.OpenParenToken,
+                parameterList.Parameters,
+                cancellationToken);
+        }
+
+        public static Task<Document> FixListAsync(
+            Document document,
+            BracketedParameterListSyntax bracketedParameterList,
+            CancellationToken cancellationToken = default)
+        {
+            return FixListAsync(
+                document,
+                bracketedParameterList,
+                bracketedParameterList.OpenBracketToken,
+                bracketedParameterList.Parameters,
+                cancellationToken);
+        }
+
+        public static Task<Document> FixListAsync(
+            Document document,
+            TypeParameterListSyntax typeParameterList,
+            CancellationToken cancellationToken = default)
+        {
+            return FixListAsync(
+                document,
+                typeParameterList,
+                typeParameterList.LessThanToken,
+                typeParameterList.Parameters,
+                cancellationToken);
+        }
+
+        public static Task<Document> FixListAsync(
+            Document document,
+            ArgumentListSyntax argumentList,
+            CancellationToken cancellationToken = default)
+        {
+            return FixListAsync(
+                document,
+                argumentList,
+                argumentList.OpenParenToken,
+                argumentList.Arguments,
+                cancellationToken);
+        }
+
+        public static Task<Document> FixListAsync(
+            Document document,
+            BracketedArgumentListSyntax bracketedArgumentList,
+            CancellationToken cancellationToken = default)
+        {
+            return FixListAsync(
+                document,
+                bracketedArgumentList,
+                bracketedArgumentList.OpenBracketToken,
+                bracketedArgumentList.Arguments,
+                cancellationToken);
+        }
+
+        public static Task<Document> FixListAsync(
+            Document document,
+            AttributeArgumentListSyntax attributeArgumentList,
+            CancellationToken cancellationToken = default)
+        {
+            return FixListAsync(
+                document,
+                attributeArgumentList,
+                attributeArgumentList.OpenParenToken,
+                attributeArgumentList.Arguments,
+                cancellationToken);
+        }
+
+        public static Task<Document> FixListAsync(
+            Document document,
+            TypeArgumentListSyntax typeArgumentList,
+            CancellationToken cancellationToken = default)
+        {
+            return FixListAsync(
+                document,
+                typeArgumentList,
+                typeArgumentList.LessThanToken,
+                typeArgumentList.Arguments,
+                cancellationToken);
+        }
+
+        public static Task<Document> FixListAsync(
+            Document document,
+            AttributeListSyntax attributeList,
+            CancellationToken cancellationToken = default)
+        {
+            return FixListAsync(
+                document,
+                attributeList,
+                attributeList.OpenBracketToken,
+                attributeList.Attributes,
+                cancellationToken);
+        }
+
+        public static Task<Document> FixListAsync(
+            Document document,
+            BaseListSyntax baseList,
+            CancellationToken cancellationToken = default)
+        {
+            return FixListAsync(document, baseList, baseList.ColonToken, baseList.Types, cancellationToken);
+        }
+
+        public static Task<Document> FixListAsync(
+            Document document,
+            TupleTypeSyntax tupleType,
+            CancellationToken cancellationToken = default)
+        {
+            return FixListAsync(document, tupleType, tupleType.OpenParenToken, tupleType.Elements, cancellationToken);
+        }
+
+        public static Task<Document> FixListAsync(
+            Document document,
+            TupleExpressionSyntax tupleExpression,
+            CancellationToken cancellationToken = default)
+        {
+            return FixListAsync(
+                document,
+                tupleExpression,
+                tupleExpression.OpenParenToken,
+                tupleExpression.Arguments,
+                cancellationToken);
+        }
+
+        public static Task<Document> FixListAsync(
+            Document document,
+            InitializerExpressionSyntax initializerExpression,
+            CancellationToken cancellationToken = default)
+        {
+            return FixListAsync(
+                document,
+                initializerExpression,
+                initializerExpression.OpenBraceToken,
+                initializerExpression.Expressions,
+                cancellationToken);
+        }
+
+        private static Task<Document> FixListAsync<TNode>(
+            Document document,
+            SyntaxNode containingNode,
+            SyntaxNodeOrToken openNodeOrToken,
+            SeparatedSyntaxList<TNode> nodes,
+            CancellationToken cancellationToken = default) where TNode : SyntaxNode
+        {
+            IndentationAnalysis indentationAnalysis = AnalyzeIndentation(containingNode, cancellationToken);
+
+            string increasedIndentation = indentationAnalysis.GetIncreasedIndentation();
+
+            if (nodes.IsSingleLine(includeExteriorTrivia: false, cancellationToken: cancellationToken)
+                && TextSpan.FromBounds(openNodeOrToken.SpanStart, nodes[0].SpanStart).IsMultiLine(containingNode.SyntaxTree))
+            {
+                TNode node = nodes[0];
+
+                SyntaxTriviaList leading = node.GetLeadingTrivia();
+
+                TextSpan span = (leading.Any() && leading.Last().IsWhitespaceTrivia())
+                    ? leading.Last().Span
+                    : new TextSpan(node.SpanStart, 0);
+
+                return document.WithTextChangeAsync(
+                    new TextChange(span, increasedIndentation),
+                    cancellationToken);
+            }
+
+            var textChanges = new List<TextChange>();
+            TextLineCollection lines = null;
+            string endOfLine = DetermineEndOfLine(containingNode).ToString();
+
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                SyntaxToken token;
+                if (i == 0)
+                {
+                    token = (openNodeOrToken.IsNode)
+                        ? openNodeOrToken.AsNode().GetLastToken()
+                        : openNodeOrToken.AsToken();
+                }
+                else
+                {
+                    token = nodes.GetSeparator(i - 1);
+                }
+
+                SyntaxTriviaList trailing = token.TrailingTrivia;
+                TNode node = nodes[i];
+                var indentationAdded = false;
+
+                if (IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailing))
+                {
+                    SyntaxTrivia last = node.GetLeadingTrivia().LastOrDefault();
+
+                    if (last.IsWhitespaceTrivia())
+                    {
+                        if (last.Span.Length == increasedIndentation.Length)
+                            continue;
+
+                        textChanges.Add(last.Span, increasedIndentation);
+                    }
+                    else
+                    {
+                        textChanges.Add(new TextSpan(node.SpanStart, 0), increasedIndentation);
+                    }
+
+                    indentationAdded = true;
+                }
+                else
+                {
+                    if (nodes.Count == 1
+                        && node is ArgumentSyntax argument)
+                    {
+                        LambdaBlock lambdaBlock = GetLambdaBlock(argument, lines ??= argument.SyntaxTree.GetText().Lines);
+
+                        if (lambdaBlock.Block != null)
+                            increasedIndentation = indentationAnalysis.Indentation.ToString();
+                    }
+
+                    if (nodes.Count > 1
+                        && (i > 0 || !containingNode.IsKind(SyntaxKind.AttributeList)))
+                    {
+                        textChanges.Add(
+                            (trailing.Any() && trailing.Last().IsWhitespaceTrivia())
+                                ? trailing.Last().Span
+                                : new TextSpan(token.FullSpan.End, 0),
+                            endOfLine);
+
+                        textChanges.Add(new TextSpan(node.FullSpan.Start, 0), increasedIndentation);
+
+                        indentationAdded = true;
+                    }
+                }
+
+                ImmutableArray<IndentationInfo> indentations = FindIndentations(node, node.Span).ToImmutableArray();
+
+                if (!indentations.Any())
+                    continue;
+
+                LambdaBlock lambdaBlock2 = GetLambdaBlock(node, lines ??= node.SyntaxTree.GetText().Lines);
+
+                bool isLambdaBlockWithOpenBraceAtEndOfLine = lambdaBlock2.Token == indentations.Last().Token;
+
+                int baseIndentationLength = (isLambdaBlockWithOpenBraceAtEndOfLine)
+                    ? indentations.Last().Span.Length
+                    : indentations[0].Span.Length;
+
+                for (int j = indentations.Length - 1; j >= 0; j--)
+                {
+                    IndentationInfo indentationInfo = indentations[j];
+
+                    if (indentationAdded
+                        && node is ArgumentSyntax argument
+                        && (argument.Expression as AnonymousFunctionExpressionSyntax)?.Block != null)
+                    {
+                        indentationAdded = false;
+                    }
+
+                    string replacement = increasedIndentation;
+
+                    if (indentationAdded)
+                        replacement += indentationAnalysis.GetSingleIndentation();
+
+                    if ((j > 0 || isLambdaBlockWithOpenBraceAtEndOfLine)
+                        && indentationInfo.Span.Length > baseIndentationLength)
+                    {
+                        replacement += indentationInfo.ToString().Substring(baseIndentationLength);
+                    }
+
+                    if (indentationInfo.Span.Length != replacement.Length)
+                        textChanges.Add(indentationInfo.Span, replacement);
+                }
+            }
+
+            FormattingVerifier.VerifyChangedSpansAreWhitespace(containingNode, textChanges);
+
+            return document.WithTextChangesAsync(textChanges, cancellationToken);
         }
     }
 }
