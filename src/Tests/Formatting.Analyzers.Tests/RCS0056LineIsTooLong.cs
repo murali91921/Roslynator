@@ -149,6 +149,38 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_BracketedArgumentList()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    string M()
+    {
+        var c = new C();
+
+[|        return c[""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx""];|]
+    }
+
+    string this[string p] => null;
+}
+",
+@"
+class C
+{
+    string M()
+    {
+        var c = new C();
+
+        return c[
+            ""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx""];
+    }
+
+    string this[string p] => null;
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
         public async Task Test_CallChain()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -388,6 +420,79 @@ class C
 {
     string P { get; }
         = """".ToString().ToString().ToString().ToString().ToString().ToString().ToString().ToString().ToString();
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_AttributeList()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+
+class C
+{
+[|    [Obsolete(""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx""), Foo]|]
+    void M()
+    {
+    }
+}
+
+class FooAttribute : Attribute
+{
+}
+",
+@"
+using System;
+
+class C
+{
+    [Obsolete(""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx""),
+        Foo]
+    void M()
+    {
+    }
+}
+
+class FooAttribute : Attribute
+{
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_AttributeArgumentList()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System;
+
+class C
+{
+[|    [Obsolete(""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"", error: false)]|]
+    void M()
+    {
+    }
+}
+
+class FooAttribute : Attribute
+{
+}
+",
+@"
+using System;
+
+class C
+{
+    [Obsolete(
+        ""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"",
+        error: false)]
+    void M()
+    {
+    }
+}
+
+class FooAttribute : Attribute
+{
 }
 ");
         }

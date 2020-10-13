@@ -151,6 +151,21 @@ namespace Roslynator.Formatting.CodeFixes
                         AddSpan(equalsValueClause);
                         break;
                     }
+                    else if (kind == SyntaxKind.AttributeList)
+                    {
+                        var attributeList = (AttributeListSyntax)node;
+
+                        SeparatedSyntaxList<AttributeSyntax> attributes = attributeList.Attributes;
+
+                        if (attributes.Count <= 1)
+                            continue;
+
+                        if (!CanWrapSeparatedList(attributes, attributeList.OpenBracketToken.Span.End))
+                            continue;
+
+                        AddSpan(attributeList);
+                        break;
+                    }
                     else if (kind == SyntaxKind.ParameterList)
                     {
                         if (node.Parent is AnonymousFunctionExpressionSyntax)
@@ -169,10 +184,10 @@ namespace Roslynator.Formatting.CodeFixes
                     }
                     else if (kind == SyntaxKind.BracketedParameterList)
                     {
-                        var parameterList = (BracketedParameterListSyntax)node;
-
                         if (!VerifyKind(node, _parameterListKinds))
                             continue;
+
+                        var parameterList = (BracketedParameterListSyntax)node;
 
                         if (!CanWrapSeparatedList(parameterList.Parameters, parameterList.OpenBracketToken.Span.End))
                             continue;
@@ -191,6 +206,32 @@ namespace Roslynator.Formatting.CodeFixes
                         {
                             continue;
                         }
+
+                        if (!CanWrapSeparatedList(argumentList.Arguments, argumentList.OpenParenToken.Span.End))
+                            continue;
+
+                        if (!CanWrapLine(argumentList.Parent))
+                            continue;
+
+                        AddSpan(argumentList);
+                        break;
+                    }
+                    else if (kind == SyntaxKind.BracketedArgumentList)
+                    {
+                        var argumentList = (BracketedArgumentListSyntax)node;
+
+                        if (!CanWrapSeparatedList(argumentList.Arguments, argumentList.OpenBracketToken.Span.End))
+                            continue;
+
+                        if (!CanWrapLine(argumentList.Parent))
+                            continue;
+
+                        AddSpan(argumentList);
+                        break;
+                    }
+                    else if (kind == SyntaxKind.AttributeArgumentList)
+                    {
+                        var argumentList = (AttributeArgumentListSyntax)node;
 
                         if (!CanWrapSeparatedList(argumentList.Arguments, argumentList.OpenParenToken.Span.End))
                             continue;
@@ -529,10 +570,12 @@ namespace Roslynator.Formatting.CodeFixes
                         return ct => AddNewLineBeforeOrAfterArrowAsync(document, (ArrowExpressionClauseSyntax)node, ct);
                     case SyntaxKind.EqualsValueClause:
                         return ct => AddNewLineBeforeOrAfterEqualsSignAsync(document, (EqualsValueClauseSyntax)node, ct);
+                    case SyntaxKind.AttributeList:
+                        return ct => FixListAsync(document, (AttributeListSyntax)node, ListFixMode.Wrap, ct);
                     case SyntaxKind.ParameterList:
-                        return ct => FixListAsync(document, (ParameterListSyntax)node, ct);
+                        return ct => FixListAsync(document, (ParameterListSyntax)node, ListFixMode.Wrap, ct);
                     case SyntaxKind.BracketedParameterList:
-                        return ct => FixListAsync(document, (BracketedParameterListSyntax)node, ct);
+                        return ct => FixListAsync(document, (BracketedParameterListSyntax)node, ListFixMode.Wrap, ct);
                     case SyntaxKind.SimpleMemberAccessExpression:
                         return ct =>
                         {
@@ -558,7 +601,11 @@ namespace Roslynator.Formatting.CodeFixes
                                 ct);
                         };
                     case SyntaxKind.ArgumentList:
-                        return ct => FixListAsync(document, (ArgumentListSyntax)node, ct);
+                        return ct => FixListAsync(document, (ArgumentListSyntax)node, ListFixMode.Wrap, ct);
+                    case SyntaxKind.BracketedArgumentList:
+                        return ct => FixListAsync(document, (BracketedArgumentListSyntax)node, ListFixMode.Wrap, ct);
+                    case SyntaxKind.AttributeArgumentList:
+                        return ct => FixListAsync(document, (AttributeArgumentListSyntax)node, ListFixMode.Wrap, ct);
                     case SyntaxKind.ArrayInitializerExpression:
                     case SyntaxKind.CollectionInitializerExpression:
                     case SyntaxKind.ComplexElementInitializerExpression:
@@ -592,7 +639,7 @@ namespace Roslynator.Formatting.CodeFixes
                                 ct);
                         };
                     default:
-                        return null;
+                        throw new InvalidOperationException();
                 }
             }
 
@@ -711,11 +758,13 @@ namespace Roslynator.Formatting.CodeFixes
                         return 10;
                     case SyntaxKind.EqualsValueClause:
                         return 11;
+                    case SyntaxKind.AttributeList:
+                        return 12;
                     case SyntaxKind.ArrayInitializerExpression:
                     case SyntaxKind.CollectionInitializerExpression:
                     case SyntaxKind.ComplexElementInitializerExpression:
                     case SyntaxKind.ObjectInitializerExpression:
-                        return 12;
+                        return 13;
                     case SyntaxKind.ParameterList:
                         return 20;
                     case SyntaxKind.BracketedParameterList:
@@ -740,6 +789,10 @@ namespace Roslynator.Formatting.CodeFixes
                         return 50;
                     case SyntaxKind.ArgumentList:
                         return 60;
+                    case SyntaxKind.BracketedArgumentList:
+                        return 61;
+                    case SyntaxKind.AttributeArgumentList:
+                        return 62;
                     default:
                         throw new InvalidOperationException();
                 }

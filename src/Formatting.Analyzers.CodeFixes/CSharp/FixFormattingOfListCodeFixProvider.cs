@@ -74,84 +74,84 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => CodeFixHelpers.FixListAsync(document, parameterList, ct),
+                                ct => CodeFixHelpers.FixListAsync(document, parameterList, ListFixMode.Fix, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case BracketedParameterListSyntax bracketedParameterList:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => CodeFixHelpers.FixListAsync(document, bracketedParameterList, ct),
+                                ct => CodeFixHelpers.FixListAsync(document, bracketedParameterList, ListFixMode.Fix, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case TypeParameterListSyntax typeParameterList:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => CodeFixHelpers.FixListAsync(document, typeParameterList, ct),
+                                ct => CodeFixHelpers.FixListAsync(document, typeParameterList, ListFixMode.Fix, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case ArgumentListSyntax argumentList:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => CodeFixHelpers.FixListAsync(document, argumentList, ct),
+                                ct => CodeFixHelpers.FixListAsync(document, argumentList, ListFixMode.Fix, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case BracketedArgumentListSyntax bracketedArgumentList:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => CodeFixHelpers.FixListAsync(document, bracketedArgumentList, ct),
+                                ct => CodeFixHelpers.FixListAsync(document, bracketedArgumentList, ListFixMode.Fix, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case AttributeArgumentListSyntax attributeArgumentList:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => CodeFixHelpers.FixListAsync(document, attributeArgumentList, ct),
+                                ct => CodeFixHelpers.FixListAsync(document, attributeArgumentList, ListFixMode.Fix, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case TypeArgumentListSyntax typeArgumentList:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => CodeFixHelpers.FixListAsync(document, typeArgumentList, ct),
+                                ct => CodeFixHelpers.FixListAsync(document, typeArgumentList, ListFixMode.Fix, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case AttributeListSyntax attributeList:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => CodeFixHelpers.FixListAsync(document, attributeList, ct),
+                                ct => CodeFixHelpers.FixListAsync(document, attributeList, ListFixMode.Fix, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case BaseListSyntax baseList:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => CodeFixHelpers.FixListAsync(document, baseList, ct),
+                                ct => CodeFixHelpers.FixListAsync(document, baseList, ListFixMode.Fix, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case TupleTypeSyntax tupleType:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => CodeFixHelpers.FixListAsync(document, tupleType, ct),
+                                ct => CodeFixHelpers.FixListAsync(document, tupleType, ListFixMode.Fix, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case TupleExpressionSyntax tupleExpression:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => CodeFixHelpers.FixListAsync(document, tupleExpression, ct),
+                                ct => CodeFixHelpers.FixListAsync(document, tupleExpression, ListFixMode.Fix, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     case InitializerExpressionSyntax initializerExpression:
                         {
                             return CodeAction.Create(
                                 Title,
-                                ct => CodeFixHelpers.FixListAsync(document, initializerExpression, ct),
+                                ct => CodeFixHelpers.FixListAsync(document, initializerExpression, ListFixMode.Fix, ct),
                                 GetEquivalenceKey(diagnostic));
                         }
                     default:

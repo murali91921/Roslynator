@@ -721,6 +721,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
         public static Task<Document> FixListAsync(
             Document document,
             ParameterListSyntax parameterList,
+            ListFixMode fixMode = ListFixMode.Fix,
             CancellationToken cancellationToken = default)
         {
             return FixListAsync(
@@ -728,12 +729,14 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 parameterList,
                 parameterList.OpenParenToken,
                 parameterList.Parameters,
+                fixMode,
                 cancellationToken);
         }
 
         public static Task<Document> FixListAsync(
             Document document,
             BracketedParameterListSyntax bracketedParameterList,
+            ListFixMode fixMode = ListFixMode.Fix,
             CancellationToken cancellationToken = default)
         {
             return FixListAsync(
@@ -741,12 +744,14 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 bracketedParameterList,
                 bracketedParameterList.OpenBracketToken,
                 bracketedParameterList.Parameters,
+                fixMode,
                 cancellationToken);
         }
 
         public static Task<Document> FixListAsync(
             Document document,
             TypeParameterListSyntax typeParameterList,
+            ListFixMode fixMode = ListFixMode.Fix,
             CancellationToken cancellationToken = default)
         {
             return FixListAsync(
@@ -754,12 +759,14 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 typeParameterList,
                 typeParameterList.LessThanToken,
                 typeParameterList.Parameters,
+                fixMode,
                 cancellationToken);
         }
 
         public static Task<Document> FixListAsync(
             Document document,
             ArgumentListSyntax argumentList,
+            ListFixMode fixMode = ListFixMode.Fix,
             CancellationToken cancellationToken = default)
         {
             return FixListAsync(
@@ -767,12 +774,14 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 argumentList,
                 argumentList.OpenParenToken,
                 argumentList.Arguments,
+                fixMode,
                 cancellationToken);
         }
 
         public static Task<Document> FixListAsync(
             Document document,
             BracketedArgumentListSyntax bracketedArgumentList,
+            ListFixMode fixMode = ListFixMode.Fix,
             CancellationToken cancellationToken = default)
         {
             return FixListAsync(
@@ -780,12 +789,14 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 bracketedArgumentList,
                 bracketedArgumentList.OpenBracketToken,
                 bracketedArgumentList.Arguments,
+                fixMode,
                 cancellationToken);
         }
 
         public static Task<Document> FixListAsync(
             Document document,
             AttributeArgumentListSyntax attributeArgumentList,
+            ListFixMode fixMode = ListFixMode.Fix,
             CancellationToken cancellationToken = default)
         {
             return FixListAsync(
@@ -793,12 +804,14 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 attributeArgumentList,
                 attributeArgumentList.OpenParenToken,
                 attributeArgumentList.Arguments,
+                fixMode,
                 cancellationToken);
         }
 
         public static Task<Document> FixListAsync(
             Document document,
             TypeArgumentListSyntax typeArgumentList,
+            ListFixMode fixMode = ListFixMode.Fix,
             CancellationToken cancellationToken = default)
         {
             return FixListAsync(
@@ -806,12 +819,14 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 typeArgumentList,
                 typeArgumentList.LessThanToken,
                 typeArgumentList.Arguments,
+                fixMode,
                 cancellationToken);
         }
 
         public static Task<Document> FixListAsync(
             Document document,
             AttributeListSyntax attributeList,
+            ListFixMode fixMode = ListFixMode.Fix,
             CancellationToken cancellationToken = default)
         {
             return FixListAsync(
@@ -819,28 +834,38 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 attributeList,
                 attributeList.OpenBracketToken,
                 attributeList.Attributes,
+                fixMode,
                 cancellationToken);
         }
 
         public static Task<Document> FixListAsync(
             Document document,
             BaseListSyntax baseList,
+            ListFixMode fixMode = ListFixMode.Fix,
             CancellationToken cancellationToken = default)
         {
-            return FixListAsync(document, baseList, baseList.ColonToken, baseList.Types, cancellationToken);
+            return FixListAsync(document, baseList, baseList.ColonToken, baseList.Types, fixMode, cancellationToken);
         }
 
         public static Task<Document> FixListAsync(
             Document document,
             TupleTypeSyntax tupleType,
+            ListFixMode fixMode = ListFixMode.Fix,
             CancellationToken cancellationToken = default)
         {
-            return FixListAsync(document, tupleType, tupleType.OpenParenToken, tupleType.Elements, cancellationToken);
+            return FixListAsync(
+                document,
+                tupleType,
+                tupleType.OpenParenToken,
+                tupleType.Elements,
+                fixMode,
+                cancellationToken);
         }
 
         public static Task<Document> FixListAsync(
             Document document,
             TupleExpressionSyntax tupleExpression,
+            ListFixMode fixMode = ListFixMode.Fix,
             CancellationToken cancellationToken = default)
         {
             return FixListAsync(
@@ -848,12 +873,14 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 tupleExpression,
                 tupleExpression.OpenParenToken,
                 tupleExpression.Arguments,
+                fixMode,
                 cancellationToken);
         }
 
         public static Task<Document> FixListAsync(
             Document document,
             InitializerExpressionSyntax initializerExpression,
+            ListFixMode fixMode = ListFixMode.Fix,
             CancellationToken cancellationToken = default)
         {
             return FixListAsync(
@@ -861,6 +888,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 initializerExpression,
                 initializerExpression.OpenBraceToken,
                 initializerExpression.Expressions,
+                fixMode,
                 cancellationToken);
         }
 
@@ -869,6 +897,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             SyntaxNode containingNode,
             SyntaxNodeOrToken openNodeOrToken,
             SeparatedSyntaxList<TNode> nodes,
+            ListFixMode fixMode = ListFixMode.Fix,
             CancellationToken cancellationToken = default) where TNode : SyntaxNode
         {
             IndentationAnalysis indentationAnalysis = AnalyzeIndentation(containingNode, cancellationToken);
@@ -876,7 +905,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             string increasedIndentation = indentationAnalysis.GetIncreasedIndentation();
 
             if (nodes.IsSingleLine(includeExteriorTrivia: false, cancellationToken: cancellationToken)
-                && TextSpan.FromBounds(openNodeOrToken.SpanStart, nodes[0].SpanStart).IsMultiLine(containingNode.SyntaxTree))
+                && fixMode == ListFixMode.Fix)
             {
                 TNode node = nodes[0];
 
@@ -942,7 +971,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                             increasedIndentation = indentationAnalysis.Indentation.ToString();
                     }
 
-                    if (nodes.Count > 1
+                    if ((nodes.Count > 1 || fixMode == ListFixMode.Wrap)
                         && (i > 0 || !containingNode.IsKind(SyntaxKind.AttributeList)))
                     {
                         textChanges.Add(
