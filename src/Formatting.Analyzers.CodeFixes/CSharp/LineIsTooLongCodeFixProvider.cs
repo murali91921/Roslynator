@@ -35,6 +35,12 @@ namespace Roslynator.Formatting.CodeFixes
             SyntaxKind.BracketedParameterList,
         };
 
+        private static readonly SyntaxKind[] _argumentListKinds = new[]
+        {
+            SyntaxKind.ArgumentList,
+            SyntaxKind.BracketedArgumentList,
+        };
+
         private static readonly SyntaxKind[] _memberExpressionKinds = new[]
         {
             SyntaxKind.SimpleMemberAccessExpression,
@@ -170,7 +176,7 @@ namespace Roslynator.Formatting.CodeFixes
                         if (!CanWrapSeparatedList(parameterList.Parameters, parameterList.OpenParenToken.Span.End))
                             continue;
 
-                        AddSpan(parameterList);
+                        AddSpan(parameterList, _parameterListKinds);
                         break;
                     }
                     else if (kind == SyntaxKind.BracketedParameterList)
@@ -183,11 +189,14 @@ namespace Roslynator.Formatting.CodeFixes
                         if (!CanWrapSeparatedList(parameterList.Parameters, parameterList.OpenBracketToken.Span.End))
                             continue;
 
-                        AddSpan(parameterList);
+                        AddSpan(parameterList, _parameterListKinds);
                         break;
                     }
                     else if (kind == SyntaxKind.ArgumentList)
                     {
+                        if (!VerifyKind(node, _argumentListKinds))
+                            continue;
+
                         var argumentList = (ArgumentListSyntax)node;
 
                         if (argumentList.Arguments.Count == 1
@@ -204,11 +213,14 @@ namespace Roslynator.Formatting.CodeFixes
                         if (!CanWrapLine(argumentList.Parent))
                             continue;
 
-                        AddSpan(argumentList);
+                        AddSpan(argumentList, _argumentListKinds);
                         break;
                     }
                     else if (kind == SyntaxKind.BracketedArgumentList)
                     {
+                        if (!VerifyKind(node, _argumentListKinds))
+                            continue;
+
                         var argumentList = (BracketedArgumentListSyntax)node;
 
                         if (!CanWrapSeparatedList(argumentList.Arguments, argumentList.OpenBracketToken.Span.End))
@@ -217,7 +229,7 @@ namespace Roslynator.Formatting.CodeFixes
                         if (!CanWrapLine(argumentList.Parent))
                             continue;
 
-                        AddSpan(argumentList);
+                        AddSpan(argumentList, _argumentListKinds);
                         break;
                     }
                     else if (kind == SyntaxKind.AttributeArgumentList)
@@ -248,7 +260,7 @@ namespace Roslynator.Formatting.CodeFixes
                         if (!CanWrapLine(memberAccessExpression))
                             continue;
 
-                        AddSpan(memberAccessExpression);
+                        AddSpan(memberAccessExpression, _memberExpressionKinds);
                         break;
                     }
                     else if (kind == SyntaxKind.MemberBindingExpression)
@@ -268,7 +280,7 @@ namespace Roslynator.Formatting.CodeFixes
                         if (!CanWrapLine(memberBindingExpression))
                             continue;
 
-                        AddSpan(memberBindingExpression);
+                        AddSpan(memberBindingExpression, _memberExpressionKinds);
                         break;
                     }
                     else if (kind == SyntaxKind.ConditionalExpression)
@@ -320,7 +332,7 @@ namespace Roslynator.Formatting.CodeFixes
                                 if (!CanWrapLine(initializer))
                                     continue;
 
-                                AddSpan(initializer);
+                                AddSpan(initializer, _initializerKinds);
                                 break;
                             }
                         case SyntaxKind.AddExpression:
@@ -391,7 +403,7 @@ namespace Roslynator.Formatting.CodeFixes
                                 if (!CanWrapLine(node))
                                     continue;
 
-                                AddSpan(node);
+                                AddSpan(node, _binaryExpressionKinds);
                                 break;
                             }
                     }
@@ -413,7 +425,7 @@ namespace Roslynator.Formatting.CodeFixes
                     {
                         spans.Remove(SyntaxKind.SimpleMemberAccessExpression);
                     }
-                    else if (spans.ContainsKey(SyntaxKind.MemberBindingExpression))
+                    else
                     {
                         spans.Remove(SyntaxKind.MemberBindingExpression);
                     }
@@ -424,6 +436,7 @@ namespace Roslynator.Formatting.CodeFixes
                 }
             }
 
+            //TODO: sort
             SyntaxNode binaryExpression2 = spans
                 .Join(_binaryExpressionKinds, f => f.Key, f => f, (f, _) => f.Value)
                 .FirstOrDefault();
@@ -434,13 +447,13 @@ namespace Roslynator.Formatting.CodeFixes
                     || spans.TryGetValue(SyntaxKind.SimpleMemberAccessExpression, out argumentListOrMemberExpression)
                     || spans.TryGetValue(SyntaxKind.MemberBindingExpression, out argumentListOrMemberExpression))
                 {
-                    if (HasPrecedenceOver(argumentListOrMemberExpression, binaryExpression2))
+                    if (binaryExpression2.Contains(argumentListOrMemberExpression))
                     {
-                        spans.Remove(binaryExpression2.Kind());
+                        spans.Remove(argumentListOrMemberExpression.Kind());
                     }
                     else
                     {
-                        spans.Remove(argumentListOrMemberExpression.Kind());
+                        spans.Remove(binaryExpression2.Kind());
                     }
                 }
             }
@@ -458,15 +471,19 @@ namespace Roslynator.Formatting.CodeFixes
             context.RegisterCodeFix(codeAction, diagnostic);
             return;
 
-            void AddSpan(SyntaxNode node)
+            void AddSpan(SyntaxNode node, SyntaxKind[] syntaxKinds = null)
             {
-                SyntaxKind kind = node.Kind();
-
                 if (spans == null)
+                {
                     spans = new Dictionary<SyntaxKind, SyntaxNode>();
+                }
+                else if (syntaxKinds != null)
+                {
+                    foreach (SyntaxKind kind2 in syntaxKinds)
+                        spans.Remove(kind2);
+                }
 
-                if (!spans.ContainsKey(kind))
-                    spans[kind] = node;
+                spans[node.Kind()] = node;
             }
 
             SyntaxNode ChooseBetweenArgumentListAndMemberExpression()
@@ -692,14 +709,14 @@ namespace Roslynator.Formatting.CodeFixes
                 }
             }
 
-            bool VerifyKind(SyntaxNode node, SyntaxKind[] parameterListKinds)
+            bool VerifyKind(SyntaxNode node, SyntaxKind[] syntaxKinds)
             {
                 if (spans == null)
                     return true;
 
                 SyntaxKind kind = node.Kind();
 
-                foreach (SyntaxKind kind2 in parameterListKinds)
+                foreach (SyntaxKind kind2 in syntaxKinds)
                 {
                     if (kind == kind2)
                         continue;
@@ -707,23 +724,12 @@ namespace Roslynator.Formatting.CodeFixes
                     if (!spans.TryGetValue(kind2, out SyntaxNode node2))
                         continue;
 
-                    if (!HasPrecedenceOver(node, node2))
+                    if (node2.Contains(node))
+                        return false;
+
+                    if (node.SpanStart > node2.SpanStart)
                         return false;
                 }
-
-                return true;
-            }
-
-            static bool HasPrecedenceOver(SyntaxNode node1, SyntaxNode node2)
-            {
-                if (node1.Contains(node2))
-                    return true;
-
-                if (node2.Contains(node1))
-                    return false;
-
-                if (node1.SpanStart > node2.SpanStart)
-                    return false;
 
                 return true;
             }
