@@ -359,14 +359,15 @@ namespace Roslynator.Formatting.CodeFixes
                                     }
 
                                     int end;
-                                    if (addNewLineAfter
-                                        && parentBinaryExpression != null)
+                                    if (parentBinaryExpression != null)
                                     {
-                                        end = parentBinaryExpression.OperatorToken.Span.End;
+                                        end = (addNewLineAfter)
+                                            ? parentBinaryExpression.OperatorToken.Span.End
+                                            : binaryExpression.Right.Span.End;
                                     }
                                     else
                                     {
-                                        end = binaryExpression.Right.Span.End;
+                                        end = span.End;
                                     }
 
                                     int start = (addNewLineAfter)
