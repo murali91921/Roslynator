@@ -395,12 +395,10 @@ class C
     void M()
     {
         string sssssssssssssssssssssssssssss = null;
-        var arr = new string[]
-        {
+        var arr = new string[] {
             sssssssssssssssssssssssssssss,
             sssssssssssssssssssssssssssss,
-            sssssssssssssssssssssssssssss
-        };
+            sssssssssssssssssssssssssssss };
     }
 }
 ");
@@ -493,6 +491,35 @@ class C
 
 class FooAttribute : Attribute
 {
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_ConditionalExpression()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M()
+    {
+        bool f = false;
+
+[|        var x = f ? ""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"" : """";|]
+    }
+}
+",
+@"
+class C
+{
+    void M()
+    {
+        bool f = false;
+
+        var x = f
+            ? ""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx""
+            : """";
+    }
 }
 ");
         }

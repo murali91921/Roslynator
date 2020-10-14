@@ -126,14 +126,8 @@ namespace Roslynator.Formatting.CodeFixes
                         if (!(equalsValueClause.Parent is PropertyDeclarationSyntax propertyDeclaration))
                             continue;
 
-                        if (!span.Contains(propertyDeclaration.SemicolonToken.Span))
-                            continue;
-
-                        if (!equalsValueClause.IsParentKind(SyntaxKind.PropertyDeclaration))
-                            continue;
-
-                        SyntaxToken arrowToken = equalsValueClause.EqualsToken;
-                        SyntaxToken previousToken = arrowToken.GetPreviousToken();
+                        SyntaxToken equalsToken = equalsValueClause.EqualsToken;
+                        SyntaxToken previousToken = equalsToken.GetPreviousToken();
 
                         if (previousToken.SpanStart < span.Start)
                             continue;
@@ -141,12 +135,14 @@ namespace Roslynator.Formatting.CodeFixes
                         bool addNewLineAfter = document.IsAnalyzerOptionEnabled(
                             AnalyzerOptions.AddNewLineAfterEqualsSignInsteadOfBeforeIt);
 
-                        int wrapPosition = (addNewLineAfter) ? arrowToken.Span.End : previousToken.Span.End;
-                        int start = (addNewLineAfter) ? equalsValueClause.Value.SpanStart : arrowToken.SpanStart;
-                        int longestLength = equalsValueClause.GetLastToken().GetNextToken().Span.End - start;
+                        int wrapPosition = (addNewLineAfter) ? equalsToken.Span.End : previousToken.Span.End;
+                        int start = (addNewLineAfter) ? equalsValueClause.Value.SpanStart : equalsToken.SpanStart;
+                        int longestLength = span.End - start;
 
                         if (!CanWrapNode(equalsValueClause, wrapPosition, longestLength))
+                        {
                             continue;
+                        }
 
                         AddSpan(equalsValueClause);
                         break;
@@ -155,12 +151,7 @@ namespace Roslynator.Formatting.CodeFixes
                     {
                         var attributeList = (AttributeListSyntax)node;
 
-                        SeparatedSyntaxList<AttributeSyntax> attributes = attributeList.Attributes;
-
-                        if (attributes.Count <= 1)
-                            continue;
-
-                        if (!CanWrapSeparatedList(attributes, attributeList.OpenBracketToken.Span.End))
+                        if (!CanWrapSeparatedList(attributeList.Attributes, attributeList.OpenBracketToken.Span.End, 2))
                             continue;
 
                         AddSpan(attributeList);
@@ -236,9 +227,6 @@ namespace Roslynator.Formatting.CodeFixes
                         if (!CanWrapSeparatedList(argumentList.Arguments, argumentList.OpenParenToken.Span.End))
                             continue;
 
-                        if (!CanWrapLine(argumentList.Parent))
-                            continue;
-
                         AddSpan(argumentList);
                         break;
                     }
@@ -285,7 +273,29 @@ namespace Roslynator.Formatting.CodeFixes
                     }
                     else if (kind == SyntaxKind.ConditionalExpression)
                     {
-                        //TODO: 
+                        var conditionalExpression = (ConditionalExpressionSyntax)node;
+
+                        SyntaxToken questionToken = conditionalExpression.QuestionToken;
+                        SyntaxToken colonToken = conditionalExpression.ColonToken;
+
+                        bool addNewLineAfter = document.IsAnalyzerOptionEnabled(
+                            AnalyzerOptions.AddNewLineAfterConditionalOperatorInsteadOfBeforeIt);
+
+                        int wrapPosition = (addNewLineAfter)
+                            ? questionToken.Span.End
+                            : conditionalExpression.Condition.Span.End;
+
+                        int start = (addNewLineAfter) ? conditionalExpression.WhenTrue.SpanStart : questionToken.SpanStart;
+                        int end = (addNewLineAfter) ? colonToken.Span.End : conditionalExpression.WhenTrue.Span.End;
+                        int longestLength = end - start;
+
+                        start = (addNewLineAfter) ? conditionalExpression.WhenFalse.SpanStart : colonToken.SpanStart;
+                        int longestLength2 = span.End - start;
+
+                        if (!CanWrapNode(conditionalExpression, wrapPosition, Math.Max(longestLength, longestLength2)))
+                            continue;
+
+                        AddSpan(conditionalExpression);
                         break;
                     }
 
@@ -338,17 +348,46 @@ namespace Roslynator.Formatting.CodeFixes
                                     ? operatorToken.Span.End
                                     : binaryExpression.Left.Span.End;
 
-                                int start = (addNewLineAfter) ? binaryExpression.Right.SpanStart : operatorToken.SpanStart;
-                                int end = (FindNextExpressionInChain(binaryExpression)?.Span ?? span).End;
-                                int longestLength = end - start;
+                                int longestLength = 0;
 
-                                if (!CanWrapNode(binaryExpression, wrapPosition, longestLength))
+                                while (true)
+                                {
+                                    BinaryExpressionSyntax parentBinaryExpression = null;
+                                    if (binaryExpression.Parent.IsKind(binaryExpression.Kind()))
+                                    {
+                                        parentBinaryExpression = (BinaryExpressionSyntax)binaryExpression.Parent;
+                                    }
+
+                                    int end;
+                                    if (addNewLineAfter
+                                        && parentBinaryExpression != null)
+                                    {
+                                        end = parentBinaryExpression.OperatorToken.Span.End;
+                                    }
+                                    else
+                                    {
+                                        end = binaryExpression.Right.Span.End;
+                                    }
+
+                                    int start = (addNewLineAfter)
+                                        ? binaryExpression.Right.SpanStart
+                                        : binaryExpression.OperatorToken.SpanStart;
+
+                                    longestLength = Math.Max(longestLength, end - start);
+
+                                    if (parentBinaryExpression == null)
+                                        break;
+
+                                    binaryExpression = parentBinaryExpression;
+                                }
+
+                                if (!CanWrapNode(node, wrapPosition, longestLength))
                                     continue;
 
-                                if (!CanWrapLine(binaryExpression))
+                                if (!CanWrapLine(node))
                                     continue;
 
-                                AddSpan(binaryExpression);
+                                AddSpan(node);
                                 break;
                             }
                     }
@@ -521,9 +560,10 @@ namespace Roslynator.Formatting.CodeFixes
 
             bool CanWrapSeparatedList<TNode>(
                 SeparatedSyntaxList<TNode> nodes,
-                int wrapPosition) where TNode : SyntaxNode
+                int wrapPosition,
+                int minCount = 1) where TNode : SyntaxNode
             {
-                if (!nodes.Any())
+                if (nodes.Count < minCount)
                     return false;
 
                 int longestLength = nodes.Max(f => f.Span.Length);
@@ -610,7 +650,7 @@ namespace Roslynator.Formatting.CodeFixes
                     case SyntaxKind.CollectionInitializerExpression:
                     case SyntaxKind.ComplexElementInitializerExpression:
                     case SyntaxKind.ObjectInitializerExpression:
-                        return ct => SyntaxFormatter.ToMultiLineAsync(document, (InitializerExpressionSyntax)node, ct);
+                        return ct => FixListAsync(document, (InitializerExpressionSyntax)node, ListFixMode.Wrap, ct);
                     case SyntaxKind.AddExpression:
                     case SyntaxKind.SubtractExpression:
                     case SyntaxKind.MultiplyExpression:
@@ -638,6 +678,11 @@ namespace Roslynator.Formatting.CodeFixes
                                     binaryExpression2.OperatorToken.Span.End),
                                 ct);
                         };
+                    case SyntaxKind.ConditionalExpression:
+                        return ct => AddNewLineBeforeOrAfterConditionalOperatorAsync(
+                            document,
+                            (ConditionalExpressionSyntax)node,
+                            ct);
                     default:
                         throw new InvalidOperationException();
                 }
@@ -704,6 +749,35 @@ namespace Roslynator.Formatting.CodeFixes
                 cancellationToken);
         }
 
+        private static Task<Document> AddNewLineBeforeOrAfterConditionalOperatorAsync(
+            Document document,
+            ConditionalExpressionSyntax conditionalExpression,
+            CancellationToken cancellationToken = default)
+        {
+            string indentation = SyntaxTriviaAnalysis.GetIncreasedIndentation(conditionalExpression, cancellationToken);
+
+            if (document.IsAnalyzerOptionEnabled(AnalyzerOptions.AddNewLineAfterEqualsSignInsteadOfBeforeIt))
+            {
+                return document.WithTextChangesAsync(
+                    new TextChange[]
+                    {
+                        GetNewLineAfterTextChange(conditionalExpression.QuestionToken, indentation),
+                        GetNewLineAfterTextChange(conditionalExpression.ColonToken, indentation),
+                    },
+                    cancellationToken);
+            }
+            else
+            {
+                return document.WithTextChangesAsync(
+                    new TextChange[]
+                    {
+                        GetNewLineBeforeTextChange(conditionalExpression.QuestionToken, indentation),
+                        GetNewLineBeforeTextChange(conditionalExpression.ColonToken, indentation),
+                    },
+                    cancellationToken);
+            }
+        }
+
         private static Task<Document> AddNewLineBeforeOrAfterAsync(
             Document document,
             SyntaxToken token,
@@ -715,21 +789,6 @@ namespace Roslynator.Formatting.CodeFixes
             return (addNewLineAfter)
                 ? AddNewLineAfterAsync(document, token, indentation, cancellationToken)
                 : AddNewLineBeforeAsync(document, token, indentation, cancellationToken);
-        }
-
-        private static ExpressionSyntax FindNextExpressionInChain(BinaryExpressionSyntax binaryExpression)
-        {
-            if (binaryExpression.Parent.IsKind(binaryExpression.Kind()))
-            {
-                var binaryExpression2 = (BinaryExpressionSyntax)binaryExpression.Parent;
-
-                if (object.ReferenceEquals(binaryExpression, binaryExpression2.Left))
-                {
-                    return binaryExpression2.Right;
-                }
-            }
-
-            return null;
         }
 
         private class SyntaxKindComparer : IComparer<SyntaxNode>
@@ -793,6 +852,8 @@ namespace Roslynator.Formatting.CodeFixes
                         return 61;
                     case SyntaxKind.AttributeArgumentList:
                         return 62;
+                    case SyntaxKind.ConditionalExpression:
+                        return 70;
                     default:
                         throw new InvalidOperationException();
                 }

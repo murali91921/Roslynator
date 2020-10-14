@@ -47,7 +47,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             SyntaxToken token,
             CancellationToken cancellationToken = default)
         {
-            SyntaxTrivia indentation = SyntaxTriviaAnalysis.DetermineIndentation(token.Parent, cancellationToken);
+            SyntaxTrivia indentation = DetermineIndentation(token.Parent, cancellationToken);
 
             return AddNewLineBeforeAsync(
                 document,
@@ -61,7 +61,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             SyntaxToken token,
             CancellationToken cancellationToken = default)
         {
-            SyntaxTrivia indentation = SyntaxTriviaAnalysis.DetermineIndentation(token.Parent, cancellationToken);
+            SyntaxTrivia indentation = DetermineIndentation(token.Parent, cancellationToken);
 
             return AddNewLineAfterAsync(
                 document,
@@ -78,7 +78,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             return AddNewLineBeforeAndIncreaseIndentationAsync(
                 document,
                 token,
-                SyntaxTriviaAnalysis.AnalyzeIndentation(token.Parent, cancellationToken),
+                AnalyzeIndentation(token.Parent, cancellationToken),
                 cancellationToken);
         }
 
@@ -103,7 +103,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             return AddNewLineAfterAndIncreaseIndentationAsync(
                 document,
                 token,
-                SyntaxTriviaAnalysis.AnalyzeIndentation(token.Parent, cancellationToken),
+                AnalyzeIndentation(token.Parent, cancellationToken),
                 cancellationToken);
         }
 
@@ -127,9 +127,15 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             CancellationToken cancellationToken = default)
         {
             return document.WithTextChangeAsync(
-                TextSpan.FromBounds(token.GetPreviousToken().Span.End, token.SpanStart),
-                SyntaxTriviaAnalysis.DetermineEndOfLine(token).ToString() + indentation,
+                GetNewLineBeforeTextChange(token, indentation),
                 cancellationToken);
+        }
+
+        public static TextChange GetNewLineBeforeTextChange(SyntaxToken token, string indentation)
+        {
+            return new TextChange(
+                TextSpan.FromBounds(token.GetPreviousToken().Span.End, token.SpanStart),
+                DetermineEndOfLine(token).ToString() + indentation);
         }
 
         public static Task<Document> AddNewLineAfterAsync(
@@ -139,9 +145,15 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             CancellationToken cancellationToken = default)
         {
             return document.WithTextChangeAsync(
-                TextSpan.FromBounds(token.Span.End, token.GetNextToken().SpanStart),
-                SyntaxTriviaAnalysis.DetermineEndOfLine(token).ToString() + indentation,
+                GetNewLineAfterTextChange(token, indentation),
                 cancellationToken);
+        }
+
+        public static TextChange GetNewLineAfterTextChange(SyntaxToken token, string indentation)
+        {
+            return new TextChange(
+                TextSpan.FromBounds(token.Span.End, token.GetNextToken().SpanStart),
+                DetermineEndOfLine(token).ToString() + indentation);
         }
 
         public static (ExpressionSyntax left, SyntaxToken token, ExpressionSyntax right) AddNewLineBeforeTokenInsteadOfAfterIt(
@@ -189,7 +201,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 index--;
             }
 
-            SyntaxTriviaList newLeadingTrivia = leadingTrivia.Insert(index, SyntaxTriviaAnalysis.DetermineEndOfLine(token));
+            SyntaxTriviaList newLeadingTrivia = leadingTrivia.Insert(index, DetermineEndOfLine(token));
 
             SyntaxToken newToken = token.WithLeadingTrivia(newLeadingTrivia);
 
@@ -207,7 +219,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
             int index = leadingTrivia.IndexOf(parentTrivia);
 
-            SyntaxTriviaList newLeadingTrivia = leadingTrivia.Insert(index + 1, SyntaxTriviaAnalysis.DetermineEndOfLine(token));
+            SyntaxTriviaList newLeadingTrivia = leadingTrivia.Insert(index + 1, DetermineEndOfLine(token));
 
             SyntaxToken newToken = token.WithLeadingTrivia(newLeadingTrivia);
 
@@ -238,9 +250,9 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
             SyntaxTriviaList trailingTrivia = left.GetTrailingTrivia();
 
-            if (SyntaxTriviaAnalysis.IsOptionalWhitespaceThenEndOfLineTrivia(trailingTrivia))
+            if (IsOptionalWhitespaceThenEndOfLineTrivia(trailingTrivia))
             {
-                sb.Append(SyntaxTriviaAnalysis.DetermineEndOfLine(left).ToString());
+                sb.Append(DetermineEndOfLine(left).ToString());
             }
             else
             {
@@ -276,9 +288,9 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
             SyntaxTriviaList trailingTrivia = middle.GetTrailingTrivia();
 
-            if (SyntaxTriviaAnalysis.IsOptionalWhitespaceThenEndOfLineTrivia(trailingTrivia))
+            if (IsOptionalWhitespaceThenEndOfLineTrivia(trailingTrivia))
             {
-                sb.Append(SyntaxTriviaAnalysis.DetermineEndOfLine(middle).ToString());
+                sb.Append(DetermineEndOfLine(middle).ToString());
             }
             else
             {
