@@ -79,7 +79,7 @@ namespace Roslynator.Formatting
                     context,
                     DiagnosticDescriptors.LineIsTooLong,
                     Location.Create(tree, lines[i].Span),
-                    lines[i].Length);
+                    lines[i].Span.Length);
             }
         }
     }
