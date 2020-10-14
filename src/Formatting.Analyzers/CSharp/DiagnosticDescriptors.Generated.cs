@@ -589,7 +589,7 @@ namespace Roslynator.Formatting.CSharp
         public static readonly DiagnosticDescriptor LineIsTooLong = DiagnosticDescriptorFactory.Default.Create(
             id:                 DiagnosticIdentifiers.LineIsTooLong, 
             title:              "A line is too long.", 
-            messageFormat:      "A line is too long.", 
+            messageFormat:      "A line is too long ({0} characters).", 
             category:           DiagnosticCategories.Formatting, 
             defaultSeverity:    DiagnosticSeverity.Info, 
             isEnabledByDefault: false, 

@@ -78,7 +78,8 @@ namespace Roslynator.Formatting
                 DiagnosticHelpers.ReportDiagnostic(
                     context,
                     DiagnosticDescriptors.LineIsTooLong,
-                    Location.Create(tree, lines[i].Span));
+                    Location.Create(tree, lines[i].Span),
+                    lines[i].Length);
             }
         }
     }
