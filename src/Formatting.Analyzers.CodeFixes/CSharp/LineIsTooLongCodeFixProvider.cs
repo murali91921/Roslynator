@@ -85,6 +85,8 @@ namespace Roslynator.Formatting.CodeFixes
 
             Dictionary<SyntaxKind, SyntaxNode> spans = null;
 
+            var nodesToWrap = new NodesToWrap();
+
             while (position >= span.Start)
             {
                 SyntaxToken token = root.FindToken(position);
@@ -101,6 +103,8 @@ namespace Roslynator.Formatting.CodeFixes
                     {
                         continue;
                     }
+
+                    nodesToWrap.ProcessNode(node);
 
                     if (kind == SyntaxKind.ArrowExpressionClause)
                     {
@@ -146,9 +150,7 @@ namespace Roslynator.Formatting.CodeFixes
                         int longestLength = span.End - start;
 
                         if (!CanWrapNode(equalsValueClause, wrapPosition, longestLength))
-                        {
                             continue;
-                        }
 
                         AddSpan(equalsValueClause);
                         break;
