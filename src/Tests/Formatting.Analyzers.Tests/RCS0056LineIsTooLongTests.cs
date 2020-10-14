@@ -206,6 +206,7 @@ class C
 }
 ");
         }
+
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
         public async Task Test_PreferCallChainOverArgumentList()
         {

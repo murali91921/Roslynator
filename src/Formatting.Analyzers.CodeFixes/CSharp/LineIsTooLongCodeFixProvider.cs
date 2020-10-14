@@ -295,6 +295,9 @@ namespace Roslynator.Formatting.CodeFixes
                         if (!CanWrapNode(conditionalExpression, wrapPosition, Math.Max(longestLength, longestLength2)))
                             continue;
 
+                        if (!CanWrapLine(conditionalExpression.Parent))
+                            continue;
+
                         AddSpan(conditionalExpression);
                         break;
                     }
@@ -569,7 +572,7 @@ namespace Roslynator.Formatting.CodeFixes
 
                 int longestLength = nodes.Max(f => f.Span.Length);
 
-                return CanWrapNode(nodes.First(), wrapPosition, longestLength);
+                return CanWrapNode(nodes[0], wrapPosition, longestLength);
             }
 
             bool CanWrapNode(
