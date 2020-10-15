@@ -31,15 +31,13 @@ namespace Roslynator.Formatting.CodeFixes
         {
             SyntaxNode root = await context.GetSyntaxRootAsync().ConfigureAwait(false);
 
-            TextSpan span = context.Span;
             Document document = context.Document;
             Diagnostic diagnostic = context.Diagnostics[0];
             int maxLength = AnalyzerSettings.Current.MaxLineLength;
-            int position = span.End;
 
-            var wrapLineNodeFinder = new WrapLineNodeFinder(document, span, maxLength);
+            var wrapLineNodeFinder = new WrapLineNodeFinder(document, context.Span, maxLength);
 
-            SyntaxNode nodeToFix = wrapLineNodeFinder.GetNodeToFix();
+            SyntaxNode nodeToFix = wrapLineNodeFinder.FindNodeToFix(root);
 
             if (nodeToFix == null)
                 return;
@@ -47,7 +45,7 @@ namespace Roslynator.Formatting.CodeFixes
             CodeAction codeAction = CodeAction.Create(
                 Title,
                 GetCreateChangedDocument(document, nodeToFix),
-                base.GetEquivalenceKey(diagnostic));
+                GetEquivalenceKey(diagnostic));
 
             context.RegisterCodeFix(codeAction, diagnostic);
             return;
