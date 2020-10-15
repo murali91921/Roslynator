@@ -13,13 +13,9 @@ using Roslynator.Formatting.CSharp;
 
 namespace Roslynator.Formatting.CodeFixes
 {
-    internal class WrapLineAnalysis
+    internal class WrapLineNodeFinder
     {
         private Dictionary<SyntaxGroup, SyntaxNode> _nodes;
-        private readonly Document _document;
-        private readonly TextSpan _span;
-        private readonly int _maxLength;
-
         private static readonly ImmutableDictionary<SyntaxKind, SyntaxGroup> _groupsMap = ImmutableDictionary.CreateRange(
             new[]
             {
@@ -67,11 +63,71 @@ namespace Roslynator.Formatting.CodeFixes
                     SyntaxGroup.ConditionalExpression)
             });
 
-        public WrapLineAnalysis(Document document, TextSpan span, int maxLength)
+        public Document Document { get; }
+
+        public TextSpan Span { get; }
+
+        public int MaxLineLength { get; }
+
+        public WrapLineNodeFinder(Document document, TextSpan span, int maxLineLength)
         {
-            _document = document;
-            _span = span;
-            _maxLength = maxLength;
+            Document = document;
+            Span = span;
+            MaxLineLength = maxLineLength;
+        }
+
+        public SyntaxNode FindNodeToFix(SyntaxNode root)
+        {
+            int position = Span.End;
+
+            while (position >= Span.Start)
+            {
+                SyntaxToken token = root.FindToken(position);
+
+                for (SyntaxNode node = token.Parent; node?.SpanStart >= Span.Start; node = node.Parent)
+                {
+                    if (ProcessNode(node))
+                        break;
+                }
+
+                position = Math.Min(position, token.FullSpan.Start) - 1;
+            }
+
+            if (_nodes == null)
+                return null;
+
+            if (_nodes.TryGetValue(SyntaxGroup.ArgumentList, out SyntaxNode argumentList)
+                && _nodes.TryGetValue(SyntaxGroup.MemberExpression, out SyntaxNode memberExpression))
+            {
+                SyntaxNode argumentListOrMemberExpression = ChooseBetweenArgumentListAndMemberExpression(
+                    argumentList,
+                    memberExpression);
+
+                _nodes.Remove((_groupsMap[argumentListOrMemberExpression.Kind()] == SyntaxGroup.ArgumentList)
+                    ? SyntaxGroup.MemberExpression
+                    : SyntaxGroup.ArgumentList);
+            }
+
+            if (_nodes.TryGetValue(SyntaxGroup.BinaryExpression, out SyntaxNode binaryExpression)
+                && _nodes.TryGetValue(SyntaxGroup.ArgumentList, out argumentList))
+            {
+                _nodes.Remove((binaryExpression.Contains(argumentList))
+                    ? SyntaxGroup.ArgumentList
+                    : SyntaxGroup.BinaryExpression);
+            }
+
+            if (_nodes.TryGetValue(SyntaxGroup.BinaryExpression, out SyntaxNode binaryExpression2)
+                && _nodes.TryGetValue(SyntaxGroup.MemberExpression, out memberExpression))
+            {
+                _nodes.Remove((binaryExpression2.Contains(memberExpression))
+                    ? SyntaxGroup.MemberExpression
+                    : SyntaxGroup.BinaryExpression);
+            }
+
+            return _nodes
+                .Select(f => f.Value)
+                .OrderBy(f => f, SyntaxKindComparer.Instance)
+                .First();
         }
 
         public bool ProcessNode(SyntaxNode node)
@@ -91,10 +147,10 @@ namespace Roslynator.Formatting.CodeFixes
                         SyntaxToken arrowToken = expressionBody.ArrowToken;
                         SyntaxToken previousToken = arrowToken.GetPreviousToken();
 
-                        if (previousToken.SpanStart < _span.Start)
+                        if (previousToken.SpanStart < Span.Start)
                             return false;
 
-                        bool addNewLineAfter = _document.IsAnalyzerOptionEnabled(
+                        bool addNewLineAfter = Document.IsAnalyzerOptionEnabled(
                             AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
 
                         int wrapPosition = (addNewLineAfter) ? arrowToken.Span.End : previousToken.Span.End;
@@ -117,15 +173,15 @@ namespace Roslynator.Formatting.CodeFixes
                         SyntaxToken equalsToken = equalsValueClause.EqualsToken;
                         SyntaxToken previousToken = equalsToken.GetPreviousToken();
 
-                        if (previousToken.SpanStart < _span.Start)
+                        if (previousToken.SpanStart < Span.Start)
                             return false;
 
-                        bool addNewLineAfter = _document.IsAnalyzerOptionEnabled(
+                        bool addNewLineAfter = Document.IsAnalyzerOptionEnabled(
                             AnalyzerOptions.AddNewLineAfterEqualsSignInsteadOfBeforeIt);
 
                         int wrapPosition = (addNewLineAfter) ? equalsToken.Span.End : previousToken.Span.End;
                         int start = (addNewLineAfter) ? equalsValueClause.Value.SpanStart : equalsToken.SpanStart;
-                        int longestLength = _span.End - start;
+                        int longestLength = Span.End - start;
 
                         if (!CanWrap(equalsValueClause, wrapPosition, longestLength))
                             return false;
@@ -228,7 +284,7 @@ namespace Roslynator.Formatting.CodeFixes
 
                         SyntaxToken dotToken = memberAccessExpression.OperatorToken;
 
-                        if (!CanWrap(memberAccessExpression, dotToken.SpanStart, _span.End - dotToken.SpanStart))
+                        if (!CanWrap(memberAccessExpression, dotToken.SpanStart, Span.End - dotToken.SpanStart))
                             return false;
 
                         TryAdd(memberAccessExpression);
@@ -245,7 +301,7 @@ namespace Roslynator.Formatting.CodeFixes
                         var memberBindingExpression = (MemberBindingExpressionSyntax)node;
                         SyntaxToken dotToken = memberBindingExpression.OperatorToken;
 
-                        if (!CanWrap(memberBindingExpression, dotToken.SpanStart, _span.End - dotToken.SpanStart))
+                        if (!CanWrap(memberBindingExpression, dotToken.SpanStart, Span.End - dotToken.SpanStart))
                             return false;
 
                         TryAdd(memberBindingExpression);
@@ -258,7 +314,7 @@ namespace Roslynator.Formatting.CodeFixes
                         SyntaxToken questionToken = conditionalExpression.QuestionToken;
                         SyntaxToken colonToken = conditionalExpression.ColonToken;
 
-                        bool addNewLineAfter = _document.IsAnalyzerOptionEnabled(
+                        bool addNewLineAfter = Document.IsAnalyzerOptionEnabled(
                             AnalyzerOptions.AddNewLineAfterConditionalOperatorInsteadOfBeforeIt);
 
                         int wrapPosition = (addNewLineAfter)
@@ -270,7 +326,7 @@ namespace Roslynator.Formatting.CodeFixes
                         int longestLength = end - start;
 
                         start = (addNewLineAfter) ? conditionalExpression.WhenFalse.SpanStart : colonToken.SpanStart;
-                        int longestLength2 = _span.End - start;
+                        int longestLength2 = Span.End - start;
 
                         if (!CanWrap(conditionalExpression, wrapPosition, Math.Max(longestLength, longestLength2)))
                             return false;
@@ -315,7 +371,7 @@ namespace Roslynator.Formatting.CodeFixes
 
                         SyntaxToken operatorToken = binaryExpression.OperatorToken;
 
-                        bool addNewLineAfter = _document.IsAnalyzerOptionEnabled(
+                        bool addNewLineAfter = Document.IsAnalyzerOptionEnabled(
                             AnalyzerOptions.AddNewLineAfterBinaryOperatorInsteadOfBeforeIt);
 
                         int wrapPosition = (addNewLineAfter)
@@ -341,7 +397,7 @@ namespace Roslynator.Formatting.CodeFixes
                             }
                             else
                             {
-                                end = _span.End;
+                                end = Span.End;
                             }
 
                             int start = (addNewLineAfter)
@@ -502,13 +558,13 @@ namespace Roslynator.Formatting.CodeFixes
             int wrapPosition,
             int longestLength)
         {
-            if (wrapPosition - _span.Start > _maxLength)
+            if (wrapPosition - Span.Start > MaxLineLength)
                 return false;
 
             //TODO: cache
             int indentationLength = SyntaxTriviaAnalysis.GetIncreasedIndentationLength(node);
 
-            return indentationLength + longestLength <= _maxLength;
+            return indentationLength + longestLength <= MaxLineLength;
         }
 
         private SyntaxNode ChooseBetweenArgumentListAndMemberExpression(SyntaxNode argumentList, SyntaxNode memberExpression)

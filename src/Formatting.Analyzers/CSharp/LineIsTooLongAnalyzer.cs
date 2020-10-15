@@ -65,12 +65,22 @@ namespace Roslynator.Formatting
 
             for (; i < lines.Count; i++)
             {
-                if (lines[i].Span.Length <= maxLength)
+                TextLine line = lines[i];
+
+                if (line.Span.Length <= maxLength)
                     continue;
 
-                if (root.FindTrivia(lines[i].End).IsKind(
-                    SyntaxKind.SingleLineDocumentationCommentTrivia,
-                    SyntaxKind.MultiLineDocumentationCommentTrivia))
+                SyntaxKind triviaKind = root.FindTrivia(line.End).Kind();
+
+                if (triviaKind == SyntaxKind.MultiLineCommentTrivia
+                    || triviaKind == SyntaxKind.SingleLineDocumentationCommentTrivia
+                    || triviaKind == SyntaxKind.MultiLineDocumentationCommentTrivia)
+                {
+                    continue;
+                }
+
+                if (triviaKind == SyntaxKind.EndOfLineTrivia
+                    && root.FindTrivia(line.End - 1).IsKind(SyntaxKind.SingleLineCommentTrivia))
                 {
                     continue;
                 }
@@ -78,8 +88,8 @@ namespace Roslynator.Formatting
                 DiagnosticHelpers.ReportDiagnostic(
                     context,
                     DiagnosticDescriptors.LineIsTooLong,
-                    Location.Create(tree, lines[i].Span),
-                    lines[i].Span.Length);
+                    Location.Create(tree, line.Span),
+                    line.Span.Length);
             }
         }
     }
