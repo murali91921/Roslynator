@@ -238,6 +238,34 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_PreferCallChainOverArgumentList2()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M()
+    {
+        string xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = null;
+
+[|        var x = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.Length.ToString(xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.ToString());|]
+    }
+}
+",
+@"
+class C
+{
+    void M()
+    {
+        string xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = null;
+
+        var x = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.Length
+            .ToString(xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.ToString());
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
         public async Task Test_PreferArgumentListOverCallChain()
         {
             await VerifyDiagnosticAndFixAsync(@"

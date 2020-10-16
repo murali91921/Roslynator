@@ -91,13 +91,12 @@ namespace Roslynator.Formatting.CodeFixes
                 for (SyntaxNode node = token.Parent; node?.SpanStart >= Span.Start; node = node.Parent)
                 {
                     if (_processedNodes.Contains(node))
-                        break;
+                        continue;
 
-                    if (!CanAdd(node))
-                        break;
+                    if (CanAdd(node))
+                        ProcessNode(node);
 
-                    if (ProcessNode(node))
-                        break;
+                    _processedNodes.Add(node);
                 }
 
                 position = Math.Min(position, token.FullSpan.Start) - 1;
@@ -136,7 +135,7 @@ namespace Roslynator.Formatting.CodeFixes
                 .First();
         }
 
-        public bool ProcessNode(SyntaxNode node)
+        public void ProcessNode(SyntaxNode node)
         {
             switch (node.Kind())
             {
@@ -148,7 +147,7 @@ namespace Roslynator.Formatting.CodeFixes
                         SyntaxToken previousToken = arrowToken.GetPreviousToken();
 
                         if (previousToken.SpanStart < Span.Start)
-                            return false;
+                            return;
 
                         bool addNewLineAfter = Document.IsAnalyzerOptionEnabled(
                             AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
@@ -158,15 +157,15 @@ namespace Roslynator.Formatting.CodeFixes
                         int longestLength = expressionBody.GetLastToken().GetNextToken().Span.End - start;
 
                         if (!CanWrap(expressionBody, wrapPosition, longestLength))
-                            return false;
+                            return;
 
                         TryAdd(expressionBody);
-                        return true;
+                        break;
                     }
                 case SyntaxKind.EqualsValueClause:
                     {
                         if (!node.IsParentKind(SyntaxKind.PropertyDeclaration))
-                            return false;
+                            return;
 
                         var equalsValueClause = (EqualsValueClauseSyntax)node;
 
@@ -174,7 +173,7 @@ namespace Roslynator.Formatting.CodeFixes
                         SyntaxToken previousToken = equalsToken.GetPreviousToken();
 
                         if (previousToken.SpanStart < Span.Start)
-                            return false;
+                            return;
 
                         bool addNewLineAfter = Document.IsAnalyzerOptionEnabled(
                             AnalyzerOptions.AddNewLineAfterEqualsSignInsteadOfBeforeIt);
@@ -184,43 +183,43 @@ namespace Roslynator.Formatting.CodeFixes
                         int longestLength = Span.End - start;
 
                         if (!CanWrap(equalsValueClause, wrapPosition, longestLength))
-                            return false;
+                            return;
 
                         TryAdd(equalsValueClause);
-                        return true;
+                        break;
                     }
                 case SyntaxKind.AttributeList:
                     {
                         var attributeList = (AttributeListSyntax)node;
 
                         if (!CanWrap(attributeList.Attributes, attributeList.OpenBracketToken.Span.End, 2))
-                            return false;
+                            return;
 
                         TryAdd(attributeList);
-                        return true;
+                        break;
                     }
                 case SyntaxKind.ParameterList:
                     {
                         if (node.Parent is AnonymousFunctionExpressionSyntax)
-                            return false;
+                            return;
 
                         var parameterList = (ParameterListSyntax)node;
 
                         if (!CanWrap(parameterList.Parameters, parameterList.OpenParenToken.Span.End))
-                            return false;
+                            return;
 
                         TryAdd(parameterList);
-                        return true;
+                        break;
                     }
                 case SyntaxKind.BracketedParameterList:
                     {
                         var parameterList = (BracketedParameterListSyntax)node;
 
                         if (!CanWrap(parameterList.Parameters, parameterList.OpenBracketToken.Span.End))
-                            return false;
+                            return;
 
                         TryAdd(parameterList);
-                        return true;
+                        break;
                     }
                 case SyntaxKind.ArgumentList:
                     {
@@ -231,63 +230,63 @@ namespace Roslynator.Formatting.CodeFixes
                             && invocationExpression.Expression is IdentifierNameSyntax identifierName
                             && identifierName.Identifier.ValueText == "nameof")
                         {
-                            return false;
+                            return;
                         }
 
                         if (!CanWrap(argumentList.Arguments, argumentList.OpenParenToken.Span.End))
-                            return false;
+                            return;
 
                         TryAdd(argumentList);
-                        return true;
+                        break;
                     }
                 case SyntaxKind.BracketedArgumentList:
                     {
                         var argumentList = (BracketedArgumentListSyntax)node;
 
                         if (!CanWrap(argumentList.Arguments, argumentList.OpenBracketToken.Span.End))
-                            return false;
+                            return;
 
                         TryAdd(argumentList);
-                        return true;
+                        break;
                     }
                 case SyntaxKind.AttributeArgumentList:
                     {
                         var argumentList = (AttributeArgumentListSyntax)node;
 
                         if (!CanWrap(argumentList.Arguments, argumentList.OpenParenToken.Span.End))
-                            return false;
+                            return;
 
                         TryAdd(argumentList);
-                        return true;
+                        break;
                     }
                 case SyntaxKind.SimpleMemberAccessExpression:
                     {
                         if (!node.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
-                            return false;
+                            return;
 
                         var memberAccessExpression = (MemberAccessExpressionSyntax)node;
 
                         SyntaxToken dotToken = memberAccessExpression.OperatorToken;
 
                         if (!CanWrap(memberAccessExpression, dotToken.SpanStart, Span.End - dotToken.SpanStart))
-                            return false;
+                            return;
 
                         TryAdd(memberAccessExpression);
-                        return true;
+                        break;
                     }
                 case SyntaxKind.MemberBindingExpression:
                     {
                         if (!node.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
-                            return false;
+                            return;
 
                         var memberBindingExpression = (MemberBindingExpressionSyntax)node;
                         SyntaxToken dotToken = memberBindingExpression.OperatorToken;
 
                         if (!CanWrap(memberBindingExpression, dotToken.SpanStart, Span.End - dotToken.SpanStart))
-                            return false;
+                            return;
 
                         TryAdd(memberBindingExpression);
-                        return true;
+                        break;
                     }
                 case SyntaxKind.ConditionalExpression:
                     {
@@ -311,10 +310,10 @@ namespace Roslynator.Formatting.CodeFixes
                         int longestLength2 = Span.End - start;
 
                         if (!CanWrap(conditionalExpression, wrapPosition, Math.Max(longestLength, longestLength2)))
-                            return false;
+                            return;
 
                         TryAdd(conditionalExpression);
-                        return true;
+                        break;
                     }
                 case SyntaxKind.ArrayInitializerExpression:
                 case SyntaxKind.CollectionInitializerExpression:
@@ -324,10 +323,10 @@ namespace Roslynator.Formatting.CodeFixes
                         var initializer = (InitializerExpressionSyntax)node;
 
                         if (!CanWrap(initializer.Expressions, initializer.OpenBraceToken.Span.End))
-                            return false;
+                            return;
 
                         TryAdd(initializer);
-                        return true;
+                        break;
                     }
                 case SyntaxKind.AddExpression:
                 case SyntaxKind.SubtractExpression:
@@ -389,14 +388,12 @@ namespace Roslynator.Formatting.CodeFixes
                         }
 
                         if (!CanWrap(node, wrapPosition, longestLength))
-                            return false;
+                            return;
 
                         TryAdd(node);
-                        return true;
+                        break;
                     }
             }
-
-            return false;
         }
 
         private bool TryGetNode(SyntaxGroup syntaxGroup, out SyntaxNode node)
