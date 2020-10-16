@@ -336,6 +336,47 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_PreferArgumentListOverCallChain_WhenLeftIsCastExpression()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        var items = new List<string>();
+
+[|        foreach ((string ffff, string gggg) item in ((IEnumerable<string>)items).Join(items, ffff => ffff, ffff => ffff, (ffff, gggg) => (ffff, gggg)))|]
+        {
+        }
+    }
+}
+",
+@"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        var items = new List<string>();
+
+        foreach ((string ffff, string gggg) item in ((IEnumerable<string>)items).Join(
+            items,
+            ffff => ffff,
+            ffff => ffff,
+            (ffff, gggg) => (ffff, gggg)))
+        {
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
         public async Task Test_BinaryExpression()
         {
             await VerifyDiagnosticAndFixAsync(@"

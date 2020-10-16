@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -532,33 +533,86 @@ namespace Roslynator.Formatting.CodeFixes
 
             if (memberExpression.Span.End == argumentList.SpanStart)
             {
+                for (SyntaxNode node = memberExpression.Parent; node != null; node = node.Parent)
+                {
+                    SyntaxKind kind = node.Kind();
+
+                    if (kind == SyntaxKind.SimpleMemberAccessExpression)
+                        return memberExpression;
+
+                    if (kind == SyntaxKind.ElementAccessExpression
+                        || kind == SyntaxKind.InvocationExpression)
+                    {
+                        continue;
+                    }
+
+                    if (kind == SyntaxKind.ConditionalAccessExpression
+                        && node.SpanStart == memberExpression.SpanStart)
+                    {
+                        var conditionalAccess = (ConditionalAccessExpressionSyntax)node;
+                        SyntaxToken nextToken = conditionalAccess.OperatorToken.GetNextToken();
+
+                        if (nextToken.IsKind(SyntaxKind.OpenBracketToken))
+                        {
+                            if (nextToken.Parent.IsKind(SyntaxKind.ElementAccessExpression))
+                            {
+                                node = nextToken.Parent;
+                                continue;
+                            }
+                        }
+                        else if (nextToken.IsKind(SyntaxKind.DotToken))
+                        {
+                            if (nextToken.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+                                return memberExpression;
+                        }
+                        else
+                        {
+                            Debug.Assert(conditionalAccess.ContainsDiagnostics, nextToken.Kind().ToString());
+                        }
+                    }
+
+                    break;
+                }
+
                 ExpressionSyntax expression = null;
 
                 if (memberExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
                 {
-                    var memberAccess2 = (MemberAccessExpressionSyntax)memberExpression;
-                    expression = memberAccess2.Expression;
+                    var memberAccess = (MemberAccessExpressionSyntax)memberExpression;
+                    expression = memberAccess.Expression;
                 }
                 else
                 {
-                    var memberBinding2 = (MemberBindingExpressionSyntax)memberExpression;
+                    var memberBinding = (MemberBindingExpressionSyntax)memberExpression;
 
-                    if (memberBinding2.Parent is ConditionalAccessExpressionSyntax conditionalAccess)
+                    SyntaxToken previousToken = memberBinding.OperatorToken.GetPreviousToken();
+
+                    if (previousToken.IsKind(SyntaxKind.QuestionToken)
+                        && previousToken.Parent is ConditionalAccessExpressionSyntax conditionalAccess)
+                    {
                         expression = conditionalAccess.Expression;
+                    }
                 }
 
                 if (expression is SimpleNameSyntax)
                     return argumentList;
 
-                if (expression is CastExpressionSyntax castExpression
+                if (expression is ParenthesizedExpressionSyntax parenthesizedExpression
+                    && parenthesizedExpression.Expression is CastExpressionSyntax castExpression
                     && castExpression.Expression is SimpleNameSyntax)
                 {
                     return argumentList;
                 }
-            }
 
-            if (argumentList.SpanStart > memberExpression.SpanStart)
+                //TODO: 
+                //if (argumentList is BaseArgumentListSyntax baseArgumentList
+                //    && baseArgumentList.Arguments.Count > 1)
+                //{
+                //    return argumentList;
+                //}
+
                 return memberExpression;
+            }
 
             return argumentList;
         }
