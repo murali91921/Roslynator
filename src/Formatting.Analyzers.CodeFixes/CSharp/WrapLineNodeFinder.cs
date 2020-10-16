@@ -16,6 +16,7 @@ namespace Roslynator.Formatting.CodeFixes
     internal class WrapLineNodeFinder
     {
         private Dictionary<SyntaxGroup, SyntaxNode> _nodes;
+        private readonly HashSet<SyntaxNode> _processedNodes;
 
         private static readonly ImmutableDictionary<SyntaxKind, SyntaxGroup> _groupsMap = ImmutableDictionary.CreateRange(
             new[]
@@ -75,6 +76,8 @@ namespace Roslynator.Formatting.CodeFixes
             Document = document;
             Span = span;
             MaxLineLength = maxLineLength;
+
+            _processedNodes = new HashSet<SyntaxNode>();
         }
 
         public SyntaxNode FindNodeToFix(SyntaxNode root)
@@ -87,6 +90,12 @@ namespace Roslynator.Formatting.CodeFixes
 
                 for (SyntaxNode node = token.Parent; node?.SpanStart >= Span.Start; node = node.Parent)
                 {
+                    if (_processedNodes.Contains(node))
+                        break;
+
+                    if (!CanAdd(node))
+                        break;
+
                     if (ProcessNode(node))
                         break;
                 }
@@ -112,17 +121,13 @@ namespace Roslynator.Formatting.CodeFixes
             if (TryGetNode(SyntaxGroup.BinaryExpression, out SyntaxNode binaryExpression)
                 && TryGetNode(SyntaxGroup.ArgumentList, out argumentList))
             {
-                _nodes.Remove((binaryExpression.Contains(argumentList))
-                    ? SyntaxGroup.ArgumentList
-                    : SyntaxGroup.BinaryExpression);
+                Remove(binaryExpression, argumentList);
             }
 
             if (TryGetNode(SyntaxGroup.BinaryExpression, out SyntaxNode binaryExpression2)
                 && TryGetNode(SyntaxGroup.MemberExpression, out memberExpression))
             {
-                _nodes.Remove((binaryExpression2.Contains(memberExpression))
-                    ? SyntaxGroup.MemberExpression
-                    : SyntaxGroup.BinaryExpression);
+                Remove(binaryExpression, memberExpression);
             }
 
             return _nodes
@@ -133,13 +138,6 @@ namespace Roslynator.Formatting.CodeFixes
 
         public bool ProcessNode(SyntaxNode node)
         {
-            if (_groupsMap.TryGetValue(node.Kind(), out SyntaxGroup syntaxGroup)
-                && TryGetNode(syntaxGroup, out SyntaxNode node2)
-                && object.ReferenceEquals(node, node2))
-            {
-                return false;
-            }
-
             switch (node.Kind())
             {
                 case SyntaxKind.ArrowExpressionClause:
@@ -206,9 +204,6 @@ namespace Roslynator.Formatting.CodeFixes
                         if (node.Parent is AnonymousFunctionExpressionSyntax)
                             return false;
 
-                        if (!CanAdd(node))
-                            return false;
-
                         var parameterList = (ParameterListSyntax)node;
 
                         if (!CanWrap(parameterList.Parameters, parameterList.OpenParenToken.Span.End))
@@ -219,9 +214,6 @@ namespace Roslynator.Formatting.CodeFixes
                     }
                 case SyntaxKind.BracketedParameterList:
                     {
-                        if (!CanAdd(node))
-                            return false;
-
                         var parameterList = (BracketedParameterListSyntax)node;
 
                         if (!CanWrap(parameterList.Parameters, parameterList.OpenBracketToken.Span.End))
@@ -232,9 +224,6 @@ namespace Roslynator.Formatting.CodeFixes
                     }
                 case SyntaxKind.ArgumentList:
                     {
-                        if (!CanAdd(node))
-                            return false;
-
                         var argumentList = (ArgumentListSyntax)node;
 
                         if (argumentList.Arguments.Count == 1
@@ -253,9 +242,6 @@ namespace Roslynator.Formatting.CodeFixes
                     }
                 case SyntaxKind.BracketedArgumentList:
                     {
-                        if (!CanAdd(node))
-                            return false;
-
                         var argumentList = (BracketedArgumentListSyntax)node;
 
                         if (!CanWrap(argumentList.Arguments, argumentList.OpenBracketToken.Span.End))
@@ -279,9 +265,6 @@ namespace Roslynator.Formatting.CodeFixes
                         if (!node.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
                             return false;
 
-                        if (!CanAdd(node))
-                            return false;
-
                         var memberAccessExpression = (MemberAccessExpressionSyntax)node;
 
                         SyntaxToken dotToken = memberAccessExpression.OperatorToken;
@@ -295,9 +278,6 @@ namespace Roslynator.Formatting.CodeFixes
                 case SyntaxKind.MemberBindingExpression:
                     {
                         if (!node.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
-                            return false;
-
-                        if (!CanAdd(node))
                             return false;
 
                         var memberBindingExpression = (MemberBindingExpressionSyntax)node;
@@ -341,9 +321,6 @@ namespace Roslynator.Formatting.CodeFixes
                 case SyntaxKind.ComplexElementInitializerExpression:
                 case SyntaxKind.ObjectInitializerExpression:
                     {
-                        if (!CanAdd(node))
-                            return false;
-
                         var initializer = (InitializerExpressionSyntax)node;
 
                         if (!CanWrap(initializer.Expressions, initializer.OpenBraceToken.Span.End))
@@ -366,9 +343,6 @@ namespace Roslynator.Formatting.CodeFixes
                 case SyntaxKind.ExclusiveOrExpression:
                 case SyntaxKind.CoalesceExpression:
                     {
-                        if (!CanAdd(node))
-                            return false;
-
                         var binaryExpression = (BinaryExpressionSyntax)node;
 
                         SyntaxToken operatorToken = binaryExpression.OperatorToken;
@@ -438,9 +412,23 @@ namespace Roslynator.Formatting.CodeFixes
             }
         }
 
-        private bool TryGetNode(SyntaxKind kind, out SyntaxNode node)
+        private void Remove(SyntaxNode node1, SyntaxNode node2)
         {
-            return TryGetNode(_groupsMap[kind], out node);
+            _nodes.Remove(_groupsMap[GetNodeToRemove(node1, node2).Kind()]);
+
+            static SyntaxNode GetNodeToRemove(SyntaxNode node1, SyntaxNode node2)
+            {
+                if (node1.FullSpan.Contains(node2.FullSpan))
+                    return node2;
+
+                if (node2.FullSpan.Contains(node1.FullSpan))
+                    return node1;
+
+                if (node1.SpanStart > node2.SpanStart)
+                    return node2;
+
+                return node1;
+            }
         }
 
         public bool CanAdd(SyntaxNode node)
@@ -448,18 +436,24 @@ namespace Roslynator.Formatting.CodeFixes
             if (_nodes == null)
                 return true;
 
-            SyntaxKind kind = node.Kind();
-
-            if (!TryGetNode(kind, out SyntaxNode node2))
+            if (!_groupsMap.TryGetValue(node.Kind(), out SyntaxGroup syntaxGroup))
                 return true;
 
-            if (node2.Contains(node))
-                return false;
+            if (!TryGetNode(syntaxGroup, out SyntaxNode node2))
+                return true;
 
-            if (node.SpanStart > node2.SpanStart)
-                return false;
+            if (node.FullSpan.Contains(node2.FullSpan))
+            {
+                return true;
+            }
+            else if (node.IsKind(SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.MemberBindingExpression)
+                && node.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression)
+                && node.Parent.FullSpan.Contains(node2.FullSpan))
+            {
+                return true;
+            }
 
-            return true;
+            return false;
         }
 
         public void TryAdd(SyntaxNode node)
@@ -526,7 +520,6 @@ namespace Roslynator.Formatting.CodeFixes
             if (wrapPosition - Span.Start > MaxLineLength)
                 return false;
 
-            //TODO: cache
             int indentationLength = SyntaxTriviaAnalysis.GetIncreasedIndentationLength(node);
 
             return indentationLength + longestLength <= MaxLineLength;
@@ -534,10 +527,10 @@ namespace Roslynator.Formatting.CodeFixes
 
         private SyntaxNode ChooseBetweenArgumentListAndMemberExpression(SyntaxNode argumentList, SyntaxNode memberExpression)
         {
-            if (argumentList.Contains(memberExpression))
+            if (argumentList.FullSpan.Contains(memberExpression.FullSpan))
                 return argumentList;
 
-            if (memberExpression.Contains(argumentList))
+            if (memberExpression.FullSpan.Contains(argumentList.FullSpan))
                 return memberExpression;
 
             if (memberExpression.Span.End == argumentList.SpanStart)

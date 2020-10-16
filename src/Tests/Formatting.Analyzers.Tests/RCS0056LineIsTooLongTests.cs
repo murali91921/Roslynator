@@ -384,69 +384,39 @@ class C
 using System.Collections.Generic;
 using System.Linq;
 
-namespace N
+class C
 {
-    class C
+    void M()
     {
-        void M()
-        {
-            string[] usings = null;
+        string[] items = null;
 
-            if (usings.Length > 0)
-            {
-                List<string> topTrivia = null;
-                List<string> leadingTrivia = default;
-
-                if (usings.Length > 0)
-                {
-[|                    usings[usings.Length - 1] = usings[usings.Length - 1].WithTrailingTrivia(leadingTrivia.Skip(topTrivia.Count));|]
-                }
-            }
-        }
+[|        items[items.Length - 1] = items[items.Length - 1].Mxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx(items.Skip(items.Length));|]
     }
+}
 
-    static class E
-    {
-        public static string WithTrailingTrivia(this string s, IEnumerable<string> items)
-        {
-            return null;
-        }
-    }
+static class E
+{
+    public static string Mxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx(this string s, IEnumerable<string> items) => null;
 }
 ",
 @"
 using System.Collections.Generic;
 using System.Linq;
 
-namespace N
+class C
 {
-    class C
+    void M()
     {
-        void M()
-        {
-            string[] usings = null;
+        string[] items = null;
 
-            if (usings.Length > 0)
-            {
-                List<string> topTrivia = null;
-                List<string> leadingTrivia = default;
-
-                if (usings.Length > 0)
-                {
-                    usings[usings.Length - 1] = usings[usings.Length - 1]
-                        .WithTrailingTrivia(leadingTrivia.Skip(topTrivia.Count));
-                }
-            }
-        }
+        items[items.Length - 1] = items[items.Length - 1]
+            .Mxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx(items.Skip(items.Length));
     }
+}
 
-    static class E
-    {
-        public static string WithTrailingTrivia(this string s, IEnumerable<string> items)
-        {
-            return null;
-        }
-    }
+static class E
+{
+    public static string Mxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx(this string s, IEnumerable<string> items) => null;
 }
 ");
         }
