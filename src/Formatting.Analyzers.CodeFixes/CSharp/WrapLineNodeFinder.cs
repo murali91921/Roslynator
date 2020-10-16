@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -443,6 +442,39 @@ namespace Roslynator.Formatting.CodeFixes
             if (node.FullSpan.Contains(node2.FullSpan))
                 return true;
 
+            if (syntaxGroup == SyntaxGroup.MemberExpression)
+            {
+                if (TryGetNode(SyntaxGroup.ArgumentList, out SyntaxNode argumentList)
+                    && TryGetNode(SyntaxGroup.MemberExpression, out SyntaxNode memberExpression))
+                {
+                    SyntaxNode argumentListOrMemberExpression = ChooseBetweenArgumentListAndMemberExpression(
+                        argumentList,
+                        memberExpression);
+
+                    if (_groupsMap[argumentListOrMemberExpression.Kind()] == SyntaxGroup.ArgumentList)
+                    {
+                        _nodes.Remove(SyntaxGroup.MemberExpression);
+                        return true;
+                    }
+                }
+            }
+            else if (syntaxGroup == SyntaxGroup.ArgumentList)
+            {
+                if (TryGetNode(SyntaxGroup.ArgumentList, out SyntaxNode argumentList)
+                    && TryGetNode(SyntaxGroup.MemberExpression, out SyntaxNode memberExpression))
+                {
+                    SyntaxNode argumentListAndMemberExpression = ChooseBetweenArgumentListAndMemberExpression(
+                        argumentList,
+                        memberExpression);
+
+                    if (_groupsMap[argumentListAndMemberExpression.Kind()] == SyntaxGroup.MemberExpression)
+                    {
+                        _nodes.Remove(SyntaxGroup.ArgumentList);
+                        return true;
+                    }
+                }
+            }
+
             return false;
         }
 
@@ -525,79 +557,41 @@ namespace Roslynator.Formatting.CodeFixes
 
             if (memberExpression.Span.End == argumentList.SpanStart)
             {
-                for (SyntaxNode node = memberExpression.Parent; node != null; node = node.Parent)
+                SyntaxToken dotToken = (memberExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+                    ? ((MemberAccessExpressionSyntax)memberExpression).OperatorToken
+                    : ((MemberBindingExpressionSyntax)memberExpression).OperatorToken;
+
+                var expression = (ExpressionSyntax)memberExpression;
+
+                if (memberExpression is MemberBindingExpressionSyntax memberBinding)
+                {
+                    SyntaxToken token = memberBinding.OperatorToken.GetPreviousToken();
+
+                    if (token.IsKind(SyntaxKind.QuestionToken)
+                        && token.FullSpan.End == memberBinding.OperatorToken.SpanStart
+                        && token.Parent.IsKind(SyntaxKind.ConditionalAccessExpression))
+                    {
+                        expression = (ExpressionSyntax)token.Parent;
+                    }
+                }
+
+                foreach (SyntaxNode node in new MethodChain(expression))
                 {
                     SyntaxKind kind = node.Kind();
 
                     if (kind == SyntaxKind.SimpleMemberAccessExpression)
-                        return memberExpression;
-
-                    if (kind == SyntaxKind.ElementAccessExpression
-                        || kind == SyntaxKind.InvocationExpression)
                     {
-                        continue;
-                    }
-
-                    if (kind == SyntaxKind.ConditionalAccessExpression
-                        && node.SpanStart == memberExpression.SpanStart)
-                    {
-                        var conditionalAccess = (ConditionalAccessExpressionSyntax)node;
-                        SyntaxToken nextToken = conditionalAccess.OperatorToken.GetNextToken();
-
-                        if (nextToken.IsKind(SyntaxKind.OpenBracketToken))
-                        {
-                            if (nextToken.Parent.IsKind(SyntaxKind.ElementAccessExpression))
-                            {
-                                node = nextToken.Parent;
-                                continue;
-                            }
-                        }
-                        else if (nextToken.IsKind(SyntaxKind.DotToken))
-                        {
-                            if (nextToken.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+                        if (((MemberAccessExpressionSyntax)node).OperatorToken.SpanStart < dotToken.SpanStart)
                                 return memberExpression;
-                        }
-                        else
-                        {
-                            Debug.Assert(conditionalAccess.ContainsDiagnostics, nextToken.Kind().ToString());
-                        }
                     }
-
-                    break;
+                    else if (kind == SyntaxKind.MemberBindingExpression)
+                    {
+                        if (((MemberBindingExpressionSyntax)node).OperatorToken.SpanStart < dotToken.SpanStart)
+                            return memberExpression;
+                    }
                 }
 
                 return argumentList;
-
-                //TODO: del
-                //ExpressionSyntax expression = null;
-
-                //if (memberExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
-                //{
-                //    var memberAccess = (MemberAccessExpressionSyntax)memberExpression;
-                //    expression = memberAccess.Expression;
-                //}
-                //else
-                //{
-                //    var memberBinding = (MemberBindingExpressionSyntax)memberExpression;
-
-                //    SyntaxToken previousToken = memberBinding.OperatorToken.GetPreviousToken();
-
-                //    if (previousToken.IsKind(SyntaxKind.QuestionToken)
-                //        && previousToken.Parent is ConditionalAccessExpressionSyntax conditionalAccess)
-                //    {
-                //        expression = conditionalAccess.Expression;
-                //    }
-                //}
-
-                //if (expression is SimpleNameSyntax)
-                //    return argumentList;
-
-                //if (expression is ParenthesizedExpressionSyntax parenthesizedExpression
-                //    && parenthesizedExpression.Expression is CastExpressionSyntax castExpression
-                //    && castExpression.Expression is SimpleNameSyntax)
-                //{
-                //    return argumentList;
-                //}
             }
 
             return memberExpression;
@@ -629,13 +623,15 @@ namespace Roslynator.Formatting.CodeFixes
                         return 10;
                     case SyntaxKind.EqualsValueClause:
                         return 11;
-                    case SyntaxKind.AttributeList:
+                    case SyntaxKind.ConditionalExpression:
                         return 12;
+                    case SyntaxKind.AttributeList:
+                        return 13;
                     case SyntaxKind.ArrayInitializerExpression:
                     case SyntaxKind.CollectionInitializerExpression:
                     case SyntaxKind.ComplexElementInitializerExpression:
                     case SyntaxKind.ObjectInitializerExpression:
-                        return 13;
+                        return 14;
                     case SyntaxKind.ParameterList:
                         return 20;
                     case SyntaxKind.BracketedParameterList:
@@ -664,8 +660,6 @@ namespace Roslynator.Formatting.CodeFixes
                         return 61;
                     case SyntaxKind.AttributeArgumentList:
                         return 62;
-                    case SyntaxKind.ConditionalExpression:
-                        return 70;
                     default:
                         throw new InvalidOperationException();
                 }
