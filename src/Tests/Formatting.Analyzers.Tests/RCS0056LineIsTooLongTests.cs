@@ -378,6 +378,80 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_PreferArgumentListOverBinaryExpression2()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Collections.Generic;
+using System.Linq;
+
+namespace N
+{
+    class C
+    {
+        void M()
+        {
+            string[] usings = null;
+
+            if (usings.Length > 0)
+            {
+                List<string> topTrivia = null;
+                List<string> leadingTrivia = default;
+
+                if (usings.Length > 0)
+                {
+[|                    usings[usings.Length - 1] = usings[usings.Length - 1].WithTrailingTrivia(leadingTrivia.Skip(topTrivia.Count));|]
+                }
+            }
+        }
+    }
+
+    static class E
+    {
+        public static string WithTrailingTrivia(this string s, IEnumerable<string> items)
+        {
+            return null;
+        }
+    }
+}
+",
+@"
+using System.Collections.Generic;
+using System.Linq;
+
+namespace N
+{
+    class C
+    {
+        void M()
+        {
+            string[] usings = null;
+
+            if (usings.Length > 0)
+            {
+                List<string> topTrivia = null;
+                List<string> leadingTrivia = default;
+
+                if (usings.Length > 0)
+                {
+                    usings[usings.Length - 1] = usings[usings.Length - 1]
+                        .WithTrailingTrivia(leadingTrivia.Skip(topTrivia.Count));
+                }
+            }
+        }
+    }
+
+    static class E
+    {
+        public static string WithTrailingTrivia(this string s, IEnumerable<string> items)
+        {
+            return null;
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
         public async Task Test_InitializerExpression()
         {
             await VerifyDiagnosticAndFixAsync(@"
