@@ -490,6 +490,40 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_PreferCallChainOverArgumentList3()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M()
+    {
+        string x = null;
+
+        if (
+[|                    x.Length.ToString(""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"")?.Length == 0)|]
+        {
+        }
+    }
+}
+",
+@"
+class C
+{
+    void M()
+    {
+        string x = null;
+
+        if (
+                    x.Length.ToString(""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"")?
+                        .Length == 0)
+        {
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
         public async Task Test_BinaryExpression()
         {
             await VerifyDiagnosticAndFixAsync(@"

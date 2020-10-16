@@ -276,8 +276,13 @@ namespace Roslynator.Formatting.CodeFixes
                     }
                 case SyntaxKind.MemberBindingExpression:
                     {
-                        if (!node.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
+                        if (!node.IsParentKind(
+                            SyntaxKind.ConditionalAccessExpression,
+                            SyntaxKind.InvocationExpression,
+                            SyntaxKind.ElementAccessExpression))
+                        {
                             return;
+                        }
 
                         var memberBindingExpression = (MemberBindingExpressionSyntax)node;
                         SyntaxToken dotToken = memberBindingExpression.OperatorToken;
@@ -582,7 +587,7 @@ namespace Roslynator.Formatting.CodeFixes
                     if (kind == SyntaxKind.SimpleMemberAccessExpression)
                     {
                         if (((MemberAccessExpressionSyntax)node).OperatorToken.SpanStart < dotToken.SpanStart)
-                                return memberExpression;
+                            return memberExpression;
                     }
                     else if (kind == SyntaxKind.MemberBindingExpression)
                     {
