@@ -230,8 +230,10 @@ class C
         object y,
         object zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz)
     {
-        return M(x, y, zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz)
-            .M(x, y, zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz);
+        return M(x, y, zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz).M(
+            x,
+            y,
+            zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz);
     }
 }
 ");
@@ -258,8 +260,8 @@ class C
     {
         string xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = null;
 
-        var x = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.Length
-            .ToString(xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.ToString());
+        var x = xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.Length.ToString(
+            xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.ToString());
     }
 }
 ");
@@ -478,8 +480,8 @@ class C
     {
         string[] items = null;
 
-        items[items.Length - 1] = items[items.Length - 1]
-            .Mxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx(items.Skip(items.Length));
+        items[items.Length - 1] = items[items.Length - 1].Mxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx(
+            items.Skip(items.Length));
     }
 }
 

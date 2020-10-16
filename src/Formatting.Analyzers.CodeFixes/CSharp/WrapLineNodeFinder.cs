@@ -441,15 +441,7 @@ namespace Roslynator.Formatting.CodeFixes
                 return true;
 
             if (node.FullSpan.Contains(node2.FullSpan))
-            {
                 return true;
-            }
-            else if (node.IsKind(SyntaxKind.SimpleMemberAccessExpression, SyntaxKind.MemberBindingExpression)
-                && node.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression)
-                && node.Parent.FullSpan.Contains(node2.FullSpan))
-            {
-                return true;
-            }
 
             return false;
         }
@@ -574,47 +566,41 @@ namespace Roslynator.Formatting.CodeFixes
                     break;
                 }
 
-                ExpressionSyntax expression = null;
+                return argumentList;
 
-                if (memberExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
-                {
-                    var memberAccess = (MemberAccessExpressionSyntax)memberExpression;
-                    expression = memberAccess.Expression;
-                }
-                else
-                {
-                    var memberBinding = (MemberBindingExpressionSyntax)memberExpression;
+                //TODO: del
+                //ExpressionSyntax expression = null;
 
-                    SyntaxToken previousToken = memberBinding.OperatorToken.GetPreviousToken();
+                //if (memberExpression.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+                //{
+                //    var memberAccess = (MemberAccessExpressionSyntax)memberExpression;
+                //    expression = memberAccess.Expression;
+                //}
+                //else
+                //{
+                //    var memberBinding = (MemberBindingExpressionSyntax)memberExpression;
 
-                    if (previousToken.IsKind(SyntaxKind.QuestionToken)
-                        && previousToken.Parent is ConditionalAccessExpressionSyntax conditionalAccess)
-                    {
-                        expression = conditionalAccess.Expression;
-                    }
-                }
+                //    SyntaxToken previousToken = memberBinding.OperatorToken.GetPreviousToken();
 
-                if (expression is SimpleNameSyntax)
-                    return argumentList;
+                //    if (previousToken.IsKind(SyntaxKind.QuestionToken)
+                //        && previousToken.Parent is ConditionalAccessExpressionSyntax conditionalAccess)
+                //    {
+                //        expression = conditionalAccess.Expression;
+                //    }
+                //}
 
-                if (expression is ParenthesizedExpressionSyntax parenthesizedExpression
-                    && parenthesizedExpression.Expression is CastExpressionSyntax castExpression
-                    && castExpression.Expression is SimpleNameSyntax)
-                {
-                    return argumentList;
-                }
+                //if (expression is SimpleNameSyntax)
+                //    return argumentList;
 
-                //TODO: 
-                //if (argumentList is BaseArgumentListSyntax baseArgumentList
-                //    && baseArgumentList.Arguments.Count > 1)
+                //if (expression is ParenthesizedExpressionSyntax parenthesizedExpression
+                //    && parenthesizedExpression.Expression is CastExpressionSyntax castExpression
+                //    && castExpression.Expression is SimpleNameSyntax)
                 //{
                 //    return argumentList;
                 //}
-
-                return memberExpression;
             }
 
-            return argumentList;
+            return memberExpression;
         }
 
         private class SyntaxKindComparer : IComparer<SyntaxNode>
