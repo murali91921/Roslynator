@@ -432,6 +432,36 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_CallChain_SimpleMemberAccess()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    int M()
+    {
+[|        return C.Pxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.Length;|]
+    }
+
+    static string Pxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        => default;
+}
+",
+@"
+class C
+{
+    int M()
+    {
+        return C.Pxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+            .Length;
+    }
+
+    static string Pxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        => default;
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
         public async Task Test_PreferCallChainOverArgumentList()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -557,6 +587,42 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_BinaryExpression2()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M()
+    {
+        bool f = false;
+        string ssssssssssssssssssssssssssssssssssssssssssssss = null;
+
+        if (string.IsNullOrEmpty(ssssssssssssssssssssssssssssssssssssssssssssss)
+[|            && ssssssssssssssssssssssssssssssssssssssssssssss.Length >= ssssssssssssssssssssssssssssssssssssssssssssss.Length)|]
+        {
+        }
+    }
+}
+",
+@"
+class C
+{
+    void M()
+    {
+        bool f = false;
+        string ssssssssssssssssssssssssssssssssssssssssssssss = null;
+
+        if (string.IsNullOrEmpty(ssssssssssssssssssssssssssssssssssssssssssssss)
+            && ssssssssssssssssssssssssssssssssssssssssssssss.Length
+                >= ssssssssssssssssssssssssssssssssssssssssssssss.Length)
+        {
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
         public async Task Test_InitializerExpression()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -598,6 +664,76 @@ class C
 {
     string P { get; }
         = """".ToString().ToString().ToString().ToString().ToString().ToString().ToString().ToString().ToString();
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_FieldInitializer()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+[|    private string _f = ""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"";|]
+}
+",
+@"
+class C
+{
+    private string _f
+        = ""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"";
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_LocalDeclaration()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M()
+    {
+[|        var xxxxxxxxxxxxxxxx = ""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"";|]
+    }
+}
+",
+@"
+class C
+{
+    void M()
+    {
+        var xxxxxxxxxxxxxxxx
+            = ""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"";
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_Assignment()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    static string Mxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx()
+    {
+[|        string x = Mxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx();|]
+
+        return null;
+    }
+}
+",
+@"
+class C
+{
+    static string Mxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx()
+    {
+        string x
+            = Mxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx();
+
+        return null;
+    }
 }
 ");
         }
@@ -818,6 +954,41 @@ class C
     /// </summary>
     void M()
     {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task TestNoDiagnostic_SingleLineComment()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    
+    // xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    void M()
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task TestNoDiagnostic_StringLiteral()
+        {
+            await VerifyNoDiagnosticAsync(@"
+class C
+{
+    void M()
+    {
+        string s = @""
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+"";
+
+        s =
+@""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx""
+;
     }
 }
 ");

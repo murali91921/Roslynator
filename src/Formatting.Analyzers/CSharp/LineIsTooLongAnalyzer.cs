@@ -70,19 +70,68 @@ namespace Roslynator.Formatting
                 if (line.Span.Length <= maxLength)
                     continue;
 
-                SyntaxKind triviaKind = root.FindTrivia(line.End).Kind();
+                int end = line.End;
 
-                if (triviaKind == SyntaxKind.MultiLineCommentTrivia
-                    || triviaKind == SyntaxKind.SingleLineDocumentationCommentTrivia
-                    || triviaKind == SyntaxKind.MultiLineDocumentationCommentTrivia)
+                SyntaxToken token = root.FindToken(end);
+
+                if (token.IsKind(SyntaxKind.StringLiteralToken))
                 {
-                    continue;
+                    TextSpan span = token.Span;
+
+                    if (span.End == end)
+                    {
+                        if (span.Length >= maxLength)
+                            continue;
+                    }
+                    else if (span.Contains(end)
+                        && end - span.Start >= maxLength)
+                    {
+                        continue;
+                    }
                 }
 
-                if (triviaKind == SyntaxKind.EndOfLineTrivia
-                    && root.FindTrivia(line.End - 1).IsKind(SyntaxKind.SingleLineCommentTrivia))
+                SyntaxTriviaList list = default;
+
+                if (token.LeadingTrivia.Span.Contains(end))
                 {
-                    continue;
+                    list = token.LeadingTrivia;
+                }
+                else if (token.TrailingTrivia.Span.Contains(end))
+                {
+                    list = token.TrailingTrivia;
+                }
+
+                if (list.Any())
+                {
+                    int index =  -1;
+
+                    for (int j = 0; j < list.Count; j++)
+                    {
+                        if (list[j].Span.Contains(end))
+                        {
+                            trivia = list[j];
+                            index = j;
+                        }
+                    }
+
+                    if (index >= 0)
+                    {
+                        SyntaxKind kind = trivia.Kind();
+
+                        if (kind == SyntaxKind.MultiLineCommentTrivia
+                            || kind == SyntaxKind.SingleLineDocumentationCommentTrivia
+                            || kind == SyntaxKind.MultiLineDocumentationCommentTrivia)
+                        {
+                            continue;
+                        }
+
+                        if (kind == SyntaxKind.EndOfLineTrivia
+                            && index > 0
+                            && list[index - 1].IsKind(SyntaxKind.SingleLineCommentTrivia))
+                        {
+                            continue;
+                        }
+                    }
                 }
 
                 DiagnosticHelpers.ReportDiagnostic(

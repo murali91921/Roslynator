@@ -24,7 +24,6 @@ namespace Roslynator.Formatting.CodeFixes
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(
                     SyntaxKind.ArrowExpressionClause,
                     SyntaxGroup.ArrowExpressionClause),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.EqualsValueClause, SyntaxGroup.EqualsValueClause),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.AttributeList, SyntaxGroup.AttributeList),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.ParameterList, SyntaxGroup.ParameterList),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.BracketedParameterList, SyntaxGroup.ParameterList),
@@ -35,6 +34,9 @@ namespace Roslynator.Formatting.CodeFixes
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxGroup.MemberExpression),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.MemberBindingExpression, SyntaxGroup.MemberExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.ConditionalExpression,
+                    SyntaxGroup.ConditionalExpression),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(
                     SyntaxKind.ArrayInitializerExpression,
                     SyntaxGroup.InitializerExpression),
@@ -60,9 +62,52 @@ namespace Roslynator.Formatting.CodeFixes
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.BitwiseAndExpression, SyntaxGroup.BinaryExpression),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.ExclusiveOrExpression, SyntaxGroup.BinaryExpression),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.CoalesceExpression, SyntaxGroup.BinaryExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.EqualsExpression, SyntaxGroup.BinaryExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.NotEqualsExpression, SyntaxGroup.BinaryExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.LessThanExpression, SyntaxGroup.BinaryExpression),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.ConditionalExpression,
-                    SyntaxGroup.ConditionalExpression)
+                    SyntaxKind.LessThanOrEqualExpression,
+                    SyntaxGroup.BinaryExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.GreaterThanExpression, SyntaxGroup.BinaryExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.GreaterThanOrEqualExpression,
+                    SyntaxGroup.BinaryExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.AddAssignmentExpression,
+                    SyntaxGroup.AssignmentExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.AndAssignmentExpression,
+                    SyntaxGroup.AssignmentExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.CoalesceAssignmentExpression,
+                    SyntaxGroup.AssignmentExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.DivideAssignmentExpression,
+                    SyntaxGroup.AssignmentExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.ExclusiveOrAssignmentExpression,
+                    SyntaxGroup.AssignmentExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.LeftShiftAssignmentExpression,
+                    SyntaxGroup.AssignmentExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.ModuloAssignmentExpression,
+                    SyntaxGroup.AssignmentExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.MultiplyAssignmentExpression,
+                    SyntaxGroup.AssignmentExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.OrAssignmentExpression,
+                    SyntaxGroup.AssignmentExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.RightShiftAssignmentExpression,
+                    SyntaxGroup.AssignmentExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    SyntaxGroup.AssignmentExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.SubtractAssignmentExpression,
+                    SyntaxGroup.AssignmentExpression),
             });
 
         public Document Document { get; }
@@ -93,10 +138,17 @@ namespace Roslynator.Formatting.CodeFixes
                     if (_processedNodes.Contains(node))
                         continue;
 
-                    if (CanAdd(node))
-                        ProcessNode(node);
+                    if (TryGetSyntaxGroup(node, out SyntaxGroup syntaxGroup)
+                        && ShouldAnalyze(node, syntaxGroup))
+                    {
+                        SyntaxNode fixableNode = GetFixableNode(node);
+
+                        if (fixableNode != null)
+                            (_nodes ??= new Dictionary<SyntaxGroup, SyntaxNode>())[syntaxGroup] = node;
+                    }
 
                     _processedNodes.Add(node);
+                    break;
                 }
 
                 position = Math.Min(position, token.FullSpan.Start) - 1;
@@ -112,7 +164,7 @@ namespace Roslynator.Formatting.CodeFixes
                     argumentList,
                     memberExpression);
 
-                _nodes.Remove((_groupsMap[argumentListOrMemberExpression.Kind()] == SyntaxGroup.ArgumentList)
+                _nodes.Remove((GetSyntaxGroup(argumentListOrMemberExpression) == SyntaxGroup.ArgumentList)
                     ? SyntaxGroup.MemberExpression
                     : SyntaxGroup.ArgumentList);
             }
@@ -129,13 +181,24 @@ namespace Roslynator.Formatting.CodeFixes
                 Remove(binaryExpression, memberExpression);
             }
 
+            if (TryGetNode(SyntaxGroup.AssignmentExpression, out SyntaxNode assignmentNode))
+            {
+                var assignmentExpression = (AssignmentExpressionSyntax)assignmentNode;
+
+                foreach (KeyValuePair<SyntaxGroup, SyntaxNode> kvp in _nodes)
+                {
+                    if (assignmentExpression.Left.Contains(kvp.Value))
+                        _nodes.Remove(kvp.Key);
+                }
+            }
+
             return _nodes
                 .Select(f => f.Value)
                 .OrderBy(f => f, SyntaxKindComparer.Instance)
                 .First();
         }
 
-        public void ProcessNode(SyntaxNode node)
+        private SyntaxNode GetFixableNode(SyntaxNode node)
         {
             switch (node.Kind())
             {
@@ -147,7 +210,7 @@ namespace Roslynator.Formatting.CodeFixes
                         SyntaxToken previousToken = arrowToken.GetPreviousToken();
 
                         if (previousToken.SpanStart < Span.Start)
-                            return;
+                            return null;
 
                         bool addNewLineAfter = Document.IsAnalyzerOptionEnabled(
                             AnalyzerOptions.AddNewLineAfterExpressionBodyArrowInsteadOfBeforeIt);
@@ -157,23 +220,19 @@ namespace Roslynator.Formatting.CodeFixes
                         int longestLength = expressionBody.GetLastToken().GetNextToken().Span.End - start;
 
                         if (!CanWrap(expressionBody, wrapPosition, longestLength))
-                            return;
+                            return null;
 
-                        TryAdd(expressionBody);
-                        break;
+                        return expressionBody;
                     }
                 case SyntaxKind.EqualsValueClause:
                     {
-                        if (!node.IsParentKind(SyntaxKind.PropertyDeclaration))
-                            return;
-
                         var equalsValueClause = (EqualsValueClauseSyntax)node;
 
                         SyntaxToken equalsToken = equalsValueClause.EqualsToken;
                         SyntaxToken previousToken = equalsToken.GetPreviousToken();
 
                         if (previousToken.SpanStart < Span.Start)
-                            return;
+                            return null;
 
                         bool addNewLineAfter = Document.IsAnalyzerOptionEnabled(
                             AnalyzerOptions.AddNewLineAfterEqualsSignInsteadOfBeforeIt);
@@ -183,43 +242,39 @@ namespace Roslynator.Formatting.CodeFixes
                         int longestLength = Span.End - start;
 
                         if (!CanWrap(equalsValueClause, wrapPosition, longestLength))
-                            return;
+                            return null;
 
-                        TryAdd(equalsValueClause);
-                        break;
+                        return equalsValueClause;
                     }
                 case SyntaxKind.AttributeList:
                     {
                         var attributeList = (AttributeListSyntax)node;
 
                         if (!CanWrap(attributeList.Attributes, attributeList.OpenBracketToken.Span.End, 2))
-                            return;
+                            return null;
 
-                        TryAdd(attributeList);
-                        break;
+                        return attributeList;
                     }
                 case SyntaxKind.ParameterList:
                     {
                         if (node.Parent is AnonymousFunctionExpressionSyntax)
-                            return;
+                            return null;
 
                         var parameterList = (ParameterListSyntax)node;
 
                         if (!CanWrap(parameterList.Parameters, parameterList.OpenParenToken.Span.End))
-                            return;
+                            return null;
 
-                        TryAdd(parameterList);
-                        break;
+                        return parameterList;
                     }
                 case SyntaxKind.BracketedParameterList:
                     {
                         var parameterList = (BracketedParameterListSyntax)node;
 
                         if (!CanWrap(parameterList.Parameters, parameterList.OpenBracketToken.Span.End))
-                            return;
+                            return null;
 
-                        TryAdd(parameterList);
-                        break;
+                        return parameterList;
                     }
                 case SyntaxKind.ArgumentList:
                     {
@@ -230,68 +285,52 @@ namespace Roslynator.Formatting.CodeFixes
                             && invocationExpression.Expression is IdentifierNameSyntax identifierName
                             && identifierName.Identifier.ValueText == "nameof")
                         {
-                            return;
+                            return null;
                         }
 
                         if (!CanWrap(argumentList.Arguments, argumentList.OpenParenToken.Span.End))
-                            return;
+                            return null;
 
-                        TryAdd(argumentList);
-                        break;
+                        return argumentList;
                     }
                 case SyntaxKind.BracketedArgumentList:
                     {
                         var argumentList = (BracketedArgumentListSyntax)node;
 
                         if (!CanWrap(argumentList.Arguments, argumentList.OpenBracketToken.Span.End))
-                            return;
+                            return null;
 
-                        TryAdd(argumentList);
-                        break;
+                        return argumentList;
                     }
                 case SyntaxKind.AttributeArgumentList:
                     {
                         var argumentList = (AttributeArgumentListSyntax)node;
 
                         if (!CanWrap(argumentList.Arguments, argumentList.OpenParenToken.Span.End))
-                            return;
+                            return null;
 
-                        TryAdd(argumentList);
-                        break;
+                        return argumentList;
                     }
                 case SyntaxKind.SimpleMemberAccessExpression:
                     {
-                        if (!node.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
-                            return;
-
                         var memberAccessExpression = (MemberAccessExpressionSyntax)node;
 
                         SyntaxToken dotToken = memberAccessExpression.OperatorToken;
 
                         if (!CanWrap(memberAccessExpression, dotToken.SpanStart, Span.End - dotToken.SpanStart))
-                            return;
+                            return null;
 
-                        TryAdd(memberAccessExpression);
-                        break;
+                        return memberAccessExpression;
                     }
                 case SyntaxKind.MemberBindingExpression:
                     {
-                        if (!node.IsParentKind(
-                            SyntaxKind.ConditionalAccessExpression,
-                            SyntaxKind.InvocationExpression,
-                            SyntaxKind.ElementAccessExpression))
-                        {
-                            return;
-                        }
-
                         var memberBindingExpression = (MemberBindingExpressionSyntax)node;
                         SyntaxToken dotToken = memberBindingExpression.OperatorToken;
 
                         if (!CanWrap(memberBindingExpression, dotToken.SpanStart, Span.End - dotToken.SpanStart))
-                            return;
+                            return null;
 
-                        TryAdd(memberBindingExpression);
-                        break;
+                        return memberBindingExpression;
                     }
                 case SyntaxKind.ConditionalExpression:
                     {
@@ -315,10 +354,9 @@ namespace Roslynator.Formatting.CodeFixes
                         int longestLength2 = Span.End - start;
 
                         if (!CanWrap(conditionalExpression, wrapPosition, Math.Max(longestLength, longestLength2)))
-                            return;
+                            return null;
 
-                        TryAdd(conditionalExpression);
-                        break;
+                        return conditionalExpression;
                     }
                 case SyntaxKind.ArrayInitializerExpression:
                 case SyntaxKind.CollectionInitializerExpression:
@@ -328,10 +366,9 @@ namespace Roslynator.Formatting.CodeFixes
                         var initializer = (InitializerExpressionSyntax)node;
 
                         if (!CanWrap(initializer.Expressions, initializer.OpenBraceToken.Span.End))
-                            return;
+                            return null;
 
-                        TryAdd(initializer);
-                        break;
+                        return initializer;
                     }
                 case SyntaxKind.AddExpression:
                 case SyntaxKind.SubtractExpression:
@@ -346,6 +383,12 @@ namespace Roslynator.Formatting.CodeFixes
                 case SyntaxKind.BitwiseAndExpression:
                 case SyntaxKind.ExclusiveOrExpression:
                 case SyntaxKind.CoalesceExpression:
+                case SyntaxKind.EqualsExpression:
+                case SyntaxKind.NotEqualsExpression:
+                case SyntaxKind.LessThanExpression:
+                case SyntaxKind.LessThanOrEqualExpression:
+                case SyntaxKind.GreaterThanExpression:
+                case SyntaxKind.GreaterThanOrEqualExpression:
                     {
                         var binaryExpression = (BinaryExpressionSyntax)node;
 
@@ -393,12 +436,91 @@ namespace Roslynator.Formatting.CodeFixes
                         }
 
                         if (!CanWrap(node, wrapPosition, longestLength))
-                            return;
+                            return null;
 
-                        TryAdd(node);
-                        break;
+                        return node;
+                    }
+                case SyntaxKind.AddAssignmentExpression:
+                case SyntaxKind.AndAssignmentExpression:
+                case SyntaxKind.CoalesceAssignmentExpression:
+                case SyntaxKind.DivideAssignmentExpression:
+                case SyntaxKind.ExclusiveOrAssignmentExpression:
+                case SyntaxKind.LeftShiftAssignmentExpression:
+                case SyntaxKind.ModuloAssignmentExpression:
+                case SyntaxKind.MultiplyAssignmentExpression:
+                case SyntaxKind.OrAssignmentExpression:
+                case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.SimpleAssignmentExpression:
+                case SyntaxKind.SubtractAssignmentExpression:
+                    {
+                        var assignment = (AssignmentExpressionSyntax)node;
+
+                        SyntaxToken operatorToken = assignment.OperatorToken;
+                        SyntaxNode left = assignment.Left;
+
+                        if (left.SpanStart < Span.Start)
+                            return null;
+
+                        bool addNewLineAfter = Document.IsAnalyzerOptionEnabled(
+                            AnalyzerOptions.AddNewLineAfterEqualsSignInsteadOfBeforeIt);
+
+                        int wrapPosition = (addNewLineAfter) ? operatorToken.Span.End : left.Span.End;
+                        int start = (addNewLineAfter) ? assignment.Right.SpanStart : operatorToken.SpanStart;
+                        int longestLength = Span.End - start;
+
+                        if (!CanWrap(assignment, wrapPosition, longestLength))
+                            return null;
+
+                        return assignment;
                     }
             }
+
+            return null;
+        }
+
+        private static SyntaxGroup GetSyntaxGroup(SyntaxNode node)
+        {
+            if (TryGetSyntaxGroup(node, out SyntaxGroup syntaxGroup))
+                return syntaxGroup;
+
+            throw new ArgumentException("", nameof(node));
+        }
+
+        private static bool TryGetSyntaxGroup(SyntaxNode node, out SyntaxGroup syntaxGroup)
+        {
+            SyntaxKind kind = node.Kind();
+
+            if (_groupsMap.TryGetValue(kind, out syntaxGroup))
+                return true;
+
+            if (kind == SyntaxKind.EqualsValueClause)
+            {
+                SyntaxNode parent = node.Parent;
+
+                if (parent.IsKind(SyntaxKind.PropertyDeclaration))
+                {
+                    syntaxGroup = SyntaxGroup.PropertyInitializer;
+                    return true;
+                }
+
+                if (parent.IsKind(SyntaxKind.VariableDeclarator))
+                {
+                    parent = parent.Parent;
+
+                    if (parent.IsKind(SyntaxKind.VariableDeclaration))
+                    {
+                        parent = parent.Parent;
+
+                        if (parent.IsKind(SyntaxKind.FieldDeclaration, SyntaxKind.LocalDeclarationStatement))
+                        {
+                            syntaxGroup = SyntaxGroup.FieldOrLocalInitializer;
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private bool TryGetNode(SyntaxGroup syntaxGroup, out SyntaxNode node)
@@ -416,7 +538,7 @@ namespace Roslynator.Formatting.CodeFixes
 
         private void Remove(SyntaxNode node1, SyntaxNode node2)
         {
-            _nodes.Remove(_groupsMap[GetNodeToRemove(node1, node2).Kind()]);
+            _nodes.Remove(GetSyntaxGroup(GetNodeToRemove(node1, node2)));
 
             static SyntaxNode GetNodeToRemove(SyntaxNode node1, SyntaxNode node2)
             {
@@ -433,15 +555,45 @@ namespace Roslynator.Formatting.CodeFixes
             }
         }
 
-        public bool CanAdd(SyntaxNode node)
+        private bool ShouldAnalyze(SyntaxNode node, SyntaxGroup syntaxGroup)
         {
+            switch (syntaxGroup)
+            {
+                case SyntaxGroup.MemberExpression:
+                case SyntaxGroup.ArgumentList:
+                case SyntaxGroup.InitializerExpression:
+                case SyntaxGroup.BinaryExpression:
+                case SyntaxGroup.ConditionalExpression:
+                    {
+                        if (IsInsideInterpolation(node.Parent))
+                            return false;
+
+                        break;
+                    }
+            }
+
             if (_nodes == null)
                 return true;
 
-            if (!_groupsMap.TryGetValue(node.Kind(), out SyntaxGroup syntaxGroup))
-                return true;
+            foreach (KeyValuePair<SyntaxGroup, SyntaxNode> kvp in _nodes)
+            {
+                switch (kvp.Key)
+                {
+                    case SyntaxGroup.ConditionalExpression:
+                    case SyntaxGroup.InitializerExpression:
+                    case SyntaxGroup.BinaryExpression:
+                    case SyntaxGroup.MemberExpression:
+                    case SyntaxGroup.ArgumentList:
+                        {
+                            if (kvp.Value.FullSpan.Contains(node.FullSpan))
+                                return false;
 
-            if (!TryGetNode(syntaxGroup, out SyntaxNode node2))
+                            break;
+                        }
+                }
+            }
+
+            if (!_nodes.TryGetValue(syntaxGroup, out SyntaxNode node2))
                 return true;
 
             if (node.FullSpan.Contains(node2.FullSpan))
@@ -456,7 +608,7 @@ namespace Roslynator.Formatting.CodeFixes
                         argumentList,
                         memberExpression);
 
-                    if (_groupsMap[argumentListOrMemberExpression.Kind()] == SyntaxGroup.ArgumentList)
+                    if (GetSyntaxGroup(argumentListOrMemberExpression) == SyntaxGroup.ArgumentList)
                     {
                         _nodes.Remove(SyntaxGroup.MemberExpression);
                         return true;
@@ -472,7 +624,7 @@ namespace Roslynator.Formatting.CodeFixes
                         argumentList,
                         memberExpression);
 
-                    if (_groupsMap[argumentListAndMemberExpression.Kind()] == SyntaxGroup.MemberExpression)
+                    if (GetSyntaxGroup(argumentListAndMemberExpression) == SyntaxGroup.MemberExpression)
                     {
                         _nodes.Remove(SyntaxGroup.ArgumentList);
                         return true;
@@ -481,31 +633,6 @@ namespace Roslynator.Formatting.CodeFixes
             }
 
             return false;
-        }
-
-        public void TryAdd(SyntaxNode node)
-        {
-            SyntaxGroup syntaxGroup = _groupsMap[node.Kind()];
-
-            switch (syntaxGroup)
-            {
-                case SyntaxGroup.MemberExpression:
-                case SyntaxGroup.ArgumentList:
-                case SyntaxGroup.InitializerExpression:
-                case SyntaxGroup.BinaryExpression:
-                case SyntaxGroup.ConditionalExpression:
-                    {
-                        if (IsInsideInterpolation(node.Parent))
-                            return;
-
-                        break;
-                    }
-            }
-
-            if (_nodes == null)
-                _nodes = new Dictionary<SyntaxGroup, SyntaxNode>();
-
-            _nodes[syntaxGroup] = node;
 
             static bool IsInsideInterpolation(SyntaxNode node)
             {
@@ -617,71 +744,23 @@ namespace Roslynator.Formatting.CodeFixes
                 if (y == null)
                     return 1;
 
-                return GetRank(x.Kind()).CompareTo(GetRank(y.Kind()));
-            }
-
-            private static int GetRank(SyntaxKind kind)
-            {
-                switch (kind)
-                {
-                    case SyntaxKind.ArrowExpressionClause:
-                        return 10;
-                    case SyntaxKind.EqualsValueClause:
-                        return 11;
-                    case SyntaxKind.ConditionalExpression:
-                        return 12;
-                    case SyntaxKind.AttributeList:
-                        return 13;
-                    case SyntaxKind.ArrayInitializerExpression:
-                    case SyntaxKind.CollectionInitializerExpression:
-                    case SyntaxKind.ComplexElementInitializerExpression:
-                    case SyntaxKind.ObjectInitializerExpression:
-                        return 14;
-                    case SyntaxKind.ParameterList:
-                        return 20;
-                    case SyntaxKind.BracketedParameterList:
-                        return 30;
-                    case SyntaxKind.AddExpression:
-                    case SyntaxKind.SubtractExpression:
-                    case SyntaxKind.MultiplyExpression:
-                    case SyntaxKind.DivideExpression:
-                    case SyntaxKind.ModuloExpression:
-                    case SyntaxKind.LeftShiftExpression:
-                    case SyntaxKind.RightShiftExpression:
-                    case SyntaxKind.LogicalOrExpression:
-                    case SyntaxKind.LogicalAndExpression:
-                    case SyntaxKind.BitwiseOrExpression:
-                    case SyntaxKind.BitwiseAndExpression:
-                    case SyntaxKind.ExclusiveOrExpression:
-                    case SyntaxKind.CoalesceExpression:
-                        return 31;
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        return 40;
-                    case SyntaxKind.MemberBindingExpression:
-                        return 50;
-                    case SyntaxKind.ArgumentList:
-                        return 60;
-                    case SyntaxKind.BracketedArgumentList:
-                        return 61;
-                    case SyntaxKind.AttributeArgumentList:
-                        return 62;
-                    default:
-                        throw new InvalidOperationException();
-                }
+                return GetSyntaxGroup(x).CompareTo(GetSyntaxGroup(y));
             }
         }
 
         private enum SyntaxGroup
         {
-            ArrowExpressionClause,
-            EqualsValueClause,
-            AttributeList,
-            ParameterList,
-            MemberExpression,
-            ArgumentList,
-            InitializerExpression,
-            BinaryExpression,
-            ConditionalExpression,
+            ArrowExpressionClause = 0,
+            PropertyInitializer = 1,
+            ConditionalExpression = 2,
+            AttributeList = 3,
+            InitializerExpression = 4,
+            ParameterList = 5,
+            BinaryExpression = 6,
+            MemberExpression = 7,
+            ArgumentList = 8,
+            AssignmentExpression = 9,
+            FieldOrLocalInitializer = 10,
         }
     }
 }

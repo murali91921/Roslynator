@@ -58,7 +58,10 @@ namespace Roslynator.Formatting.CodeFixes
                 case SyntaxKind.ArrowExpressionClause:
                     return ct => AddNewLineBeforeOrAfterArrowAsync(document, (ArrowExpressionClauseSyntax)node, ct);
                 case SyntaxKind.EqualsValueClause:
-                    return ct => AddNewLineBeforeOrAfterEqualsSignAsync(document, (EqualsValueClauseSyntax)node, ct);
+                    return ct => AddNewLineBeforeOrAfterEqualsSignAsync(
+                        document,
+                        ((EqualsValueClauseSyntax)node).EqualsToken,
+                        ct);
                 case SyntaxKind.AttributeList:
                     return ct => FixListAsync(document, (AttributeListSyntax)node, ListFixMode.Wrap, ct);
                 case SyntaxKind.ParameterList:
@@ -95,6 +98,11 @@ namespace Roslynator.Formatting.CodeFixes
                     return ct => FixListAsync(document, (BracketedArgumentListSyntax)node, ListFixMode.Wrap, ct);
                 case SyntaxKind.AttributeArgumentList:
                     return ct => FixListAsync(document, (AttributeArgumentListSyntax)node, ListFixMode.Wrap, ct);
+                case SyntaxKind.ConditionalExpression:
+                    return ct => AddNewLineBeforeOrAfterConditionalOperatorAsync(
+                        document,
+                        (ConditionalExpressionSyntax)node,
+                        ct);
                 case SyntaxKind.ArrayInitializerExpression:
                 case SyntaxKind.CollectionInitializerExpression:
                 case SyntaxKind.ComplexElementInitializerExpression:
@@ -113,6 +121,12 @@ namespace Roslynator.Formatting.CodeFixes
                 case SyntaxKind.BitwiseAndExpression:
                 case SyntaxKind.ExclusiveOrExpression:
                 case SyntaxKind.CoalesceExpression:
+                case SyntaxKind.EqualsExpression:
+                case SyntaxKind.NotEqualsExpression:
+                case SyntaxKind.LessThanExpression:
+                case SyntaxKind.LessThanOrEqualExpression:
+                case SyntaxKind.GreaterThanExpression:
+                case SyntaxKind.GreaterThanOrEqualExpression:
                     return ct =>
                     {
                         var binaryExpression = (BinaryExpressionSyntax)node;
@@ -127,10 +141,21 @@ namespace Roslynator.Formatting.CodeFixes
                                 binaryExpression2.OperatorToken.Span.End),
                             ct);
                     };
-                case SyntaxKind.ConditionalExpression:
-                    return ct => AddNewLineBeforeOrAfterConditionalOperatorAsync(
+                case SyntaxKind.AddAssignmentExpression:
+                case SyntaxKind.AndAssignmentExpression:
+                case SyntaxKind.CoalesceAssignmentExpression:
+                case SyntaxKind.DivideAssignmentExpression:
+                case SyntaxKind.ExclusiveOrAssignmentExpression:
+                case SyntaxKind.LeftShiftAssignmentExpression:
+                case SyntaxKind.ModuloAssignmentExpression:
+                case SyntaxKind.MultiplyAssignmentExpression:
+                case SyntaxKind.OrAssignmentExpression:
+                case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.SimpleAssignmentExpression:
+                case SyntaxKind.SubtractAssignmentExpression:
+                    return ct => AddNewLineBeforeOrAfterEqualsSignAsync(
                         document,
-                        (ConditionalExpressionSyntax)node,
+                        ((AssignmentExpressionSyntax)node).OperatorToken,
                         ct);
                 default:
                     throw new InvalidOperationException();
@@ -151,12 +176,12 @@ namespace Roslynator.Formatting.CodeFixes
 
         private static Task<Document> AddNewLineBeforeOrAfterEqualsSignAsync(
             Document document,
-            EqualsValueClauseSyntax equalsValueClause,
+            SyntaxToken operatorToken,
             CancellationToken cancellationToken = default)
         {
             return AddNewLineBeforeOrAfterAsync(
                 document,
-                equalsValueClause.EqualsToken,
+                operatorToken,
                 document.IsAnalyzerOptionEnabled(AnalyzerOptions.AddNewLineAfterEqualsSignInsteadOfBeforeIt),
                 cancellationToken);
         }
