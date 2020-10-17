@@ -587,42 +587,6 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
-        public async Task Test_BinaryExpression2()
-        {
-            await VerifyDiagnosticAndFixAsync(@"
-class C
-{
-    void M()
-    {
-        bool f = false;
-        string ssssssssssssssssssssssssssssssssssssssssssssss = null;
-
-        if (string.IsNullOrEmpty(ssssssssssssssssssssssssssssssssssssssssssssss)
-[|            && ssssssssssssssssssssssssssssssssssssssssssssss.Length >= ssssssssssssssssssssssssssssssssssssssssssssss.Length)|]
-        {
-        }
-    }
-}
-",
-@"
-class C
-{
-    void M()
-    {
-        bool f = false;
-        string ssssssssssssssssssssssssssssssssssssssssssssss = null;
-
-        if (string.IsNullOrEmpty(ssssssssssssssssssssssssssssssssssssssssssssss)
-            && ssssssssssssssssssssssssssssssssssssssssssssss.Length
-                >= ssssssssssssssssssssssssssssssssssssssssssssss.Length)
-        {
-        }
-    }
-}
-");
-        }
-
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
         public async Task Test_InitializerExpression()
         {
             await VerifyDiagnosticAndFixAsync(@"

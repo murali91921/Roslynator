@@ -121,12 +121,6 @@ namespace Roslynator.Formatting.CodeFixes
                 case SyntaxKind.BitwiseAndExpression:
                 case SyntaxKind.ExclusiveOrExpression:
                 case SyntaxKind.CoalesceExpression:
-                case SyntaxKind.EqualsExpression:
-                case SyntaxKind.NotEqualsExpression:
-                case SyntaxKind.LessThanExpression:
-                case SyntaxKind.LessThanOrEqualExpression:
-                case SyntaxKind.GreaterThanExpression:
-                case SyntaxKind.GreaterThanOrEqualExpression:
                     return ct =>
                     {
                         var binaryExpression = (BinaryExpressionSyntax)node;

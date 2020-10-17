@@ -62,16 +62,6 @@ namespace Roslynator.Formatting.CodeFixes
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.BitwiseAndExpression, SyntaxGroup.BinaryExpression),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.ExclusiveOrExpression, SyntaxGroup.BinaryExpression),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.CoalesceExpression, SyntaxGroup.BinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.EqualsExpression, SyntaxGroup.BinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.NotEqualsExpression, SyntaxGroup.BinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.LessThanExpression, SyntaxGroup.BinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.LessThanOrEqualExpression,
-                    SyntaxGroup.BinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.GreaterThanExpression, SyntaxGroup.BinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.GreaterThanOrEqualExpression,
-                    SyntaxGroup.BinaryExpression),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(
                     SyntaxKind.AddAssignmentExpression,
                     SyntaxGroup.AssignmentExpression),
@@ -383,12 +373,6 @@ namespace Roslynator.Formatting.CodeFixes
                 case SyntaxKind.BitwiseAndExpression:
                 case SyntaxKind.ExclusiveOrExpression:
                 case SyntaxKind.CoalesceExpression:
-                case SyntaxKind.EqualsExpression:
-                case SyntaxKind.NotEqualsExpression:
-                case SyntaxKind.LessThanExpression:
-                case SyntaxKind.LessThanOrEqualExpression:
-                case SyntaxKind.GreaterThanExpression:
-                case SyntaxKind.GreaterThanOrEqualExpression:
                     {
                         var binaryExpression = (BinaryExpressionSyntax)node;
 
