@@ -64,6 +64,10 @@ namespace Roslynator.Formatting.CodeFixes
                         ct);
                 case SyntaxKind.AttributeList:
                     return ct => FixListAsync(document, (AttributeListSyntax)node, ListFixMode.Wrap, ct);
+                case SyntaxKind.BaseList:
+                    return ct => FixListAsync(document, (BaseListSyntax)node, ListFixMode.Wrap, ct);
+                case SyntaxKind.ForStatement:
+                    return ct => WrapForStatementAsync(document, (ForStatementSyntax)node, ct);
                 case SyntaxKind.ParameterList:
                     return ct => FixListAsync(document, (ParameterListSyntax)node, ListFixMode.Wrap, ct);
                 case SyntaxKind.BracketedParameterList:
@@ -121,6 +125,14 @@ namespace Roslynator.Formatting.CodeFixes
                 case SyntaxKind.BitwiseAndExpression:
                 case SyntaxKind.ExclusiveOrExpression:
                 case SyntaxKind.CoalesceExpression:
+                case SyntaxKind.IsExpression:
+                case SyntaxKind.AsExpression:
+                case SyntaxKind.EqualsExpression:
+                case SyntaxKind.NotEqualsExpression:
+                case SyntaxKind.LessThanExpression:
+                case SyntaxKind.LessThanOrEqualExpression:
+                case SyntaxKind.GreaterThanExpression:
+                case SyntaxKind.GreaterThanOrEqualExpression:
                     return ct =>
                     {
                         var binaryExpression = (BinaryExpressionSyntax)node;
@@ -220,6 +232,23 @@ namespace Roslynator.Formatting.CodeFixes
             return (addNewLineAfter)
                 ? AddNewLineAfterAsync(document, token, indentation, cancellationToken)
                 : AddNewLineBeforeAsync(document, token, indentation, cancellationToken);
+        }
+
+        private static Task<Document> WrapForStatementAsync(
+            Document document,
+            ForStatementSyntax forStatement,
+            CancellationToken cancellationToken = default)
+        {
+            string indentation = SyntaxTriviaAnalysis.GetIncreasedIndentation(forStatement, cancellationToken);
+
+            return document.WithTextChangesAsync(
+                new TextChange[]
+                {
+                    GetNewLineAfterTextChange(forStatement.OpenParenToken, indentation),
+                    GetNewLineAfterTextChange(forStatement.FirstSemicolonToken, indentation),
+                    GetNewLineAfterTextChange(forStatement.SecondSemicolonToken, indentation),
+                },
+                cancellationToken);
         }
     }
 }

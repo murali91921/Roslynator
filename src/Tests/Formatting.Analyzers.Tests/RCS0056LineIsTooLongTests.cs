@@ -836,6 +836,82 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_ForStatement()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = new List<string>();
+
+[|        for (int i = 0; i < xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.Count; i++)|]
+        {
+        }
+    }
+}
+",
+@"
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        var xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx = new List<string>();
+
+        for (
+            int i = 0;
+            i < xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.Count;
+            i++)
+        {
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_BaseList()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Collections;
+using System.Collections.Generic;
+
+namespace N
+{
+[|    interface IC : Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, IEnumerable, IEnumerable<object>|]
+    {
+    }
+
+    interface Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    {
+    }
+}
+",
+@"
+using System.Collections;
+using System.Collections.Generic;
+
+namespace N
+{
+    interface IC :
+        Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
+        IEnumerable,
+        IEnumerable<object>
+    {
+    }
+
+    interface Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
         public async Task TestNoFix_ExpressionBody_TooLongAfterWrapping()
         {
             await VerifyDiagnosticAndNoFixAsync(@"
