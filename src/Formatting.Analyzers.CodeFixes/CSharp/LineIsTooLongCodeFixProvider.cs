@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -12,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslynator.CSharp;
+using Roslynator.CSharp.Syntax;
 using Roslynator.Formatting.CodeFixes.CSharp;
 using Roslynator.Formatting.CSharp;
 using static Roslynator.Formatting.CodeFixes.CSharp.CodeFixHelpers;
@@ -35,7 +37,9 @@ namespace Roslynator.Formatting.CodeFixes
             Diagnostic diagnostic = context.Diagnostics[0];
             int maxLength = AnalyzerSettings.Current.MaxLineLength;
 
-            var wrapLineNodeFinder = new WrapLineNodeFinder(document, context.Span, maxLength);
+            SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
+
+            var wrapLineNodeFinder = new WrapLineNodeFinder(document, semanticModel, context.Span, maxLength);
 
             SyntaxNode nodeToFix = wrapLineNodeFinder.FindNodeToFix(root);
 
@@ -65,7 +69,7 @@ namespace Roslynator.Formatting.CodeFixes
                 case SyntaxKind.AttributeList:
                     return ct => FixListAsync(document, (AttributeListSyntax)node, ListFixMode.Wrap, ct);
                 case SyntaxKind.BaseList:
-                    return ct => FixListAsync(document, (BaseListSyntax)node, ListFixMode.Wrap, ct);
+                    return ct => WrapBaseListAsync(document, (BaseListSyntax)node, ct);
                 case SyntaxKind.ForStatement:
                     return ct => WrapForStatementAsync(document, (ForStatementSyntax)node, ct);
                 case SyntaxKind.ParameterList:
@@ -249,6 +253,40 @@ namespace Roslynator.Formatting.CodeFixes
                     GetNewLineAfterTextChange(forStatement.SecondSemicolonToken, indentation),
                 },
                 cancellationToken);
+        }
+
+        private static Task<Document> WrapBaseListAsync(
+            Document document,
+            BaseListSyntax baseList,
+            CancellationToken cancellationToken = default)
+        {
+            List<TextChange> textChanges = GetFixListChanges(
+                baseList,
+                baseList.ColonToken,
+                baseList.Types,
+                ListFixMode.Wrap,
+                cancellationToken);
+
+            if (baseList.Types.Count > 1)
+            {
+                GenericInfo genericInfo = SyntaxInfo.GenericInfo(baseList.Parent);
+
+                SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses = genericInfo.ConstraintClauses;
+
+                if (constraintClauses.Any())
+                {
+                    List<TextChange> textChanges2 = GetFixListChanges(
+                        genericInfo.Node,
+                        constraintClauses.First().WhereKeyword.GetPreviousToken(),
+                        constraintClauses,
+                        ListFixMode.Wrap,
+                        cancellationToken);
+
+                    textChanges.AddRange(textChanges2);
+                }
+            }
+
+            return document.WithTextChangesAsync(textChanges, cancellationToken);
         }
     }
 }

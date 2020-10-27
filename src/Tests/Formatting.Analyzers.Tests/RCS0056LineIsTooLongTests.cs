@@ -912,6 +912,45 @@ namespace N
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task Test_BaseList_Constraint()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Collections;
+using System.Collections.Generic;
+
+namespace N
+{
+[|    interface IC<T> : Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx, IEnumerable, IEnumerable<T> where T : IComparer|]
+    {
+    }
+
+    interface Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    {
+    }
+}
+",
+@"
+using System.Collections;
+using System.Collections.Generic;
+
+namespace N
+{
+    interface IC<T> :
+        Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
+        IEnumerable,
+        IEnumerable<T>
+        where T : IComparer
+    {
+    }
+
+    interface Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    {
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
         public async Task TestNoFix_ExpressionBody_TooLongAfterWrapping()
         {
             await VerifyDiagnosticAndNoFixAsync(@"
@@ -1029,6 +1068,89 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
         s =
 @""xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx""
 ;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task TestNoDiagnostic_ThisExpression_BaseExpression()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C : B
+{
+
+    void M()
+    {
+        var c = new C();
+
+[|        var x = this.Pxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;|]
+
+[|        var y = base.Pxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;|]
+    }
+}
+
+class B
+{
+    public C Pxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        { get; }
+}
+"
+,
+@"
+class C : B
+{
+
+    void M()
+    {
+        var c = new C();
+
+        var x
+            = this.Pxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
+
+        var y
+            = base.Pxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx;
+    }
+}
+
+class B
+{
+    public C Pxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+        { get; }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task TestNoDiagnostic_EnumField()
+        {
+            await VerifyDiagnosticAndNoFixAsync(@"
+using System.Text.RegularExpressions;
+
+class C
+{
+
+    void M()
+    {
+[|        var x =                                                                                               RegexOptions.None;|]
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.LineIsTooLong)]
+        public async Task TestNoDiagnostic_Namespace()
+        {
+            await VerifyDiagnosticAndNoFixAsync(@"
+using System.Text.RegularExpressions;
+
+class C
+{
+
+    void M()
+    {
+[|        var x =                                                                             System.Text.RegularExpressions.RegexOptions.None;|]
+[|        var y =                                                                                        global::System.Text.RegularExpressions.RegexOptions.None;|]
     }
 }
 ");

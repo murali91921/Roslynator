@@ -51,10 +51,21 @@ namespace Roslynator.Formatting.CodeFixes
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(
                     SyntaxKind.ObjectInitializerExpression,
                     SyntaxGroup.InitializerExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.LogicalOrExpression, SyntaxGroup.AndOrExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.LogicalAndExpression, SyntaxGroup.AndOrExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.BitwiseOrExpression, SyntaxGroup.AndOrExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.BitwiseAndExpression, SyntaxGroup.AndOrExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.LogicalOrExpression,
+                    SyntaxGroup.And_Or_CoalesceExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.LogicalAndExpression,
+                    SyntaxGroup.And_Or_CoalesceExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.BitwiseOrExpression,
+                    SyntaxGroup.And_Or_CoalesceExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.BitwiseAndExpression,
+                    SyntaxGroup.And_Or_CoalesceExpression),
+                new KeyValuePair<SyntaxKind, SyntaxGroup>(
+                    SyntaxKind.CoalesceExpression,
+                    SyntaxGroup.And_Or_CoalesceExpression),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.EqualsExpression, SyntaxGroup.EqualityExpression),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.NotEqualsExpression, SyntaxGroup.EqualityExpression),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.LessThanExpression, SyntaxGroup.EqualityExpression),
@@ -75,7 +86,6 @@ namespace Roslynator.Formatting.CodeFixes
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(
                     SyntaxKind.ExclusiveOrExpression,
                     SyntaxGroup.OtherBinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.CoalesceExpression, SyntaxGroup.OtherBinaryExpression),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.IsExpression, SyntaxGroup.OtherBinaryExpression),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.AsExpression, SyntaxGroup.OtherBinaryExpression),
                 new KeyValuePair<SyntaxKind, SyntaxGroup>(
@@ -118,13 +128,16 @@ namespace Roslynator.Formatting.CodeFixes
 
         public Document Document { get; }
 
+        public SemanticModel SemanticModel { get; }
+
         public TextSpan Span { get; }
 
         public int MaxLineLength { get; }
 
-        public WrapLineNodeFinder(Document document, TextSpan span, int maxLineLength)
+        public WrapLineNodeFinder(Document document, SemanticModel semanticModel, TextSpan span, int maxLineLength)
         {
             Document = document;
+            SemanticModel = semanticModel;
             Span = span;
             MaxLineLength = maxLineLength;
 
@@ -180,7 +193,7 @@ namespace Roslynator.Formatting.CodeFixes
                 {
                     switch (f.Key)
                     {
-                        case SyntaxGroup.AndOrExpression:
+                        case SyntaxGroup.And_Or_CoalesceExpression:
                         case SyntaxGroup.MemberExpression:
                         case SyntaxGroup.ArgumentList:
                             return true;
@@ -368,10 +381,14 @@ namespace Roslynator.Formatting.CodeFixes
                     }
                 case SyntaxKind.SimpleMemberAccessExpression:
                     {
-                        if (!node.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
-                            return null;
+                        //TODO: del
+                        //if (!node.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
+                        //    return null;
 
                         var memberAccessExpression = (MemberAccessExpressionSyntax)node;
+
+                        if (!CanWrap(memberAccessExpression))
+                            return null;
 
                         SyntaxToken dotToken = memberAccessExpression.OperatorToken;
 
@@ -382,13 +399,14 @@ namespace Roslynator.Formatting.CodeFixes
                     }
                 case SyntaxKind.MemberBindingExpression:
                     {
-                        if (!node.IsParentKind(
-                            SyntaxKind.ConditionalAccessExpression,
-                            SyntaxKind.InvocationExpression,
-                            SyntaxKind.ElementAccessExpression))
-                        {
-                            return null;
-                        }
+                        //TODO: del
+                        //if (!node.IsParentKind(
+                        //    SyntaxKind.ConditionalAccessExpression,
+                        //    SyntaxKind.InvocationExpression,
+                        //    SyntaxKind.ElementAccessExpression))
+                        //{
+                        //    return null;
+                        //}
 
                         var memberBindingExpression = (MemberBindingExpressionSyntax)node;
                         SyntaxToken dotToken = memberBindingExpression.OperatorToken;
@@ -611,7 +629,7 @@ namespace Roslynator.Formatting.CodeFixes
                 case SyntaxGroup.MemberExpression:
                 case SyntaxGroup.ArgumentList:
                 case SyntaxGroup.InitializerExpression:
-                case SyntaxGroup.AndOrExpression:
+                case SyntaxGroup.And_Or_CoalesceExpression:
                 case SyntaxGroup.EqualityExpression:
                 case SyntaxGroup.OtherBinaryExpression:
                 case SyntaxGroup.ConditionalExpression:
@@ -632,7 +650,7 @@ namespace Roslynator.Formatting.CodeFixes
                 {
                     case SyntaxGroup.ConditionalExpression:
                     case SyntaxGroup.InitializerExpression:
-                    case SyntaxGroup.AndOrExpression:
+                    case SyntaxGroup.And_Or_CoalesceExpression:
                     case SyntaxGroup.MemberExpression:
                     case SyntaxGroup.ArgumentList:
                         {
@@ -650,38 +668,39 @@ namespace Roslynator.Formatting.CodeFixes
             if (node.FullSpan.Contains(node2.FullSpan))
                 return true;
 
-            if (syntaxGroup == SyntaxGroup.MemberExpression)
-            {
-                if (TryGetNode(SyntaxGroup.ArgumentList, out SyntaxNode argumentList)
-                    && TryGetNode(SyntaxGroup.MemberExpression, out SyntaxNode memberExpression))
-                {
-                    SyntaxNode argumentListOrMemberExpression = ChooseBetweenArgumentListAndMemberExpression(
-                        argumentList,
-                        memberExpression);
+            //TODO: del
+            //if (syntaxGroup == SyntaxGroup.MemberExpression)
+            //{
+            //    if (TryGetNode(SyntaxGroup.ArgumentList, out SyntaxNode argumentList)
+            //        && TryGetNode(SyntaxGroup.MemberExpression, out SyntaxNode memberExpression))
+            //    {
+            //        SyntaxNode argumentListOrMemberExpression = ChooseBetweenArgumentListAndMemberExpression(
+            //            argumentList,
+            //            memberExpression);
 
-                    if (GetSyntaxGroup(argumentListOrMemberExpression) == SyntaxGroup.ArgumentList)
-                    {
-                        _nodes.Remove(SyntaxGroup.MemberExpression);
-                        return true;
-                    }
-                }
-            }
-            else if (syntaxGroup == SyntaxGroup.ArgumentList)
-            {
-                if (TryGetNode(SyntaxGroup.ArgumentList, out SyntaxNode argumentList)
-                    && TryGetNode(SyntaxGroup.MemberExpression, out SyntaxNode memberExpression))
-                {
-                    SyntaxNode argumentListAndMemberExpression = ChooseBetweenArgumentListAndMemberExpression(
-                        argumentList,
-                        memberExpression);
+            //        if (GetSyntaxGroup(argumentListOrMemberExpression) == SyntaxGroup.ArgumentList)
+            //        {
+            //            _nodes.Remove(SyntaxGroup.MemberExpression);
+            //            return true;
+            //        }
+            //    }
+            //}
+            //else if (syntaxGroup == SyntaxGroup.ArgumentList)
+            //{
+            //    if (TryGetNode(SyntaxGroup.ArgumentList, out SyntaxNode argumentList)
+            //        && TryGetNode(SyntaxGroup.MemberExpression, out SyntaxNode memberExpression))
+            //    {
+            //        SyntaxNode argumentListAndMemberExpression = ChooseBetweenArgumentListAndMemberExpression(
+            //            argumentList,
+            //            memberExpression);
 
-                    if (GetSyntaxGroup(argumentListAndMemberExpression) == SyntaxGroup.MemberExpression)
-                    {
-                        _nodes.Remove(SyntaxGroup.ArgumentList);
-                        return true;
-                    }
-                }
-            }
+            //        if (GetSyntaxGroup(argumentListAndMemberExpression) == SyntaxGroup.MemberExpression)
+            //        {
+            //            _nodes.Remove(SyntaxGroup.ArgumentList);
+            //            return true;
+            //        }
+            //    }
+            //}
 
             return false;
 
@@ -728,6 +747,45 @@ namespace Roslynator.Formatting.CodeFixes
             int indentationLength = SyntaxTriviaAnalysis.GetIncreasedIndentationLength(node);
 
             return indentationLength + longestLength <= MaxLineLength;
+        }
+
+        private bool CanWrap(MemberAccessExpressionSyntax memberAccessExpression)
+        {
+            switch (memberAccessExpression.Expression.Kind())
+            {
+                case SyntaxKind.ThisExpression:
+                case SyntaxKind.BaseExpression:
+                    {
+                        return false;
+                    }
+                case SyntaxKind.IdentifierName:
+                case SyntaxKind.SimpleMemberAccessExpression:
+                case SyntaxKind.AliasQualifiedName:
+                    {
+                        ISymbol symbol = SemanticModel.GetSymbol(memberAccessExpression);
+
+                        if (symbol != null)
+                        {
+                            if (symbol.IsKind(SymbolKind.Namespace))
+                                return false;
+
+                            if (symbol.IsKind(SymbolKind.Field)
+                                && symbol.ContainingType?.TypeKind == TypeKind.Enum)
+                            {
+                                return false;
+                            }
+                        }
+
+                        symbol = SemanticModel.GetSymbol(memberAccessExpression.Expression);
+
+                        if (symbol.IsKind(SymbolKind.Namespace))
+                            return false;
+
+                        break;
+                    }
+            }
+
+            return true;
         }
 
         private static SyntaxNode ChooseNode(SyntaxNode node1, SyntaxNode node2)
@@ -823,7 +881,7 @@ namespace Roslynator.Formatting.CodeFixes
             BaseList = 5,
             InitializerExpression = 6,
             ParameterList = 7,
-            AndOrExpression = 8,
+            And_Or_CoalesceExpression = 8,
             MemberExpression = 9,
             ArgumentList = 10,
             OtherBinaryExpression = 11,

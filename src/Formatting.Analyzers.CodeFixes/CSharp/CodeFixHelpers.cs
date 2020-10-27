@@ -912,11 +912,46 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             ListFixMode fixMode = ListFixMode.Fix,
             CancellationToken cancellationToken = default) where TNode : SyntaxNode
         {
+            List<TextChange> textChanges = GetFixListChanges(
+                containingNode,
+                openNodeOrToken,
+                nodes,
+                fixMode,
+                cancellationToken);
+
+            return document.WithTextChangesAsync(
+                textChanges,
+                cancellationToken);
+        }
+
+        internal static List<TextChange> GetFixListChanges<TNode>(
+            SyntaxNode containingNode,
+            SyntaxNodeOrToken openNodeOrToken,
+            IReadOnlyList<TNode> nodes,
+            ListFixMode fixMode = ListFixMode.Fix,
+            CancellationToken cancellationToken = default) where TNode : SyntaxNode
+        {
             IndentationAnalysis indentationAnalysis = AnalyzeIndentation(containingNode, cancellationToken);
 
             string increasedIndentation = indentationAnalysis.GetIncreasedIndentation();
 
-            if (nodes.IsSingleLine(includeExteriorTrivia: false, cancellationToken: cancellationToken)
+            bool isSingleLine;
+            SeparatedSyntaxList<TNode> separatedList = default;
+
+            if (nodes is SyntaxList<TNode> list)
+            {
+                isSingleLine = list.IsSingleLine(includeExteriorTrivia: false, cancellationToken: cancellationToken);
+            }
+            else
+            {
+                separatedList = (SeparatedSyntaxList<TNode>)nodes;
+
+                isSingleLine = separatedList.IsSingleLine(
+                    includeExteriorTrivia: false,
+                    cancellationToken: cancellationToken);
+            }
+
+            if (isSingleLine
                 && fixMode == ListFixMode.Fix)
             {
                 TNode node = nodes[0];
@@ -927,9 +962,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                     ? leading.Last().Span
                     : new TextSpan(node.SpanStart, 0);
 
-                return document.WithTextChangeAsync(
-                    new TextChange(span, increasedIndentation),
-                    cancellationToken);
+                return new List<TextChange>() { new TextChange(span, increasedIndentation) };
             }
 
             var textChanges = new List<TextChange>();
@@ -947,7 +980,9 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 }
                 else
                 {
-                    token = nodes.GetSeparator(i - 1);
+                    token = (list == default)
+                        ? separatedList.GetSeparator(i - 1)
+                        : list[i - 1].GetLastToken();
                 }
 
                 SyntaxTriviaList trailing = token.TrailingTrivia;
@@ -1040,7 +1075,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
             FormattingVerifier.VerifyChangedSpansAreWhitespace(containingNode, textChanges);
 
-            return document.WithTextChangesAsync(textChanges, cancellationToken);
+            return textChanges;
         }
     }
 }
