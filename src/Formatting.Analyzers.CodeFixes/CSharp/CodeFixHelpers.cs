@@ -156,10 +156,11 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 DetermineEndOfLine(token).ToString() + indentation);
         }
 
-        public static (ExpressionSyntax left, SyntaxToken token, ExpressionSyntax right) AddNewLineBeforeTokenInsteadOfAfterIt(
-            ExpressionSyntax left,
-            SyntaxToken token,
-            ExpressionSyntax right)
+        public static (ExpressionSyntax left, SyntaxToken token, ExpressionSyntax right)
+            AddNewLineBeforeTokenInsteadOfAfterIt(
+                ExpressionSyntax left,
+                SyntaxToken token,
+                ExpressionSyntax right)
         {
             return (
                 left.WithTrailingTrivia(token.TrailingTrivia),
@@ -170,10 +171,11 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 right.WithoutLeadingTrivia());
         }
 
-        public static (ExpressionSyntax left, SyntaxToken token, ExpressionSyntax right) AddNewLineAfterTokenInsteadOfBeforeIt(
-            ExpressionSyntax left,
-            SyntaxToken token,
-            ExpressionSyntax right)
+        public static (ExpressionSyntax left, SyntaxToken token, ExpressionSyntax right)
+            AddNewLineAfterTokenInsteadOfBeforeIt(
+                ExpressionSyntax left,
+                SyntaxToken token,
+                ExpressionSyntax right)
         {
             return (
                 left.WithTrailingTrivia(Space),
@@ -514,7 +516,10 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
             void SetIndendation(SyntaxToken token, int endIndex)
             {
-                ImmutableArray<IndentationInfo> indentations = FindIndentations(expression, TextSpan.FromBounds(token.SpanStart, endIndex)).ToImmutableArray();
+                ImmutableArray<IndentationInfo> indentations = FindIndentations(
+                    expression,
+                    TextSpan.FromBounds(token.SpanStart, endIndex))
+                    .ToImmutableArray();
 
                 if (!indentations.Any())
                     return;
@@ -705,7 +710,10 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
             void SetIndendation(SyntaxNodeOrToken nodeOrToken, int endIndex)
             {
-                ImmutableArray<IndentationInfo> indentations = FindIndentations(binaryExpression, TextSpan.FromBounds(nodeOrToken.SpanStart, endIndex)).ToImmutableArray();
+                ImmutableArray<IndentationInfo> indentations = FindIndentations(
+                    binaryExpression,
+                    TextSpan.FromBounds(nodeOrToken.SpanStart, endIndex))
+                    .ToImmutableArray();
 
                 if (!indentations.Any())
                     return;

@@ -381,10 +381,6 @@ namespace Roslynator.Formatting.CodeFixes
                     }
                 case SyntaxKind.SimpleMemberAccessExpression:
                     {
-                        //TODO: del
-                        //if (!node.IsParentKind(SyntaxKind.InvocationExpression, SyntaxKind.ElementAccessExpression))
-                        //    return null;
-
                         var memberAccessExpression = (MemberAccessExpressionSyntax)node;
 
                         if (!CanWrap(memberAccessExpression))
@@ -399,16 +395,8 @@ namespace Roslynator.Formatting.CodeFixes
                     }
                 case SyntaxKind.MemberBindingExpression:
                     {
-                        //TODO: del
-                        //if (!node.IsParentKind(
-                        //    SyntaxKind.ConditionalAccessExpression,
-                        //    SyntaxKind.InvocationExpression,
-                        //    SyntaxKind.ElementAccessExpression))
-                        //{
-                        //    return null;
-                        //}
-
                         var memberBindingExpression = (MemberBindingExpressionSyntax)node;
+
                         SyntaxToken dotToken = memberBindingExpression.OperatorToken;
 
                         if (!CanWrap(memberBindingExpression, dotToken.SpanStart, Span.End - dotToken.SpanStart))
@@ -667,40 +655,6 @@ namespace Roslynator.Formatting.CodeFixes
 
             if (node.FullSpan.Contains(node2.FullSpan))
                 return true;
-
-            //TODO: del
-            //if (syntaxGroup == SyntaxGroup.MemberExpression)
-            //{
-            //    if (TryGetNode(SyntaxGroup.ArgumentList, out SyntaxNode argumentList)
-            //        && TryGetNode(SyntaxGroup.MemberExpression, out SyntaxNode memberExpression))
-            //    {
-            //        SyntaxNode argumentListOrMemberExpression = ChooseBetweenArgumentListAndMemberExpression(
-            //            argumentList,
-            //            memberExpression);
-
-            //        if (GetSyntaxGroup(argumentListOrMemberExpression) == SyntaxGroup.ArgumentList)
-            //        {
-            //            _nodes.Remove(SyntaxGroup.MemberExpression);
-            //            return true;
-            //        }
-            //    }
-            //}
-            //else if (syntaxGroup == SyntaxGroup.ArgumentList)
-            //{
-            //    if (TryGetNode(SyntaxGroup.ArgumentList, out SyntaxNode argumentList)
-            //        && TryGetNode(SyntaxGroup.MemberExpression, out SyntaxNode memberExpression))
-            //    {
-            //        SyntaxNode argumentListAndMemberExpression = ChooseBetweenArgumentListAndMemberExpression(
-            //            argumentList,
-            //            memberExpression);
-
-            //        if (GetSyntaxGroup(argumentListAndMemberExpression) == SyntaxGroup.MemberExpression)
-            //        {
-            //            _nodes.Remove(SyntaxGroup.ArgumentList);
-            //            return true;
-            //        }
-            //    }
-            //}
 
             return false;
 
