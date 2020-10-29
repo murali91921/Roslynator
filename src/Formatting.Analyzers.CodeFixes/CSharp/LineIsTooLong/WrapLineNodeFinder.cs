@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,120 +10,12 @@ using Microsoft.CodeAnalysis.Text;
 using Roslynator.CSharp;
 using Roslynator.Formatting.CSharp;
 
-namespace Roslynator.Formatting.CodeFixes
+namespace Roslynator.Formatting.CodeFixes.LineIsTooLong
 {
     internal class WrapLineNodeFinder
     {
         private Dictionary<SyntaxGroup, SyntaxNode> _nodes;
         private readonly HashSet<SyntaxNode> _processedNodes;
-
-        private static readonly ImmutableDictionary<SyntaxKind, SyntaxGroup> _groupsMap = ImmutableDictionary.CreateRange(
-            new[]
-            {
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.ArrowExpressionClause,
-                    SyntaxGroup.ArrowExpressionClause),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.AttributeList, SyntaxGroup.AttributeList),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.BaseList, SyntaxGroup.BaseList),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.ForStatement, SyntaxGroup.ForStatement),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.ParameterList, SyntaxGroup.ParameterList),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.BracketedParameterList, SyntaxGroup.ParameterList),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.ArgumentList, SyntaxGroup.ArgumentList),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.BracketedArgumentList, SyntaxGroup.ArgumentList),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.AttributeArgumentList, SyntaxGroup.ArgumentList),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxGroup.MemberExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.MemberBindingExpression, SyntaxGroup.MemberExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.ConditionalExpression,
-                    SyntaxGroup.ConditionalExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.ArrayInitializerExpression,
-                    SyntaxGroup.InitializerExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.CollectionInitializerExpression,
-                    SyntaxGroup.InitializerExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.ComplexElementInitializerExpression,
-                    SyntaxGroup.InitializerExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.ObjectInitializerExpression,
-                    SyntaxGroup.InitializerExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.LogicalOrExpression,
-                    SyntaxGroup.And_Or_CoalesceExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.LogicalAndExpression,
-                    SyntaxGroup.And_Or_CoalesceExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.BitwiseOrExpression,
-                    SyntaxGroup.And_Or_CoalesceExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.BitwiseAndExpression,
-                    SyntaxGroup.And_Or_CoalesceExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.CoalesceExpression,
-                    SyntaxGroup.And_Or_CoalesceExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.EqualsExpression, SyntaxGroup.EqualityExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.NotEqualsExpression, SyntaxGroup.EqualityExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.LessThanExpression, SyntaxGroup.EqualityExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.LessThanExpression, SyntaxGroup.EqualityExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.GreaterThanExpression, SyntaxGroup.EqualityExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.GreaterThanOrEqualExpression,
-                    SyntaxGroup.EqualityExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.AddExpression, SyntaxGroup.OtherBinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.SubtractExpression, SyntaxGroup.OtherBinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.MultiplyExpression, SyntaxGroup.OtherBinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.DivideExpression, SyntaxGroup.OtherBinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.ModuloExpression, SyntaxGroup.OtherBinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.LeftShiftExpression, SyntaxGroup.OtherBinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.RightShiftExpression,
-                    SyntaxGroup.OtherBinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.ExclusiveOrExpression,
-                    SyntaxGroup.OtherBinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.IsExpression, SyntaxGroup.OtherBinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(SyntaxKind.AsExpression, SyntaxGroup.OtherBinaryExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.AddAssignmentExpression,
-                    SyntaxGroup.AssignmentExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.AndAssignmentExpression,
-                    SyntaxGroup.AssignmentExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.CoalesceAssignmentExpression,
-                    SyntaxGroup.AssignmentExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.DivideAssignmentExpression,
-                    SyntaxGroup.AssignmentExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.ExclusiveOrAssignmentExpression,
-                    SyntaxGroup.AssignmentExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.LeftShiftAssignmentExpression,
-                    SyntaxGroup.AssignmentExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.ModuloAssignmentExpression,
-                    SyntaxGroup.AssignmentExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.MultiplyAssignmentExpression,
-                    SyntaxGroup.AssignmentExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.OrAssignmentExpression,
-                    SyntaxGroup.AssignmentExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.RightShiftAssignmentExpression,
-                    SyntaxGroup.AssignmentExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.SimpleAssignmentExpression,
-                    SyntaxGroup.AssignmentExpression),
-                new KeyValuePair<SyntaxKind, SyntaxGroup>(
-                    SyntaxKind.SubtractAssignmentExpression,
-                    SyntaxGroup.AssignmentExpression),
-            });
 
         public Document Document { get; }
 
@@ -193,7 +84,7 @@ namespace Roslynator.Formatting.CodeFixes
                 {
                     switch (f.Key)
                     {
-                        case SyntaxGroup.And_Or_CoalesceExpression:
+                        case SyntaxGroup.BinaryExpression:
                         case SyntaxGroup.MemberExpression:
                         case SyntaxGroup.ArgumentList:
                             return true;
@@ -564,7 +455,7 @@ namespace Roslynator.Formatting.CodeFixes
         {
             SyntaxKind kind = node.Kind();
 
-            if (_groupsMap.TryGetValue(kind, out syntaxGroup))
+            if (SyntaxGroupMap.Value.TryGetValue(kind, out syntaxGroup))
                 return true;
 
             if (kind == SyntaxKind.EqualsValueClause)
@@ -617,9 +508,8 @@ namespace Roslynator.Formatting.CodeFixes
                 case SyntaxGroup.MemberExpression:
                 case SyntaxGroup.ArgumentList:
                 case SyntaxGroup.InitializerExpression:
-                case SyntaxGroup.And_Or_CoalesceExpression:
-                case SyntaxGroup.EqualityExpression:
-                case SyntaxGroup.OtherBinaryExpression:
+                case SyntaxGroup.BinaryExpression:
+                case SyntaxGroup.Is_As_EqualityExpression:
                 case SyntaxGroup.ConditionalExpression:
                     {
                         if (IsInsideInterpolation(node.Parent))
@@ -638,7 +528,7 @@ namespace Roslynator.Formatting.CodeFixes
                 {
                     case SyntaxGroup.ConditionalExpression:
                     case SyntaxGroup.InitializerExpression:
-                    case SyntaxGroup.And_Or_CoalesceExpression:
+                    case SyntaxGroup.BinaryExpression:
                     case SyntaxGroup.MemberExpression:
                     case SyntaxGroup.ArgumentList:
                         {
@@ -823,25 +713,6 @@ namespace Roslynator.Formatting.CodeFixes
 
                 return GetSyntaxGroup(x).CompareTo(GetSyntaxGroup(y));
             }
-        }
-
-        private enum SyntaxGroup
-        {
-            ArrowExpressionClause = 0,
-            PropertyInitializer = 1,
-            ForStatement = 2,
-            ConditionalExpression = 3,
-            AttributeList = 4,
-            BaseList = 5,
-            InitializerExpression = 6,
-            ParameterList = 7,
-            And_Or_CoalesceExpression = 8,
-            MemberExpression = 9,
-            ArgumentList = 10,
-            OtherBinaryExpression = 11,
-            EqualityExpression = 12,
-            AssignmentExpression = 13,
-            FieldOrLocalInitializer = 14,
         }
     }
 }

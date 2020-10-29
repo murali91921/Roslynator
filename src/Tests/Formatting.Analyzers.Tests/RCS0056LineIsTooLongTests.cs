@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslynator.Formatting.CodeFixes;
+using Roslynator.Formatting.CodeFixes.LineIsTooLong;
 using Xunit;
 
 namespace Roslynator.Formatting.CSharp.Tests

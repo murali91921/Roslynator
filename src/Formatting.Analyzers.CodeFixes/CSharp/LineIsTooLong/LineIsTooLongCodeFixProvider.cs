@@ -18,7 +18,7 @@ using Roslynator.Formatting.CodeFixes.CSharp;
 using Roslynator.Formatting.CSharp;
 using static Roslynator.Formatting.CodeFixes.CSharp.CodeFixHelpers;
 
-namespace Roslynator.Formatting.CodeFixes
+namespace Roslynator.Formatting.CodeFixes.LineIsTooLong
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(LineIsTooLongCodeFixProvider))]
     [Shared]
