@@ -28,7 +28,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeConditionalExpression, SyntaxKind.ConditionalExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeConditionalExpression(f), SyntaxKind.ConditionalExpression);
         }
 
         private static void AnalyzeConditionalExpression(SyntaxNodeAnalysisContext context)
@@ -62,7 +62,8 @@ namespace Roslynator.CSharp.Analysis
                         .GetTypeSymbol(nullCheck.Expression, cancellationToken)?
                         .IsReferenceTypeOrNullableType() == true)
                 {
-                    DiagnosticHelpers.ReportDiagnostic(context,
+                    DiagnosticHelpers.ReportDiagnostic(
+                        context,
                         DiagnosticDescriptors.UseCoalesceExpressionInsteadOfConditionalExpression,
                         conditionalExpression);
                 }
@@ -139,9 +140,11 @@ namespace Roslynator.CSharp.Analysis
                     {
                         ITypeSymbol typeSymbol = semanticModel.GetTypeSymbol(nullCheck.Expression, cancellationToken);
 
-                        if (typeSymbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                        if (typeSymbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
+                            && !conditionalExpression.IsInExpressionTree(semanticModel, cancellationToken))
                         {
-                            DiagnosticHelpers.ReportDiagnostic(context,
+                            DiagnosticHelpers.ReportDiagnostic(
+                                context,
                                 DiagnosticDescriptors.UseConditionalAccessInsteadOfConditionalExpression,
                                 conditionalExpression);
                         }
@@ -167,7 +170,7 @@ namespace Roslynator.CSharp.Analysis
                     && (typeSymbol.IsReferenceType || typeSymbol.IsValueType)
                     && (semanticModel.IsDefaultValue(typeSymbol, whenNull, cancellationToken)
                         || IsDefaultOfNullableStruct(typeSymbol, whenNull, semanticModel, cancellationToken))
-                    && !CSharpUtility.ContainsOutArgumentWithLocal(whenNotNull, semanticModel, cancellationToken)
+                    && !CSharpUtility.ContainsOutArgumentWithLocalOrParameter(whenNotNull, semanticModel, cancellationToken)
                     && !conditionalExpressionInfo.ConditionalExpression.IsInExpressionTree(semanticModel, cancellationToken))
                 {
                     DiagnosticHelpers.ReportDiagnostic(

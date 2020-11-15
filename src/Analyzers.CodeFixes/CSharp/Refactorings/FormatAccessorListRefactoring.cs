@@ -1,13 +1,13 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Roslynator.CSharp.Analysis;
 using static Roslynator.CSharp.CSharpFactory;
 
 namespace Roslynator.CSharp.Refactorings
@@ -100,18 +100,54 @@ namespace Roslynator.CSharp.Refactorings
             }
             else
             {
-                return accessorList.ReplaceNodes(accessorList.Accessors, (f, g) =>
-                {
-                    if (FormatAccessorListAnalyzer.ShouldBeFormatted(f))
+                return accessorList.ReplaceNodes(
+                    accessorList.Accessors,
+                    (f, g) =>
                     {
-                        return f.RemoveWhitespace(f.Span);
-                    }
-                    else
-                    {
-                        return g;
-                    }
-                });
+                        if (ShouldBeFormatted(f))
+                        {
+                            return f.RemoveWhitespace(f.Span);
+                        }
+                        else
+                        {
+                            return g;
+                        }
+                    });
             }
+        }
+
+        private static bool ShouldBeFormatted(AccessorDeclarationSyntax accessor)
+        {
+            BlockSyntax body = accessor.Body;
+
+            if (body != null)
+            {
+                SyntaxList<StatementSyntax> statements = body.Statements;
+
+                if (statements.Count <= 1
+                    && accessor.SyntaxTree.IsMultiLineSpan(TextSpan.FromBounds(accessor.Keyword.SpanStart, accessor.Span.End))
+                    && (!statements.Any() || statements[0].IsSingleLine()))
+                {
+                    return accessor
+                        .DescendantTrivia(accessor.Span, descendIntoTrivia: true)
+                        .All(f => f.IsWhitespaceOrEndOfLineTrivia());
+                }
+            }
+            else
+            {
+                ArrowExpressionClauseSyntax expressionBody = accessor.ExpressionBody;
+
+                if (expressionBody != null
+                    && accessor.SyntaxTree.IsMultiLineSpan(TextSpan.FromBounds(accessor.Keyword.SpanStart, accessor.Span.End))
+                    && expressionBody.Expression?.IsSingleLine() == true)
+                {
+                    return accessor
+                        .DescendantTrivia(accessor.Span, descendIntoTrivia: true)
+                        .All(f => f.IsWhitespaceOrEndOfLineTrivia());
+                }
+            }
+
+            return false;
         }
     }
 }

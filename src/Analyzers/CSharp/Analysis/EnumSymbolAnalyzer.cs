@@ -31,7 +31,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSymbolAction(AnalyzeNamedType, SymbolKind.NamedType);
+            context.RegisterSymbolAction(f => AnalyzeNamedType(f), SymbolKind.NamedType);
         }
 
         private static void AnalyzeNamedType(SymbolAnalysisContext context)
@@ -309,7 +309,7 @@ namespace Roslynator.CSharp.Analysis
                 context,
                 DiagnosticDescriptors.CompositeEnumValueContainsUndefinedFlag,
                 enumMember.GetLocation(),
-                ImmutableDictionary.CreateRange(new KeyValuePair<string, string>[] { new KeyValuePair<string, string>("Value", value) }),
+                ImmutableDictionary.CreateRange(new[] { new KeyValuePair<string, string>("Value", value) }),
                 value);
         }
 

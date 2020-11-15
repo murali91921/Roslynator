@@ -22,6 +22,18 @@ namespace Roslynator.CSharp
                 equivalenceKey);
         }
 
+        public static CodeAction ChangeTypeToVar(
+            Document document,
+            TupleExpressionSyntax tupleExpression,
+            string title = null,
+            string equivalenceKey = null)
+        {
+            return CodeAction.Create(
+                title ?? "Change type to 'var'",
+                ct => DocumentRefactorings.ChangeTypeToVarAsync(document, tupleExpression, ct),
+                equivalenceKey);
+        }
+
         public static CodeAction ChangeType(
             Document document,
             TypeSyntax type,
@@ -32,7 +44,11 @@ namespace Roslynator.CSharp
         {
             if (title == null)
             {
-                string newTypeName = SymbolDisplay.ToMinimalDisplayString(newTypeSymbol, semanticModel, type.SpanStart);
+                SymbolDisplayFormat format = (semanticModel.GetNullableContext(type.SpanStart) == NullableContext.Disabled)
+                    ? SymbolDisplayFormats.FullName_WithoutNullableReferenceTypeModifier
+                    : SymbolDisplayFormats.FullName;
+
+                string newTypeName = SymbolDisplay.ToMinimalDisplayString(newTypeSymbol, semanticModel, type.SpanStart, format);
 
                 if ((type.Parent is MethodDeclarationSyntax methodDeclaration && methodDeclaration.ReturnType == type)
                     || (type.Parent is LocalFunctionStatementSyntax localFunction && localFunction.ReturnType == type))
@@ -69,7 +85,11 @@ namespace Roslynator.CSharp
             string title = null,
             string equivalenceKey = null)
         {
-            string typeName = SymbolDisplay.ToMinimalDisplayString(destinationType, semanticModel, expression.SpanStart);
+            SymbolDisplayFormat format = (semanticModel.GetNullableContext(expression.SpanStart) == NullableContext.Disabled)
+                ? SymbolDisplayFormats.FullName_WithoutNullableReferenceTypeModifier
+                : SymbolDisplayFormats.FullName;
+
+            string typeName = SymbolDisplay.ToMinimalDisplayString(destinationType, semanticModel, expression.SpanStart, format);
 
             TypeSyntax newType = ParseTypeName(typeName);
 
@@ -132,6 +152,18 @@ namespace Roslynator.CSharp
             return CodeAction.Create(
                 title ?? "Remove async/await",
                 ct => DocumentRefactorings.RemoveAsyncAwaitAsync(document, asyncKeyword, ct),
+                equivalenceKey);
+        }
+
+        public static CodeAction RemoveParentheses(
+            Document document,
+            ParenthesizedExpressionSyntax parenthesizedExpression,
+            string title = null,
+            string equivalenceKey = null)
+        {
+            return CodeAction.Create(
+                title ?? "Remove parentheses",
+                ct => DocumentRefactorings.RemoveParenthesesAsync(document, parenthesizedExpression, ct),
                 equivalenceKey);
         }
     }

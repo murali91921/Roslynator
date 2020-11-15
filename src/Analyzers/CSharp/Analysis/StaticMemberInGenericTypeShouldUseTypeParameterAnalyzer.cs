@@ -21,7 +21,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSymbolAction(AnalyzeNamedType, SymbolKind.NamedType);
+            context.RegisterSymbolAction(f => AnalyzeNamedType(f), SymbolKind.NamedType);
         }
 
         private static void AnalyzeNamedType(SymbolAnalysisContext context)
@@ -203,9 +203,10 @@ namespace Roslynator.CSharp.Analysis
             if (identifier.Kind() == SyntaxKind.None)
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
-               DiagnosticDescriptors.StaticMemberInGenericTypeShouldUseTypeParameter,
-               identifier);
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
+                DiagnosticDescriptors.StaticMemberInGenericTypeShouldUseTypeParameter,
+                identifier);
         }
     }
 }

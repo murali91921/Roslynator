@@ -25,7 +25,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeBaseList, SyntaxKind.BaseList);
+            context.RegisterSyntaxNodeAction(f => AnalyzeBaseList(f), SyntaxKind.BaseList);
         }
 
         private static void AnalyzeBaseList(SyntaxNodeAnalysisContext context)
@@ -46,7 +46,7 @@ namespace Roslynator.CSharp.Analysis
             if (baseTypes.Count <= 1)
                 return;
 
-            bool isFirst = true;
+            var isFirst = true;
             INamedTypeSymbol typeSymbol = null;
             SymbolInterfaceInfo baseClassInfo = default;
             List<SymbolInterfaceInfo> baseInterfaceInfos = null;
@@ -126,11 +126,12 @@ namespace Roslynator.CSharp.Analysis
 
                         BaseTypeSyntax baseType = interfaceInfo.BaseType;
 
-                        DiagnosticHelpers.ReportDiagnostic(context,
+                        DiagnosticHelpers.ReportDiagnostic(
+                            context,
                             DiagnosticDescriptors.RemoveRedundantBaseInterface,
                             baseType,
-                            SymbolDisplay.ToMinimalDisplayString(interfaceInfo.Symbol, context.SemanticModel, baseType.SpanStart, SymbolDisplayFormats.Default),
-                            SymbolDisplay.ToMinimalDisplayString(interfaceInfo2.Symbol, context.SemanticModel, baseType.SpanStart, SymbolDisplayFormats.Default));
+                            SymbolDisplay.ToMinimalDisplayString(interfaceInfo.Symbol, context.SemanticModel, baseType.SpanStart, SymbolDisplayFormats.DisplayName),
+                            SymbolDisplay.ToMinimalDisplayString(interfaceInfo2.Symbol, context.SemanticModel, baseType.SpanStart, SymbolDisplayFormats.DisplayName));
 
                         return;
                     }

@@ -184,7 +184,8 @@ namespace Roslynator.CSharp.Refactorings
                     statements = statements.Add(
                         SimpleAssignmentStatement(
                             SimpleMemberAccessExpression(ThisExpression(), IdentifierName(fieldInfo.Name)).WithSimplifierAnnotation(),
-                            IdentifierName(parameterName)).WithFormatterAnnotation());
+                            IdentifierName(parameterName))
+                            .WithFormatterAnnotation());
                 }
 
                 parameterList = parameterList.WithParameters(parameters).WithFormatterAnnotation();
@@ -220,7 +221,7 @@ namespace Roslynator.CSharp.Refactorings
             SeparatedSyntaxList<ParameterSyntax> parameters,
             ref HashSet<string> reservedNames)
         {
-            bool isConflict = false;
+            var isConflict = false;
 
             foreach (ParameterSyntax parameter in parameters)
             {

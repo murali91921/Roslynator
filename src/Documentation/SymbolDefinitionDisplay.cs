@@ -197,7 +197,7 @@ namespace Roslynator.Documentation
                 builder.AddRange(parts);
             }
 
-            bool hasEventAccessorList = false;
+            var hasEventAccessorList = false;
 
             if (additionalOptions.HasOption(SymbolDisplayAdditionalOptions.IncludeAccessorAttributes))
             {
@@ -405,8 +405,8 @@ namespace Roslynator.Documentation
 
             void AddAttributeArguments()
             {
-                bool hasConstructorArgument = false;
-                bool hasNamedArgument = false;
+                var hasConstructorArgument = false;
+                var hasNamedArgument = false;
 
                 AppendConstructorArguments();
                 AppendNamedArguments();
@@ -644,7 +644,7 @@ namespace Roslynator.Documentation
                         case ",":
                             {
                                 if (((angleBracketsDepth == 0 && parenthesesDepth == 1 && bracesDepth == 0 && bracketsDepth == 0)
-                                        || (angleBracketsDepth == 0 && parenthesesDepth == 0 && bracesDepth == 0 && bracketsDepth == 1))
+                                    || (angleBracketsDepth == 0 && parenthesesDepth == 0 && bracesDepth == 0 && bracketsDepth == 1))
                                     && i < parts.Count - 1)
                                 {
                                     SymbolDisplayPart nextPart = parts[i + 1];
@@ -866,7 +866,7 @@ namespace Roslynator.Documentation
                         case ",":
                             {
                                 if (((angleBracketsDepth == 0 && parenthesesDepth == 1 && bracesDepth == 0 && bracketsDepth == 0)
-                                        || (angleBracketsDepth == 0 && parenthesesDepth == 0 && bracesDepth == 0 && bracketsDepth == 1))
+                                    || (angleBracketsDepth == 0 && parenthesesDepth == 0 && bracesDepth == 0 && bracketsDepth == 1))
                                     && i < parts.Count - 1)
                                 {
                                     SymbolDisplayPart nextPart = parts[i + 1];

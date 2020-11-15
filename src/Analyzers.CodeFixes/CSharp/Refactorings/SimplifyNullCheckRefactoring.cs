@@ -35,7 +35,7 @@ namespace Roslynator.CSharp.Refactorings
                 ? UseConditionalAccessAnalyzer.FindExpressionThatCanBeConditionallyAccessed(nullCheck.Expression, castExpression.Expression, semanticModel, cancellationToken)
                 : UseConditionalAccessAnalyzer.FindExpressionThatCanBeConditionallyAccessed(nullCheck.Expression, whenNotNull, semanticModel, cancellationToken);
 
-            bool coalesce = false;
+            var coalesce = false;
 
             ExpressionSyntax newNode = null;
 
@@ -69,8 +69,8 @@ namespace Roslynator.CSharp.Refactorings
                             if (castExpression != null)
                             {
                                 newNode = castExpression
-                                   .WithExpression(newNode.Parenthesize())
-                                   .WithSimplifierAnnotation();
+                                    .WithExpression(newNode.Parenthesize())
+                                    .WithSimplifierAnnotation();
                             }
                         }
                     }

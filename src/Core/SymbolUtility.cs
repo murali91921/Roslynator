@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 
 namespace Roslynator
@@ -371,9 +372,28 @@ namespace Roslynator
         internal static bool IsLinqExtensionOfIEnumerableOfT(
             IMethodSymbol methodSymbol,
             string name = null,
-            int parameterCount = -1,
+            int parameterCount = 1,
             bool allowImmutableArrayExtension = false)
         {
+            if (parameterCount < 1)
+                throw new ArgumentOutOfRangeException(nameof(parameterCount), parameterCount, "");
+
+            return IsLinqExtensionOfIEnumerableOfT(
+                methodSymbol: methodSymbol,
+                name: name,
+                interval: new Interval(parameterCount, parameterCount),
+                allowImmutableArrayExtension: allowImmutableArrayExtension);
+        }
+
+        internal static bool IsLinqExtensionOfIEnumerableOfT(
+            IMethodSymbol methodSymbol,
+            string name,
+            Interval interval,
+            bool allowImmutableArrayExtension = false)
+        {
+            if (interval.Min < 1)
+                throw new ArgumentOutOfRangeException(nameof(interval), interval, "");
+
             if (methodSymbol.DeclaredAccessibility != Accessibility.Public)
                 return false;
 
@@ -389,7 +409,7 @@ namespace Roslynator
             {
                 ImmutableArray<IParameterSymbol> parameters = methodSymbol.Parameters;
 
-                return (parameterCount == -1 || parameters.Length == parameterCount)
+                return interval.Contains(parameters)
                     && parameters[0].Type.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T;
             }
             else if (allowImmutableArrayExtension
@@ -397,7 +417,7 @@ namespace Roslynator
             {
                 ImmutableArray<IParameterSymbol> parameters = methodSymbol.Parameters;
 
-                return (parameterCount == -1 || parameters.Length == parameterCount)
+                return interval.Contains(parameters)
                     && IsImmutableArrayOfT(parameters[0].Type);
             }
 
@@ -603,6 +623,61 @@ namespace Roslynator
 
         public static bool IsAwaitable(ITypeSymbol typeSymbol, bool shouldCheckWindowsRuntimeTypes = false)
         {
+            INamedTypeSymbol namedTypeSymbol = GetPossiblyAwaitableType(typeSymbol);
+
+            if (namedTypeSymbol == null)
+                return false;
+
+            INamedTypeSymbol originalDefinition = namedTypeSymbol.OriginalDefinition;
+            TypeKind typeKind = originalDefinition.TypeKind;
+
+            if (typeKind == TypeKind.Struct
+                && originalDefinition.ContainingNamespace.HasMetadataName(MetadataNames.System_Threading_Tasks))
+            {
+                switch (originalDefinition.MetadataName)
+                {
+                    case "ValueTask":
+                    case "ValueTask`1":
+                        return true;
+                }
+            }
+
+            if (typeKind == TypeKind.Interface
+                && originalDefinition.HasMetadataName(MetadataNames.System_Collections_Generic_IAsyncEnumerable_T))
+            {
+                return true;
+            }
+
+            if (typeKind == TypeKind.Class
+                && namedTypeSymbol.EqualsOrInheritsFrom(MetadataNames.System_Threading_Tasks_Task))
+            {
+                return true;
+            }
+
+            if (shouldCheckWindowsRuntimeTypes)
+            {
+                if (typeKind == TypeKind.Interface
+                    && originalDefinition.ContainingNamespace.HasMetadataName(MetadataNames.WinRT.Windows_Foundation))
+                {
+                    switch (originalDefinition.MetadataName)
+                    {
+                        case "IAsyncAction":
+                        case "IAsyncActionWithProgress`1":
+                        case "IAsyncOperation`1":
+                        case "IAsyncOperationWithProgress`2":
+                            return true;
+                    }
+                }
+
+                if (namedTypeSymbol.Implements(MetadataNames.WinRT.Windows_Foundation_IAsyncAction, allInterfaces: true))
+                    return true;
+            }
+
+            return false;
+        }
+
+        internal static INamedTypeSymbol GetPossiblyAwaitableType(ITypeSymbol typeSymbol)
+        {
             if (typeSymbol.Kind == SymbolKind.TypeParameter)
             {
                 var typeParameterSymbol = (ITypeParameterSymbol)typeSymbol;
@@ -610,58 +685,19 @@ namespace Roslynator
                 typeSymbol = typeParameterSymbol.ConstraintTypes.SingleOrDefault(f => f.TypeKind == TypeKind.Class, shouldThrow: false);
 
                 if (typeSymbol == null)
-                    return false;
+                    return null;
             }
 
             if (typeSymbol.IsTupleType)
-                return false;
+                return null;
 
             if (typeSymbol.SpecialType != SpecialType.None)
-                return false;
+                return null;
 
             if (!typeSymbol.TypeKind.Is(TypeKind.Class, TypeKind.Struct, TypeKind.Interface))
-                return false;
+                return null;
 
-            if (!(typeSymbol is INamedTypeSymbol namedTypeSymbol))
-                return false;
-
-            INamedTypeSymbol originalDefinition = namedTypeSymbol.OriginalDefinition;
-
-            if (originalDefinition.HasMetadataName(MetadataNames.System_Threading_Tasks_ValueTask))
-                return true;
-
-            if (originalDefinition.HasMetadataName(MetadataNames.System_Threading_Tasks_ValueTask_T))
-                return true;
-
-            if (originalDefinition.HasMetadataName(MetadataNames.System_Collections_Generic_IAsyncEnumerable_T))
-                return true;
-
-            if (namedTypeSymbol.EqualsOrInheritsFrom(MetadataNames.System_Threading_Tasks_Task))
-                return true;
-
-            if (shouldCheckWindowsRuntimeTypes)
-            {
-                if (namedTypeSymbol.HasMetadataName(MetadataNames.WinRT.Windows_Foundation_IAsyncAction))
-                    return true;
-
-                if (namedTypeSymbol.Implements(MetadataNames.WinRT.Windows_Foundation_IAsyncAction, allInterfaces: true))
-                    return true;
-
-                if (namedTypeSymbol.Arity > 0
-                    && namedTypeSymbol.TypeKind == TypeKind.Interface)
-                {
-                    if (originalDefinition.HasMetadataName(MetadataNames.WinRT.Windows_Foundation_IAsyncActionWithProgress_1))
-                        return true;
-
-                    if (originalDefinition.HasMetadataName(MetadataNames.WinRT.Windows_Foundation_IAsyncOperation_1))
-                        return true;
-
-                    if (originalDefinition.HasMetadataName(MetadataNames.WinRT.Windows_Foundation_IAsyncOperationWithProgress_2))
-                        return true;
-                }
-            }
-
-            return false;
+            return typeSymbol as INamedTypeSymbol;
         }
     }
 }

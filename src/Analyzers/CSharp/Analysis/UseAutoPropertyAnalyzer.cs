@@ -36,7 +36,7 @@ namespace Roslynator.CSharp.Analysis
                 if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.UseAutoProperty))
                     return;
 
-                startContext.RegisterSyntaxNodeAction(AnalyzePropertyDeclaration, SyntaxKind.PropertyDeclaration);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzePropertyDeclaration(f), SyntaxKind.PropertyDeclaration);
             });
         }
 
@@ -195,7 +195,7 @@ namespace Roslynator.CSharp.Analysis
 
             UseAutoPropertyWalker walker = UseAutoPropertyWalker.GetInstance();
 
-            bool isFixable = false;
+            var isFixable = false;
 
             ImmutableArray<SyntaxReference> syntaxReferences = containingType.DeclaringSyntaxReferences;
 

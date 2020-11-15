@@ -24,7 +24,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeWhileStatement, SyntaxKind.WhileStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeWhileStatement(f), SyntaxKind.WhileStatement);
         }
 
         private static void AnalyzeWhileStatement(SyntaxNodeAnalysisContext context)
@@ -108,7 +108,7 @@ namespace Roslynator.CSharp.Analysis
                 ContainsContinueStatementWalker walker = ContainsContinueStatementWalker.GetInstance();
                 walker.ContainsContinueStatement = false;
 
-                bool containsContinueStatement = false;
+                var containsContinueStatement = false;
 
                 foreach (StatementSyntax innerStatement in innerStatements)
                 {

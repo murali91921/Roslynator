@@ -22,7 +22,7 @@ namespace Roslynator.CodeAnalysis.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeElementAccessExpression, SyntaxKind.ElementAccessExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeElementAccessExpression(f), SyntaxKind.ElementAccessExpression);
         }
 
         private static void AnalyzeElementAccessExpression(SyntaxNodeAnalysisContext context)
@@ -71,7 +71,7 @@ namespace Roslynator.CodeAnalysis.CSharp
                 return;
             }
 
-            context.ReportDiagnostic(DiagnosticDescriptors.CallLastInsteadOfUsingElementAccess, elementAccessExpression.ArgumentList);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.CallLastInsteadOfUsingElementAccess, elementAccessExpression.ArgumentList);
         }
     }
 }

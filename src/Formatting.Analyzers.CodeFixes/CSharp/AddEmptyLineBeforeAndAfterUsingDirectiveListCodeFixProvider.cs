@@ -103,12 +103,12 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             int index = leadingTrivia.Count;
 
             if (index > 0
-            && leadingTrivia.Last().IsWhitespaceTrivia())
+                && leadingTrivia.Last().IsWhitespaceTrivia())
             {
                 index--;
             }
 
-            SyntaxTriviaList newLeadingTrivia = leadingTrivia.Insert(index, SyntaxTriviaAnalysis.GetEndOfLine(usingDirective));
+            SyntaxTriviaList newLeadingTrivia = leadingTrivia.Insert(index, SyntaxTriviaAnalysis.DetermineEndOfLine(usingDirective));
 
             UsingDirectiveSyntax newUsingDirective = usingDirective.WithLeadingTrivia(newLeadingTrivia);
 

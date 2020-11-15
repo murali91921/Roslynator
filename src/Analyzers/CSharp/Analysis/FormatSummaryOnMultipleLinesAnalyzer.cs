@@ -22,7 +22,7 @@ namespace Roslynator.CSharp.Analysis
             base.Initialize(context);
 
             context.RegisterSyntaxNodeAction(
-                AnalyzeSingleLineDocumentationCommentTrivia,
+                f => AnalyzeSingleLineDocumentationCommentTrivia(f),
                 SyntaxKind.SingleLineDocumentationCommentTrivia);
         }
 
@@ -36,7 +36,8 @@ namespace Roslynator.CSharp.Analysis
                 && summaryElement.EndTag?.IsMissing == false
                 && summaryElement.IsSingleLine(includeExteriorTrivia: false, trim: false))
             {
-                DiagnosticHelpers.ReportDiagnostic(context,
+                DiagnosticHelpers.ReportDiagnostic(
+                    context,
                     DiagnosticDescriptors.FormatDocumentationSummaryOnMultipleLines,
                     summaryElement);
             }

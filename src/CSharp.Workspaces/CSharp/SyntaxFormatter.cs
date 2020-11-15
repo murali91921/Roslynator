@@ -13,12 +13,13 @@ using Microsoft.CodeAnalysis.Text;
 using Roslynator.CSharp.SyntaxRewriters;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 using static Roslynator.CSharp.CSharpFactory;
+using static Roslynator.CSharp.SyntaxTriviaAnalysis;
 
 namespace Roslynator.CSharp
 {
     internal static class SyntaxFormatter
     {
-        public static Task<Document> ToSingleLineAsync<TNode>(
+        public static Task<Document> UnwrapExpressionAsync<TNode>(
             Document document,
             TNode node,
             CancellationToken cancellationToken = default) where TNode : SyntaxNode
@@ -170,7 +171,7 @@ namespace Roslynator.CSharp
             return document.ReplaceNodeAsync(parent, newParent, cancellationToken);
         }
 
-        public static Task<Document> ToMultiLineAsync(
+        public static Task<Document> WrapConditionalExpressionAsync(
             Document document,
             ConditionalExpressionSyntax conditionalExpression,
             CancellationToken cancellationToken = default)
@@ -182,35 +183,37 @@ namespace Roslynator.CSharp
 
         public static ConditionalExpressionSyntax ToMultiLine(ConditionalExpressionSyntax conditionalExpression, CancellationToken cancellationToken = default)
         {
-            SyntaxTriviaList leadingTrivia = conditionalExpression.GetIncreasedIndentation(cancellationToken);
+            SyntaxTriviaList leadingTrivia = GetIncreasedIndentationTriviaList(conditionalExpression, cancellationToken);
 
-            leadingTrivia = leadingTrivia.Insert(0, NewLine());
+            leadingTrivia = leadingTrivia.Insert(0, DetermineEndOfLine(conditionalExpression));
 
             return ConditionalExpression(
-                    conditionalExpression.Condition.WithoutTrailingTrivia(),
-                    Token(leadingTrivia, SyntaxKind.QuestionToken, TriviaList(Space)),
-                    conditionalExpression.WhenTrue.WithoutTrailingTrivia(),
-                    Token(leadingTrivia, SyntaxKind.ColonToken, TriviaList(Space)),
-                    conditionalExpression.WhenFalse.WithoutTrailingTrivia());
+                conditionalExpression.Condition.WithoutTrailingTrivia(),
+                Token(leadingTrivia, SyntaxKind.QuestionToken, TriviaList(Space)),
+                conditionalExpression.WhenTrue.WithoutTrailingTrivia(),
+                Token(leadingTrivia, SyntaxKind.ColonToken, TriviaList(Space)),
+                conditionalExpression.WhenFalse.WithoutTrailingTrivia());
         }
 
-        public static Task<Document> ToMultiLineAsync(
+        public static Task<Document> WrapParametersAsync(
             Document document,
             ParameterListSyntax parameterList,
             CancellationToken cancellationToken = default)
         {
-            ParameterListSyntax newNode = ToMultiLine(parameterList);
+            ParameterListSyntax newNode = WrapParameters(parameterList);
 
             return document.ReplaceNodeAsync(parameterList, newNode, cancellationToken);
         }
 
-        public static ParameterListSyntax ToMultiLine(ParameterListSyntax parameterList, CancellationToken cancellationToken = default)
+        public static ParameterListSyntax WrapParameters(ParameterListSyntax parameterList, CancellationToken cancellationToken = default)
         {
-            SyntaxTriviaList leadingTrivia = parameterList.GetIncreasedIndentation(cancellationToken);
+            SyntaxTriviaList leadingTrivia = GetIncreasedIndentationTriviaList(parameterList, cancellationToken);
 
             var nodesAndTokens = new List<SyntaxNodeOrToken>();
 
             SeparatedSyntaxList<ParameterSyntax>.Enumerator en = parameterList.Parameters.GetEnumerator();
+
+            SyntaxTrivia endOfLine = DetermineEndOfLine(parameterList);
 
             if (en.MoveNext())
             {
@@ -218,14 +221,14 @@ namespace Roslynator.CSharp
 
                 while (en.MoveNext())
                 {
-                    nodesAndTokens.Add(CommaToken().WithTrailingTrivia(NewLine()));
+                    nodesAndTokens.Add(CommaToken().WithTrailingTrivia(endOfLine));
 
                     nodesAndTokens.Add(en.Current.WithLeadingTrivia(leadingTrivia));
                 }
             }
 
             return ParameterList(
-                OpenParenToken().WithTrailingTrivia(NewLine()),
+                OpenParenToken().WithTrailingTrivia(endOfLine),
                 SeparatedList<ParameterSyntax>(nodesAndTokens),
                 parameterList.CloseParenToken);
         }
@@ -245,20 +248,22 @@ namespace Roslynator.CSharp
         {
             SyntaxNode parent = initializer.Parent;
 
+            SyntaxTrivia endOfLine = DetermineEndOfLine(initializer);
+
             if (parent.IsKind(SyntaxKind.ObjectCreationExpression)
                 && !initializer.IsKind(SyntaxKind.CollectionInitializerExpression))
             {
                 return initializer
                     .WithExpressions(
                         SeparatedList(
-                            initializer.Expressions.Select(expression => expression.WithLeadingTrivia(NewLine()))));
+                            initializer.Expressions.Select(expression => expression.WithLeadingTrivia(endOfLine))));
             }
             else
             {
-                SyntaxTrivia trivia = initializer.GetIndentation(cancellationToken);
+                IndentationAnalysis indentationAnalysis = AnalyzeIndentation(initializer, cancellationToken);
 
-                SyntaxTriviaList braceTrivia = TriviaList(NewLine(), trivia);
-                SyntaxTriviaList expressionTrivia = TriviaList(NewLine(), trivia, SingleIndentation(trivia));
+                SyntaxTriviaList braceTrivia = TriviaList(endOfLine, indentationAnalysis.Indentation);
+                SyntaxTriviaList expressionTrivia = TriviaList(endOfLine, indentationAnalysis.GetIncreasedIndentationTrivia());
 
                 return initializer
                     .WithExpressions(
@@ -269,7 +274,7 @@ namespace Roslynator.CSharp
             }
         }
 
-        public static Task<Document> ToMultiLineAsync(
+        public static Task<Document> WrapArgumentsAsync(
             Document document,
             ArgumentListSyntax argumentList,
             CancellationToken cancellationToken = default)
@@ -281,11 +286,13 @@ namespace Roslynator.CSharp
 
         public static ArgumentListSyntax ToMultiLine(ArgumentListSyntax argumentList, CancellationToken cancellationToken = default)
         {
-            SyntaxTriviaList leadingTrivia = argumentList.GetIncreasedIndentation(cancellationToken);
+            SyntaxTriviaList leadingTrivia = GetIncreasedIndentationTriviaList(argumentList, cancellationToken);
 
             var nodesAndTokens = new List<SyntaxNodeOrToken>();
 
             SeparatedSyntaxList<ArgumentSyntax>.Enumerator en = argumentList.Arguments.GetEnumerator();
+
+            SyntaxTrivia endOfLine = DetermineEndOfLine(argumentList);
 
             if (en.MoveNext())
             {
@@ -295,7 +302,7 @@ namespace Roslynator.CSharp
 
                 while (en.MoveNext())
                 {
-                    nodesAndTokens.Add(CommaToken().WithTrailingTrivia(NewLine()));
+                    nodesAndTokens.Add(CommaToken().WithTrailingTrivia(endOfLine));
 
                     nodesAndTokens.Add(en.Current
                         .TrimTrailingTrivia()
@@ -304,25 +311,25 @@ namespace Roslynator.CSharp
             }
 
             return ArgumentList(
-                OpenParenToken().WithTrailingTrivia(NewLine()),
+                OpenParenToken().WithTrailingTrivia(endOfLine),
                 SeparatedList<ArgumentSyntax>(nodesAndTokens),
                 argumentList.CloseParenToken.WithoutLeadingTrivia());
         }
 
-        public static Task<Document> ToMultiLineAsync(
+        public static Task<Document> WrapCallChainAsync(
             Document document,
             ExpressionSyntax expression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken = default)
         {
-            SyntaxTrivia trivia = expression.GetIndentation(cancellationToken);
+            IndentationAnalysis indentationAnalysis = AnalyzeIndentation(expression, cancellationToken);
 
-            string indentation = Environment.NewLine + trivia.ToString() + SingleIndentation(trivia).ToString();
+            string indentation = Environment.NewLine + indentationAnalysis.GetIncreasedIndentation();
 
             TextChange? textChange = null;
             List<TextChange> textChanges = null;
 
-            foreach (SyntaxNode node in CSharpUtility.EnumerateExpressionChain(expression))
+            foreach (SyntaxNode node in new MethodChain(expression))
             {
                 switch (node.Kind())
                 {
@@ -374,12 +381,12 @@ namespace Roslynator.CSharp
                 }
                 else
                 {
-                    (textChanges ?? (textChanges = new List<TextChange>() { textChange.Value })).Add(tc);
+                    (textChanges ??= new List<TextChange>() { textChange.Value }).Add(tc);
                 }
             }
         }
 
-        public static Task<Document> ToMultiLineAsync(
+        public static Task<Document> WrapArgumentsAsync(
             Document document,
             AttributeArgumentListSyntax argumentList,
             CancellationToken cancellationToken = default)
@@ -391,11 +398,13 @@ namespace Roslynator.CSharp
 
         private static AttributeArgumentListSyntax ToMultiLine(AttributeArgumentListSyntax argumentList, CancellationToken cancellationToken = default)
         {
-            SyntaxTriviaList leadingTrivia = argumentList.GetIncreasedIndentation(cancellationToken);
+            SyntaxTriviaList leadingTrivia = GetIncreasedIndentationTriviaList(argumentList, cancellationToken);
 
             var nodesAndTokens = new List<SyntaxNodeOrToken>();
 
             SeparatedSyntaxList<AttributeArgumentSyntax>.Enumerator en = argumentList.Arguments.GetEnumerator();
+
+            SyntaxTrivia endOfLine = DetermineEndOfLine(argumentList);
 
             if (en.MoveNext())
             {
@@ -405,7 +414,7 @@ namespace Roslynator.CSharp
 
                 while (en.MoveNext())
                 {
-                    nodesAndTokens.Add(CommaToken().WithTrailingTrivia(NewLine()));
+                    nodesAndTokens.Add(CommaToken().WithTrailingTrivia(endOfLine));
 
                     nodesAndTokens.Add(en.Current
                         .TrimTrailingTrivia()
@@ -414,19 +423,19 @@ namespace Roslynator.CSharp
             }
 
             return AttributeArgumentList(
-                OpenParenToken().WithTrailingTrivia(NewLine()),
+                OpenParenToken().WithTrailingTrivia(endOfLine),
                 SeparatedList<AttributeArgumentSyntax>(nodesAndTokens),
                 argumentList.CloseParenToken.WithoutLeadingTrivia());
         }
 
-        public static Task<Document> ToMultiLineAsync(
+        public static Task<Document> WrapBinaryExpressionAsync(
             Document document,
             BinaryExpressionSyntax condition,
             CancellationToken cancellationToken = default)
         {
-            SyntaxTriviaList leadingTrivia = condition.GetIncreasedIndentation(cancellationToken);
+            SyntaxTriviaList leadingTrivia = GetIncreasedIndentationTriviaList(condition, cancellationToken);
 
-            leadingTrivia = leadingTrivia.Insert(0, NewLine());
+            leadingTrivia = leadingTrivia.Insert(0, DetermineEndOfLine(condition));
 
             var rewriter = new BinaryExpressionToMultiLineRewriter(leadingTrivia);
 
@@ -456,10 +465,10 @@ namespace Roslynator.CSharp
                 if (!closeBrace.IsMissing)
                 {
                     AccessorDeclarationSyntax newAccessor = accessor
-                   .WithBody(
-                       body.WithCloseBraceToken(
-                           closeBrace.WithLeadingTrivia(
-                               closeBrace.LeadingTrivia.Add(NewLine()))));
+                        .WithBody(
+                            body.WithCloseBraceToken(
+                                closeBrace.WithLeadingTrivia(
+                                    closeBrace.LeadingTrivia.Add(DetermineEndOfLine(accessor)))));
 
                     return newAccessor.WithFormatterAnnotation();
                 }

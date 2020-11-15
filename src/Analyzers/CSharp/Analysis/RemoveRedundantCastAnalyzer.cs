@@ -24,7 +24,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeCastExpression, SyntaxKind.CastExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeCastExpression(f), SyntaxKind.CastExpression);
         }
 
         private static void AnalyzeCastExpression(SyntaxNodeAnalysisContext context)
@@ -100,7 +100,8 @@ namespace Roslynator.CSharp.Analysis
                     return;
             }
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.RemoveRedundantCast,
                 Location.Create(castExpression.SyntaxTree, castExpression.ParenthesesSpan()));
         }
@@ -118,7 +119,7 @@ namespace Roslynator.CSharp.Analysis
                     {
                         foreach (IPropertySymbol propertySymbol in ((IPropertySymbol)implementation).ExplicitInterfaceImplementations)
                         {
-                            if (SymbolEqualityComparer.Default.Equals(propertySymbol, symbol))
+                            if (SymbolEqualityComparer.Default.Equals(propertySymbol.OriginalDefinition, symbol.OriginalDefinition))
                                 return false;
                         }
 
@@ -128,7 +129,7 @@ namespace Roslynator.CSharp.Analysis
                     {
                         foreach (IMethodSymbol methodSymbol in ((IMethodSymbol)implementation).ExplicitInterfaceImplementations)
                         {
-                            if (SymbolEqualityComparer.Default.Equals(methodSymbol, symbol))
+                            if (SymbolEqualityComparer.Default.Equals(methodSymbol.OriginalDefinition, symbol.OriginalDefinition))
                                 return false;
                         }
 
@@ -234,7 +235,8 @@ namespace Roslynator.CSharp.Analysis
             if (invocationExpression.ContainsDirectives(TextSpan.FromBounds(invocationInfo.Expression.Span.End, invocationExpression.Span.End)))
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.RemoveRedundantCast,
                 Location.Create(invocationExpression.SyntaxTree, TextSpan.FromBounds(invocationInfo.Name.SpanStart, invocationInfo.ArgumentList.Span.End)));
         }

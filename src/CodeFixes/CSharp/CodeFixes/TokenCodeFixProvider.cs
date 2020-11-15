@@ -67,11 +67,7 @@ namespace Roslynator.CSharp.CodeFixes
                                         {
                                             CodeAction codeAction = CodeAction.Create(
                                                 "Remove '?' operator",
-                                                cancellationToken =>
-                                                {
-                                                    var textChange = new TextChange(token.Span, "");
-                                                    return context.Document.WithTextChangeAsync(textChange, cancellationToken);
-                                                },
+                                                ct => context.Document.WithTextChangeAsync(token.Span, "", ct),
                                                 GetEquivalenceKey(diagnostic));
 
                                             context.RegisterCodeFix(codeAction, diagnostic);
@@ -249,16 +245,14 @@ namespace Roslynator.CSharp.CodeFixes
                                 break;
 
                             CodeAction codeAction = CodeAction.Create(
-                                $"Add type '{SymbolDisplay.ToMinimalDisplayString(convertedType, semanticModel, defaultExpression.SpanStart, SymbolDisplayFormats.Default)}'",
-                                cancellationToken =>
+                                $"Add type '{SymbolDisplay.ToMinimalDisplayString(convertedType, semanticModel, defaultExpression.SpanStart, SymbolDisplayFormats.DisplayName)}'",
+                                ct =>
                                 {
-                                    TypeSyntax newNode = convertedType.ToMinimalTypeSyntax(semanticModel, defaultExpression.SpanStart);
-
-                                    newNode = newNode
+                                    TypeSyntax newType = convertedType.ToTypeSyntax()
                                         .WithTriviaFrom(identifierName)
-                                        .WithFormatterAnnotation();
+                                        .WithFormatterAndSimplifierAnnotation();
 
-                                    return context.Document.ReplaceNodeAsync(identifierName, newNode, cancellationToken);
+                                    return context.Document.ReplaceNodeAsync(identifierName, newType, ct);
                                 },
                                 GetEquivalenceKey(diagnostic));
 

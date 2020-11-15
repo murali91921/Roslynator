@@ -25,7 +25,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeClassDeclaration, SyntaxKind.ClassDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeClassDeclaration(f), SyntaxKind.ClassDeclaration);
         }
 
         private static void AnalyzeClassDeclaration(SyntaxNodeAnalysisContext context)
@@ -79,7 +79,7 @@ namespace Roslynator.CSharp.Analysis
 
         public static bool AnalyzeMembers(ImmutableArray<ISymbol> members)
         {
-            bool areAllImplicitlyDeclared = true;
+            var areAllImplicitlyDeclared = true;
 
             foreach (ISymbol memberSymbol in members)
             {

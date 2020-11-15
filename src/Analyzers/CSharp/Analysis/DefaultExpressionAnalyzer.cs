@@ -25,7 +25,7 @@ namespace Roslynator.CSharp.Analysis
             context.RegisterCompilationStartAction(startContext =>
             {
                 if (((CSharpCompilation)startContext.Compilation).LanguageVersion >= LanguageVersion.CSharp7_1)
-                    startContext.RegisterSyntaxNodeAction(AnalyzeDefaultExpression, SyntaxKind.DefaultExpression);
+                    startContext.RegisterSyntaxNodeAction(f => AnalyzeDefaultExpression(f), SyntaxKind.DefaultExpression);
             });
         }
 
@@ -108,6 +108,11 @@ namespace Roslynator.CSharp.Analysis
                 case SyntaxKind.EqualsExpression:
                 case SyntaxKind.NotEqualsExpression:
                     {
+                        TypeInfo typeInfo = context.SemanticModel.GetTypeInfo(expression, context.CancellationToken);
+
+                        if (!SymbolEqualityComparer.Default.Equals(typeInfo.Type, typeInfo.ConvertedType))
+                            return;
+
                         ReportDiagnostic();
                         return;
                     }

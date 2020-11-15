@@ -13,11 +13,18 @@ namespace Roslynator.CSharp.Refactorings
     {
         public static async Task ComputeRefactoringAsync(RefactoringContext context, ExpressionSyntax expression)
         {
-            if (expression?.Kind() != SyntaxKind.NullLiteralExpression)
-                return;
-
             if (!context.Span.IsEmptyAndContainedInSpanOrBetweenSpans(expression))
                 return;
+
+            if (!expression.IsKind(SyntaxKind.NullLiteralExpression))
+                return;
+
+            if (expression.IsParentKind(SyntaxKind.EqualsValueClause)
+                && expression.Parent.IsParentKind(SyntaxKind.Parameter)
+                && object.ReferenceEquals(expression, ((ParameterSyntax)expression.Parent.Parent).Default.Value))
+            {
+                return;
+            }
 
             SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
 
@@ -27,7 +34,7 @@ namespace Roslynator.CSharp.Refactorings
                 return;
 
             context.RegisterRefactoring(
-                $"Convert to 'default({SymbolDisplay.ToMinimalDisplayString(typeSymbol, semanticModel, expression.SpanStart, SymbolDisplayFormats.Default)})'",
+                $"Convert to 'default({SymbolDisplay.ToMinimalDisplayString(typeSymbol, semanticModel, expression.SpanStart, SymbolDisplayFormats.DisplayName)})'",
                 cancellationToken => RefactorAsync(context.Document, expression, typeSymbol, cancellationToken),
                 RefactoringIdentifiers.ConvertNullLiteralToDefaultExpression);
         }

@@ -52,16 +52,16 @@ class C
 
                 parseOptions = parseOptions
                     .WithLanguageVersion(LanguageVersion.CSharp8)
-                    .WithPreprocessorSymbols(parseOptions.PreprocessorSymbolNames.Concat(new string[] { "DEBUG" }));
+                    .WithPreprocessorSymbols(parseOptions.PreprocessorSymbolNames.Concat(new[] { "DEBUG" }));
 
                 project = project
                     .WithCompilationOptions(compilationOptions)
                     .WithParseOptions(parseOptions);
 
                 Document document = project.AddDocument("Document", SourceText.From(source));
-                SemanticModel semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
-                SyntaxTree tree = await document.GetSyntaxTreeAsync().ConfigureAwait(false);
-                SyntaxNode root = await tree.GetRootAsync().ConfigureAwait(false);
+                SemanticModel semanticModel = await document.GetSemanticModelAsync();
+                SyntaxTree tree = await document.GetSyntaxTreeAsync();
+                SyntaxNode root = await tree.GetRootAsync();
 
                 string s = document.GetSyntaxRootAsync().Result.ToFullString();
                 Console.WriteLine(s);

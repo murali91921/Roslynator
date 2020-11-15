@@ -41,7 +41,8 @@ namespace Roslynator.CodeFixes
                     project,
                     options,
                     formatProvider,
-                    cancellationToken).ConfigureAwait(false);
+                    cancellationToken)
+                    .ConfigureAwait(false);
 
                 if (fixCandidate != null)
                 {
@@ -271,10 +272,13 @@ namespace Roslynator.CodeFixes
 
             public override int GetHashCode()
             {
-                return Hash.Combine(DiagnosticId,
-                    Hash.Combine(Fixer,
-                    Hash.Combine(EquivalenceKey1,
-                    Hash.Create(EquivalenceKey2))));
+                return Hash.Combine(
+                    DiagnosticId,
+                    Hash.Combine(
+                        Fixer,
+                        Hash.Combine(
+                            EquivalenceKey1,
+                            Hash.Create(EquivalenceKey2))));
             }
 
             public static bool operator ==(in MultipleFixesInfo info1, in MultipleFixesInfo info2)

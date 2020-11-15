@@ -21,8 +21,8 @@ namespace Roslynator.Formatting.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeConstructorInitializer, SyntaxKind.ThisConstructorInitializer);
-            context.RegisterSyntaxNodeAction(AnalyzeConstructorInitializer, SyntaxKind.BaseConstructorInitializer);
+            context.RegisterSyntaxNodeAction(f => AnalyzeConstructorInitializer(f), SyntaxKind.ThisConstructorInitializer);
+            context.RegisterSyntaxNodeAction(f => AnalyzeConstructorInitializer(f), SyntaxKind.BaseConstructorInitializer);
         }
 
         private static void AnalyzeConstructorInitializer(SyntaxNodeAnalysisContext context)
@@ -39,7 +39,8 @@ namespace Roslynator.Formatting.CSharp
             if (!constructorDeclaration.ParameterList.GetTrailingTrivia().SingleOrDefault(shouldThrow: false).IsWhitespaceTrivia())
                 return;
 
-            context.ReportDiagnostic(
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.AddNewLineBeforeConstructorInitializer,
                 Location.Create(colonToken.SyntaxTree, colonToken.Span.WithLength(0)));
         }

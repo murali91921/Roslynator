@@ -32,7 +32,7 @@ namespace Roslynator.CSharp.Analysis
                 if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.RemoveEmptyRegion))
                     return;
 
-                startContext.RegisterSyntaxNodeAction(AnalyzeRegionDirective, SyntaxKind.RegionDirectiveTrivia);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeRegionDirective(f), SyntaxKind.RegionDirectiveTrivia);
             });
         }
 
@@ -48,7 +48,8 @@ namespace Roslynator.CSharp.Analysis
             if (!region.IsEmpty)
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.RemoveEmptyRegion,
                 regionDirective.GetLocation(),
                 additionalLocations: ImmutableArray.Create(region.EndDirective.GetLocation()));

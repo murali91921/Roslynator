@@ -22,7 +22,6 @@
 | RR0178 | [Add type parameter](../../docs/refactorings/RR0178.md) | &#x2713; |
 | RR0013 | [Add using directive](../../docs/refactorings/RR0013.md) | &#x2713; |
 | RR0014 | [Add using static directive](../../docs/refactorings/RR0014.md) | &#x2713; |
-| RR0015 | [Call 'ConfigureAwait(false)'](../../docs/refactorings/RR0015.md) | &#x2713; |
 | RR0016 | [Call extension method as instance method](../../docs/refactorings/RR0016.md) | &#x2713; |
 | RR0144 | [Call string.IndexOf instead of string.Contains](../../docs/refactorings/RR0144.md) | &#x2713; |
 | RR0017 | [Call 'To...' method (ToString, ToArray, ToList)](../../docs/refactorings/RR0017.md) | &#x2713; |
@@ -39,21 +38,29 @@
 | RR0171 | [Convert "" to string.Empty](../../docs/refactorings/RR0171.md) | \- |
 | RR0143 | [Convert '(yield) return' to 'if'](../../docs/refactorings/RR0143.md) | &#x2713; |
 | RR0120 | [Convert ?: to if-else](../../docs/refactorings/RR0120.md) | &#x2713; |
+| RR0169 | [Convert block body to expression-body](../../docs/refactorings/RR0169.md) | &#x2713; |
 | RR0192 | [Convert comment to documentation comment](../../docs/refactorings/RR0192.md) | &#x2713; |
 | RR0123 | [Convert 'do' to 'while'](../../docs/refactorings/RR0123.md) | &#x2713; |
+| RR0037 | [Convert expression-body to block body](../../docs/refactorings/RR0037.md) | &#x2713; |
 | RR0130 | [Convert 'for' to 'foreach'](../../docs/refactorings/RR0130.md) | &#x2713; |
 | RR0131 | [Convert 'for' to 'while'](../../docs/refactorings/RR0131.md) | &#x2713; |
 | RR0129 | [Convert 'foreach' to 'for'](../../docs/refactorings/RR0129.md) | &#x2713; |
 | RR0188 | [Convert 'foreach' to 'for' and reverse loop](../../docs/refactorings/RR0188.md) | \- |
+| RR0164 | [Convert 'HasFlag' call to bitwise operation](../../docs/refactorings/RR0164.md) | &#x2713; |
 | RR0132 | [Convert hexadecimal literal to decimal literal](../../docs/refactorings/RR0132.md) | &#x2713; |
 | RR0166 | [Convert 'if' to ?:](../../docs/refactorings/RR0166.md) | &#x2713; |
 | RR0133 | [Convert 'if' to 'switch'](../../docs/refactorings/RR0133.md) | &#x2713; |
 | RR0193 | [Convert interpolated string to concatenation](../../docs/refactorings/RR0193.md) | &#x2713; |
 | RR0136 | [Convert interpolated string to string literal](../../docs/refactorings/RR0136.md) | &#x2713; |
 | RR0201 | [Convert interpolated string to 'string.Format'](../../docs/refactorings/RR0201.md) | &#x2713; |
+| RR0039 | [Convert lambda expression body to block body](../../docs/refactorings/RR0039.md) | &#x2713; |
+| RR0154 | [Convert lambda expression body to expression-body](../../docs/refactorings/RR0154.md) | &#x2713; |
+| RR0137 | [Convert method group to lambda](../../docs/refactorings/RR0137.md) | &#x2713; |
+| RR0139 | [Convert null literal to default expression](../../docs/refactorings/RR0139.md) | &#x2713; |
 | RR0142 | [Convert regular string literal to verbatim string literal](../../docs/refactorings/RR0142.md) | &#x2713; |
 | RR0211 | [Convert statements to if-else](../../docs/refactorings/RR0211.md) | &#x2713; |
 | RR0145 | [Convert 'string.Format' to interpolated string](../../docs/refactorings/RR0145.md) | &#x2713; |
+| RR0214 | [Convert 'switch' expression to 'switch' statement](../../docs/refactorings/RR0214.md) | &#x2713; |
 | RR0147 | [Convert 'switch' to 'if'](../../docs/refactorings/RR0147.md) | &#x2713; |
 | RR0148 | [Convert verbatim string literal to regular string literal](../../docs/refactorings/RR0148.md) | &#x2713; |
 | RR0149 | [Convert verbatim string literal to regular string literals](../../docs/refactorings/RR0149.md) | &#x2713; |
@@ -68,9 +75,7 @@
 | RR0035 | [Expand coalesce expression](../../docs/refactorings/RR0035.md) | &#x2713; |
 | RR0034 | [Expand compound assignment operator](../../docs/refactorings/RR0034.md) | &#x2713; |
 | RR0036 | [Expand event](../../docs/refactorings/RR0036.md) | &#x2713; |
-| RR0037 | [Expand expression body](../../docs/refactorings/RR0037.md) | &#x2713; |
 | RR0038 | [Expand initializer](../../docs/refactorings/RR0038.md) | &#x2713; |
-| RR0039 | [Expand lambda expression body](../../docs/refactorings/RR0039.md) | &#x2713; |
 | RR0040 | [Expand property](../../docs/refactorings/RR0040.md) | &#x2713; |
 | RR0041 | [Expand property and add backing field](../../docs/refactorings/RR0041.md) | &#x2713; |
 | RR0203 | [Extract event handler method](../../docs/refactorings/RR0203.md) | &#x2713; |
@@ -78,13 +83,6 @@
 | RR0044 | [Extract generic type](../../docs/refactorings/RR0044.md) | &#x2713; |
 | RR0045 | [Extract statement(s)](../../docs/refactorings/RR0045.md) | &#x2713; |
 | RR0046 | [Extract type declaration to a new file](../../docs/refactorings/RR0046.md) | &#x2713; |
-| RR0048 | [Format argument list](../../docs/refactorings/RR0048.md) | &#x2713; |
-| RR0049 | [Format binary expression](../../docs/refactorings/RR0049.md) | &#x2713; |
-| RR0050 | [Format conditional expression](../../docs/refactorings/RR0050.md) | &#x2713; |
-| RR0187 | [Format constraint clauses](../../docs/refactorings/RR0187.md) | &#x2713; |
-| RR0051 | [Format expression chain](../../docs/refactorings/RR0051.md) | &#x2713; |
-| RR0052 | [Format initializer](../../docs/refactorings/RR0052.md) | &#x2713; |
-| RR0053 | [Format parameter list](../../docs/refactorings/RR0053.md) | &#x2713; |
 | RR0054 | [Generate base constructors](../../docs/refactorings/RR0054.md) | &#x2713; |
 | RR0055 | [Generate combined enum member](../../docs/refactorings/RR0055.md) | &#x2713; |
 | RR0056 | [Generate enum member](../../docs/refactorings/RR0056.md) | &#x2713; |
@@ -121,7 +119,7 @@
 | RR0070 | [Make member virtual](../../docs/refactorings/RR0070.md) | &#x2713; |
 | RR0073 | [Merge assignment expression with return statement](../../docs/refactorings/RR0073.md) | &#x2713; |
 | RR0074 | [Merge attributes](../../docs/refactorings/RR0074.md) | &#x2713; |
-| RR0075 | [Merge if statements](../../docs/refactorings/RR0075.md) | &#x2713; |
+| RR0075 | [Merge 'if' statements](../../docs/refactorings/RR0075.md) | &#x2713; |
 | RR0196 | [Merge if with parent if](../../docs/refactorings/RR0196.md) | &#x2713; |
 | RR0077 | [Merge local declarations](../../docs/refactorings/RR0077.md) | &#x2713; |
 | RR0202 | [Move unsafe context to containing declaration](../../docs/refactorings/RR0202.md) | &#x2713; |
@@ -168,15 +166,12 @@
 | RR0125 | [Replace equals expression with string.IsNullOrEmpty](../../docs/refactorings/RR0125.md) | &#x2713; |
 | RR0126 | [Replace equals expression with string.IsNullOrWhiteSpace](../../docs/refactorings/RR0126.md) | &#x2713; |
 | RR0135 | [Replace interpolated string with interpolation expression](../../docs/refactorings/RR0135.md) | &#x2713; |
-| RR0137 | [Replace method group with lambda](../../docs/refactorings/RR0137.md) | &#x2713; |
 | RR0138 | [Replace method with property](../../docs/refactorings/RR0138.md) | \- |
-| RR0139 | [Replace null literal expression with default expression](../../docs/refactorings/RR0139.md) | &#x2713; |
 | RR0185 | [Replace object creation with default value](../../docs/refactorings/RR0185.md) | &#x2713; |
 | RR0140 | [Replace prefix operator to postfix operator](../../docs/refactorings/RR0140.md) | &#x2713; |
 | RR0141 | [Replace property with method](../../docs/refactorings/RR0141.md) | &#x2713; |
-| RR0152 | [Reverse 'for' loop](../../docs/refactorings/RR0152.md) | &#x2713; |
+| RR0152 | [Reverse 'for' statement](../../docs/refactorings/RR0152.md) | &#x2713; |
 | RR0153 | [Simplify if](../../docs/refactorings/RR0153.md) | &#x2713; |
-| RR0154 | [Simplify lambda expression](../../docs/refactorings/RR0154.md) | &#x2713; |
 | RR0207 | [Sort case labels](../../docs/refactorings/RR0207.md) | &#x2713; |
 | RR0155 | [Sort member declarations](../../docs/refactorings/RR0155.md) | &#x2713; |
 | RR0156 | [Split attributes](../../docs/refactorings/RR0156.md) | &#x2713; |
@@ -189,22 +184,26 @@
 | RR0161 | [Swap member declarations](../../docs/refactorings/RR0161.md) | &#x2713; |
 | RR0200 | [Uncomment multi-line comment](../../docs/refactorings/RR0200.md) | &#x2713; |
 | RR0163 | [Uncomment single-line comment](../../docs/refactorings/RR0163.md) | &#x2713; |
-| RR0168 | [Use "" instead of string.Empty](../../docs/refactorings/RR0168.md) | &#x2713; |
-| RR0164 | [Use bitwise operation instead of calling 'HasFlag'](../../docs/refactorings/RR0164.md) | &#x2713; |
 | RR0191 | [Use C# 6.0 dictionary initializer](../../docs/refactorings/RR0191.md) | &#x2713; |
 | RR0165 | [Use coalesce expression instead of if](../../docs/refactorings/RR0165.md) | &#x2713; |
 | RR0128 | [Use constant instead of field](../../docs/refactorings/RR0128.md) | &#x2713; |
 | RR0167 | [Use element access instead of 'First/Last'ElementAt' method](../../docs/refactorings/RR0167.md) | &#x2713; |
 | RR0206 | [Use enumerator explicitly](../../docs/refactorings/RR0206.md) | &#x2713; |
-| RR0169 | [Use expression-bodied member](../../docs/refactorings/RR0169.md) | &#x2713; |
 | RR0170 | [Use lambda expression instead of anonymous method](../../docs/refactorings/RR0170.md) | &#x2713; |
 | RR0183 | [Use List\<T> instead of yield](../../docs/refactorings/RR0183.md) | &#x2713; |
 | RR0182 | [Use StringBuilder instead of concatenation](../../docs/refactorings/RR0182.md) | &#x2713; |
+| RR0048 | [Wrap arguments](../../docs/refactorings/RR0048.md) | &#x2713; |
+| RR0049 | [Wrap binary expression](../../docs/refactorings/RR0049.md) | &#x2713; |
+| RR0051 | [Wrap call chain](../../docs/refactorings/RR0051.md) | &#x2713; |
+| RR0050 | [Wrap conditional expression](../../docs/refactorings/RR0050.md) | &#x2713; |
+| RR0187 | [Wrap constraint clauses](../../docs/refactorings/RR0187.md) | &#x2713; |
 | RR0174 | [Wrap in #if directive](../../docs/refactorings/RR0174.md) | &#x2713; |
 | RR0172 | [Wrap in condition](../../docs/refactorings/RR0172.md) | &#x2713; |
 | RR0175 | [Wrap in region](../../docs/refactorings/RR0175.md) | &#x2713; |
 | RR0176 | [Wrap in try-catch](../../docs/refactorings/RR0176.md) | &#x2713; |
 | RR0177 | [Wrap in using statement](../../docs/refactorings/RR0177.md) | &#x2713; |
+| RR0052 | [Wrap initializer expressions](../../docs/refactorings/RR0052.md) | &#x2713; |
+| RR0053 | [Wrap parameters](../../docs/refactorings/RR0053.md) | &#x2713; |
 
 
 *\(Generated with [DotMarkdown](http://github.com/JosefPihrt/DotMarkdown)\)*

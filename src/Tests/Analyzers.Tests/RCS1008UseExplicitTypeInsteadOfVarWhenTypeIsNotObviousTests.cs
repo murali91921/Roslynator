@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslynator.CSharp.CodeFixes;
+using Roslynator.CSharp.Testing;
 using Xunit;
 
 namespace Roslynator.CSharp.Analysis.Tests
@@ -25,7 +26,7 @@ class C
 {
     void M()
     {
-        [|var|] a = ""a"";
+        var a = ""a"";
         [|var|] s = a;
     }
 }
@@ -34,7 +35,7 @@ class C
 {
     void M()
     {
-        string a = ""a"";
+        var a = ""a"";
         string s = a;
     }
 }
@@ -102,6 +103,132 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseExplicitTypeInsteadOfVarWhenTypeIsNotObvious)]
+        public async Task Test_Parameter_NullableReferenceType()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M(string? p)
+    {
+        [|var|] s = p;
+    }
+}
+", @"
+class C
+{
+    void M(string? p)
+    {
+        string? s = p;
+    }
+}
+", options: CSharpCodeVerificationOptions.Default_NullableReferenceTypes);
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseExplicitTypeInsteadOfVarWhenTypeIsNotObvious)]
+        public async Task Test_Parameter_NullableReferenceType_Disable()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+#nullable disable
+
+class C
+{
+    void M(string? p)
+    {
+        [|var|] s = p;
+    }
+}
+", @"
+#nullable disable
+
+class C
+{
+    void M(string? p)
+    {
+        string s = p;
+    }
+}
+", options: CSharpCodeVerificationOptions.Default_NullableReferenceTypes.AddAllowedCompilerDiagnosticId("CS8632"));
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseExplicitTypeInsteadOfVarWhenTypeIsNotObvious)]
+        public async Task Test_Tuple_DeclarationExpression()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    (object x, System.DateTime y) M()
+    {
+        [|var|] (x, y) = M();
+
+        return default;
+    }
+}
+", @"
+class C
+{
+    (object x, System.DateTime y) M()
+    {
+        (object x, System.DateTime y) = M();
+
+        return default;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseExplicitTypeInsteadOfVarWhenTypeIsNotObvious)]
+        public async Task Test_TupleExpression()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    (object x, System.DateTime y) M()
+    {
+        (object x, [|var|] y) = M();
+
+        return default;
+    }
+}
+", @"
+class C
+{
+    (object x, System.DateTime y) M()
+    {
+        (object x, System.DateTime y) = M();
+
+        return default;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseExplicitTypeInsteadOfVarWhenTypeIsNotObvious)]
+        public async Task Test_TupleExpression_AllVar()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    (object x, System.DateTime y) M()
+    {
+        ([|var|] x, [|var|] y) = M();
+
+        return default;
+    }
+}
+", @"
+class C
+{
+    (object x, System.DateTime y) M()
+    {
+        (object x, System.DateTime y) = M();
+
+        return default;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseExplicitTypeInsteadOfVarWhenTypeIsNotObvious)]
         public async Task TestNoDiagnostic()
         {
             await VerifyNoDiagnosticAsync(@"
@@ -119,6 +246,26 @@ class C
         if (DateTime.TryParse(s, out DateTime result))
         {
         }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseExplicitTypeInsteadOfVarWhenTypeIsNotObvious)]
+        public async Task TestNoDiagnostic_ForEach()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System.Collections.Generic;
+
+class C
+{
+    IEnumerable<(object x, System.DateTime y)> M()
+    {
+        foreach (var (x, y) in M())
+        {
+        }
+
+        return default;
     }
 }
 ");

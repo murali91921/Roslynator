@@ -40,7 +40,7 @@ namespace Roslynator.Testing
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay
         {
-            get { return $"{Descriptor.Id} {Analyzer.GetType().Name} {FixProvider.GetType().Name}"; }
+            get { return $"{Descriptor.Id} {string.Join(", ", Analyzers.Select(f => f.GetType().Name))} {FixProvider.GetType().Name}"; }
         }
 
         public async Task VerifyDiagnosticAndFixAsync(
@@ -62,7 +62,7 @@ namespace Roslynator.Testing
                 diagnostics,
                 additionalSources: additionalSources,
                 options: options,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                cancellationToken: cancellationToken);
 
             await VerifyFixAsync(
                 result.Text,
@@ -70,7 +70,7 @@ namespace Roslynator.Testing
                 additionalData,
                 equivalenceKey,
                 options,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
         }
 
         public async Task VerifyDiagnosticAndFixAsync(
@@ -89,15 +89,15 @@ namespace Roslynator.Testing
             {
                 IEnumerable<Diagnostic> diagnostics = result.Spans.Select(f => CreateDiagnostic(f.Span, f.LineSpan));
 
-                await VerifyDiagnosticAsync(result.Text, diagnostics, additionalSources: null, options: options, cancellationToken).ConfigureAwait(false);
+                await VerifyDiagnosticAsync(result.Text, diagnostics, additionalSources: null, options: options, cancellationToken);
 
-                await VerifyFixAsync(result.Text, expected, additionalData: null, equivalenceKey: equivalenceKey, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
+                await VerifyFixAsync(result.Text, expected, additionalData: null, equivalenceKey: equivalenceKey, options: options, cancellationToken: cancellationToken);
             }
             else
             {
-                await VerifyDiagnosticAsync(source2, span, options, cancellationToken).ConfigureAwait(false);
+                await VerifyDiagnosticAsync(source2, span, options, cancellationToken);
 
-                await VerifyFixAsync(source2, expected, additionalData: null, equivalenceKey: equivalenceKey, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
+                await VerifyFixAsync(source2, expected, additionalData: null, equivalenceKey: equivalenceKey, options: options, cancellationToken: cancellationToken);
             }
         }
 
@@ -116,7 +116,7 @@ namespace Roslynator.Testing
                 expected: expected,
                 equivalenceKey: equivalenceKey,
                 options: options,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                cancellationToken: cancellationToken);
         }
 
         public async Task VerifyFixAsync(
@@ -132,7 +132,7 @@ namespace Roslynator.Testing
             options ??= Options;
 
             if (!SupportedDiagnostics.Contains(Descriptor, DiagnosticDescriptorComparer.Id))
-                Assert.True(false, $"Diagnostic '{Descriptor.Id}' is not supported by analyzer '{Analyzer.GetType().Name}'.");
+                Assert.True(false, $"Diagnostic '{Descriptor.Id}' is not supported by analyzer(s) {string.Join(", ", Analyzers.Select(f => f.GetType().Name))}.");
 
             if (!FixableDiagnosticIds.Contains(Descriptor.Id))
                 Assert.True(false, $"Diagnostic '{Descriptor.Id}' is not fixable by code fix provider '{FixProvider.GetType().Name}'.");
@@ -151,24 +151,23 @@ namespace Roslynator.Testing
 
                 document = project.GetDocument(document.Id);
 
-                Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                Compilation compilation = await project.GetCompilationAsync(cancellationToken);
 
                 ImmutableArray<Diagnostic> compilerDiagnostics = compilation.GetDiagnostics(cancellationToken);
 
                 VerifyCompilerDiagnostics(compilerDiagnostics, options);
 
-                if (!Descriptor.IsEnabledByDefault)
-                    compilation = compilation.EnsureEnabled(Descriptor);
+                compilation = UpdateCompilation(compilation);
 
                 ImmutableArray<Diagnostic> previousDiagnostics = ImmutableArray<Diagnostic>.Empty;
 
-                bool fixRegistered = false;
+                var fixRegistered = false;
 
                 while (true)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    ImmutableArray<Diagnostic> diagnostics = await compilation.GetAnalyzerDiagnosticsAsync(Analyzer, DiagnosticComparer.SpanStart, cancellationToken).ConfigureAwait(false);
+                    ImmutableArray<Diagnostic> diagnostics = await compilation.GetAnalyzerDiagnosticsAsync(Analyzers, DiagnosticComparer.SpanStart, cancellationToken);
 
                     int length = diagnostics.Length;
 
@@ -210,16 +209,16 @@ namespace Roslynator.Testing
                         },
                         CancellationToken.None);
 
-                    await FixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
+                    await FixProvider.RegisterCodeFixesAsync(context);
 
                     if (action == null)
                         break;
 
                     fixRegistered = true;
 
-                    document = await document.ApplyCodeActionAsync(action).ConfigureAwait(false);
+                    document = await document.ApplyCodeActionAsync(action);
 
-                    compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                    compilation = await document.Project.GetCompilationAsync(cancellationToken);
 
                     ImmutableArray<Diagnostic> newCompilerDiagnostics = compilation.GetDiagnostics(cancellationToken);
 
@@ -227,20 +226,19 @@ namespace Roslynator.Testing
 
                     VerifyNoNewCompilerDiagnostics(compilerDiagnostics, newCompilerDiagnostics, options);
 
-                    if (!Descriptor.IsEnabledByDefault)
-                        compilation = compilation.EnsureEnabled(Descriptor);
+                    compilation = UpdateCompilation(compilation);
 
                     previousDiagnostics = diagnostics;
                 }
 
                 Assert.True(fixRegistered, "No code fix has been registered.");
 
-                string actual = await document.ToFullStringAsync(simplify: true, format: true, cancellationToken).ConfigureAwait(false);
+                string actual = await document.ToFullStringAsync(simplify: true, format: true, cancellationToken);
 
                 Assert.Equal(expected, actual);
 
                 if (expectedDocuments.Any())
-                    await VerifyAdditionalDocumentsAsync(document.Project, expectedDocuments, cancellationToken).ConfigureAwait(false);
+                    await VerifyAdditionalDocumentsAsync(document.Project, expectedDocuments, cancellationToken);
             }
         }
 
@@ -261,16 +259,15 @@ namespace Roslynator.Testing
 
                 Document document = WorkspaceFactory.AddDocument(project, source, additionalSources);
 
-                Compilation compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+                Compilation compilation = await document.Project.GetCompilationAsync(cancellationToken);
 
                 ImmutableArray<Diagnostic> compilerDiagnostics = compilation.GetDiagnostics(cancellationToken);
 
                 VerifyCompilerDiagnostics(compilerDiagnostics, options);
 
-                if (!Descriptor.IsEnabledByDefault)
-                    compilation = compilation.EnsureEnabled(Descriptor);
+                compilation = UpdateCompilation(compilation);
 
-                ImmutableArray<Diagnostic> diagnostics = await compilation.GetAnalyzerDiagnosticsAsync(Analyzer, DiagnosticComparer.SpanStart, cancellationToken).ConfigureAwait(false);
+                ImmutableArray<Diagnostic> diagnostics = await compilation.GetAnalyzerDiagnosticsAsync(Analyzers, DiagnosticComparer.SpanStart, cancellationToken);
 
                 foreach (Diagnostic diagnostic in diagnostics)
                 {
@@ -295,7 +292,7 @@ namespace Roslynator.Testing
                         },
                         CancellationToken.None);
 
-                    await FixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
+                    await FixProvider.RegisterCodeFixesAsync(context);
                 }
             }
         }

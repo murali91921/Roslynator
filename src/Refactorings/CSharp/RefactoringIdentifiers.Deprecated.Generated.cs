@@ -11,6 +11,8 @@ namespace Roslynator.CSharp.Refactorings
         [Obsolete("", error: false)]
         public const string AddDefaultValueToReturnStatement = Prefix + "0008";
         [Obsolete("", error: false)]
+        public const string CallConfigureAwait = Prefix + "0015";
+        [Obsolete("", error: false)]
         public const string ChangeMemberTypeAccordingToReturnExpression = Prefix + "0019";
         [Obsolete("", error: false)]
         public const string ChangeMemberTypeAccordingToYieldReturnExpression = Prefix + "0020";
@@ -18,6 +20,8 @@ namespace Roslynator.CSharp.Refactorings
         public const string FormatAccessorBraces = Prefix + "0047";
         [Obsolete("", error: false)]
         public const string MergeInterpolationIntoInterpolatedString = Prefix + "0076";
+        [Obsolete("", error: false)]
+        public const string UseEmptyStringLiteralInsteadOfStringEmpty = Prefix + "0168";
         [Obsolete("", error: false)]
         public const string WrapInElseClause = Prefix + "0173";
     }

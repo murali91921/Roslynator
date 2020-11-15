@@ -24,7 +24,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeCatchClause, SyntaxKind.CatchClause);
+            context.RegisterSyntaxNodeAction(f => AnalyzeCatchClause(f), SyntaxKind.CatchClause);
         }
 
         private static void AnalyzeCatchClause(SyntaxNodeAnalysisContext context)
@@ -58,7 +58,8 @@ namespace Roslynator.CSharp.Analysis
 
             if (expression != null)
             {
-                DiagnosticHelpers.ReportDiagnostic(context,
+                DiagnosticHelpers.ReportDiagnostic(
+                    context,
                     DiagnosticDescriptors.RemoveOriginalExceptionFromThrowStatement,
                     expression);
             }

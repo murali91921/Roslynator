@@ -217,7 +217,7 @@ namespace Roslynator.CSharp.Refactorings
                                     {
                                         RegisterRefactoring(
                                             "Add tag 'c'",
-                                            ct => Document.WithTextChangeAsync(new TextChange(Span, $"<c>{token.ToString(Span)}</c>"), ct),
+                                            ct => Document.WithTextChangeAsync(Span, $"<c>{token.ToString(Span)}</c>", ct),
                                             RefactoringIdentifiers.AddTagToDocumentationComment);
                                     }
                                 }
@@ -478,7 +478,7 @@ namespace Roslynator.CSharp.Refactorings
                             if (flags.IsSet(Flag.VariableDeclarator))
                                 continue;
 
-                            await VariableDeclaratorRefactoring.ComputeRefactoringsAsync(this, (VariableDeclaratorSyntax)node).ConfigureAwait(false);
+                            VariableDeclaratorRefactoring.ComputeRefactorings(this, (VariableDeclaratorSyntax)node);
                             flags.Set(Flag.VariableDeclarator);
                             continue;
                         }
@@ -760,7 +760,6 @@ namespace Roslynator.CSharp.Refactorings
                             if (flags.IsSet(Flag.AwaitExpression))
                                 continue;
 
-                            await AwaitExpressionRefactoring.ComputeRefactoringsAsync(this, (AwaitExpressionSyntax)node).ConfigureAwait(false);
                             flags.Set(Flag.AwaitExpression);
                             continue;
                         }

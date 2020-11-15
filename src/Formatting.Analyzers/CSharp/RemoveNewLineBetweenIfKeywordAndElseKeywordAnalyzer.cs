@@ -22,7 +22,7 @@ namespace Roslynator.Formatting.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeElseClause, SyntaxKind.ElseClause);
+            context.RegisterSyntaxNodeAction(f => AnalyzeElseClause(f), SyntaxKind.ElseClause);
         }
 
         private static void AnalyzeElseClause(SyntaxNodeAnalysisContext context)
@@ -42,7 +42,8 @@ namespace Roslynator.Formatting.CSharp
             if (!statement.GetLeadingTrivia().IsEmptyOrWhitespace())
                 return;
 
-            context.ReportDiagnostic(
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.RemoveNewLineBetweenIfKeywordAndElseKeyword,
                 Location.Create(elseClause.SyntaxTree, new TextSpan(trailingTrivia.Last().SpanStart, 0)));
         }

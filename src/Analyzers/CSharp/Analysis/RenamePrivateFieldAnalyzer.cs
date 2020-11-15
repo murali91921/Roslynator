@@ -18,7 +18,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSymbolAction(AnalyzeFieldSymbol, SymbolKind.Field);
+            context.RegisterSymbolAction(f => AnalyzeFieldSymbol(f), SymbolKind.Field);
         }
 
         private static void AnalyzeFieldSymbol(SymbolAnalysisContext context)
@@ -31,9 +31,15 @@ namespace Roslynator.CSharp.Analysis
                 && !string.IsNullOrEmpty(fieldSymbol.Name)
                 && !IsValidIdentifier(fieldSymbol.Name))
             {
-                DiagnosticHelpers.ReportDiagnostic(context,
-                    DiagnosticDescriptors.RenamePrivateFieldToCamelCaseWithUnderscore,
-                    fieldSymbol.Locations[0]);
+                if (!fieldSymbol.IsStatic
+                    || !fieldSymbol.IsReadOnly
+                    || context.IsAnalyzerSuppressed(AnalyzerOptions.DoNotRenamePrivateStaticReadOnlyFieldToCamelCaseWithUnderscore))
+                {
+                    DiagnosticHelpers.ReportDiagnostic(
+                        context,
+                        DiagnosticDescriptors.RenamePrivateFieldToCamelCaseWithUnderscore,
+                        fieldSymbol.Locations[0]);
+                }
             }
         }
 

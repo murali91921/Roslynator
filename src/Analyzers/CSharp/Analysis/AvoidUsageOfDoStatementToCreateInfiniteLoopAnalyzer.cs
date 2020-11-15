@@ -21,7 +21,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeDoStatement, SyntaxKind.DoStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeDoStatement(f), SyntaxKind.DoStatement);
         }
 
         private static void AnalyzeDoStatement(SyntaxNodeAnalysisContext context)
@@ -30,7 +30,8 @@ namespace Roslynator.CSharp.Analysis
 
             if (doStatement.Condition?.Kind() == SyntaxKind.TrueLiteralExpression)
             {
-                DiagnosticHelpers.ReportDiagnostic(context,
+                DiagnosticHelpers.ReportDiagnostic(
+                    context,
                     DiagnosticDescriptors.AvoidUsageOfDoStatementToCreateInfiniteLoop,
                     doStatement.DoKeyword);
             }

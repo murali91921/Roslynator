@@ -21,7 +21,7 @@ namespace Roslynator.Formatting.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeSwitchStatement, SyntaxKind.SwitchStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeSwitchStatement(f), SyntaxKind.SwitchStatement);
         }
 
         private static void AnalyzeSwitchStatement(SyntaxNodeAnalysisContext context)
@@ -47,7 +47,8 @@ namespace Roslynator.Formatting.CSharp
 
                     if (SyntaxTriviaAnalysis.IsOptionalWhitespaceThenOptionalSingleLineCommentThenEndOfLineTrivia(trailingTrivia))
                     {
-                        context.ReportDiagnostic(
+                        DiagnosticHelpers.ReportDiagnostic(
+                            context,
                             DiagnosticDescriptors.AddEmptyLineBetweenSwitchSections,
                             Location.Create(switchStatement.SyntaxTree, trailingTrivia.Last().Span.WithLength(0)));
                     }

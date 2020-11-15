@@ -44,10 +44,11 @@ namespace Roslynator.CSharp.Analysis
             if (propertyName == null)
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.UseCountOrLengthPropertyInsteadOfAnyMethod,
                 Location.Create(context.Node.SyntaxTree, TextSpan.FromBounds(invocationInfo.Name.SpanStart, invocationExpression.Span.End)),
-                ImmutableDictionary.CreateRange(new KeyValuePair<string, string>[] { new KeyValuePair<string, string>("PropertyName", propertyName) }),
+                ImmutableDictionary.CreateRange(new[] { new KeyValuePair<string, string>("PropertyName", propertyName) }),
                 propertyName);
         }
     }

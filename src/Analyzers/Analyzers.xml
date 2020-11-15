@@ -246,19 +246,44 @@ foreach (var item in items) // [|Id|]
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="AvoidImplicitlyTypedArray">
+  <Analyzer Identifier="UseExplicitlyTypedArrayOrViceVersa">
     <Id>RCS1014</Id>
-    <Title>Avoid implicitly-typed array.</Title>
-    <MessageFormat>Declare explicit type when creating an array.</MessageFormat>
+    <Title>Use explicitly typed array (or vice versa).</Title>
+    <MessageFormat>Use explicitly typed array.</MessageFormat>
     <Category>Readability</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>false</IsEnabledByDefault>
     <Samples>
       <Sample>
-        <Before><![CDATA[var items = new[] { "" };]]></Before>
-        <After><![CDATA[var items = new string[] { "" };]]></After>
+        <Before><![CDATA[var items = new[] { "a", B };]]></Before>
+        <After><![CDATA[var items = new string[] { "a", B };]]></After>
       </Sample>
     </Samples>
+    <Options>
+      <Option Identifier="UseImplicitlyTypedArrayWhenTypeIsObvious">
+        <Title>Use implicitly typed array (when type is obvious).</Title>
+        <Id>a</Id>
+        <Kind>Change</Kind>
+        <SupportsFadeOut>true</SupportsFadeOut>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[var items = new string[] { "a", "b" };]]></Before>
+            <After><![CDATA[var items = new[] { "a", "b" };]]></After>
+          </Sample>
+        </Samples>
+      </Option>
+      <Option Identifier="UseImplicitlyTypedArray">
+        <Title>Use implicitly typed array.</Title>
+        <Id>i</Id>
+        <Kind>Invert</Kind>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[var items = new string[] { A, B };]]></Before>
+            <After><![CDATA[var items = new[] { A, B };]]></After>
+          </Sample>
+        </Samples>
+      </Option>
+    </Options>
   </Analyzer>
   <Analyzer Identifier="UseNameOfOperator">
     <Id>RCS1015</Id>
@@ -287,10 +312,10 @@ foreach (var item in items) // [|Id|]
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="UseExpressionBodiedMember">
+  <Analyzer Identifier="ConvertBlockBodyToExpressionBodyOrViceVersa">
     <Id>RCS1016</Id>
-    <Title>Use expression-bodied member.</Title>
-    <MessageFormat>Use expression bodied member.</MessageFormat>
+    <Title>Convert block body to expression-body (or vice versa).</Title>
+    <MessageFormat>Use expression-bodied member.</MessageFormat>
     <Category>Usage</Category>
     <DefaultSeverity>Hidden</DefaultSeverity>
     <IsEnabledByDefault>false</IsEnabledByDefault>
@@ -298,21 +323,68 @@ foreach (var item in items) // [|Id|]
     <MinLanguageVersion>6.0</MinLanguageVersion>
     <Samples>
       <Sample>
-        <Before><![CDATA[public object Foo()
+        <Before><![CDATA[public string Foo()
 { // [|Id|]
-    return null;
+    return "";
 }]]></Before>
-        <After><![CDATA[public object Foo() => null;]]></After>
+        <After><![CDATA[public string Foo() => "";]]></After>
       </Sample>
     </Samples>
+    <Options>
+      <Option Identifier="ConvertExpressionBodyToBlockBodyWhenExpressionIsMultiLine">
+        <Title>Convert expression-body to block body when expression is multi-line.</Title>
+        <Id>a</Id>
+        <Kind>Change</Kind>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[public string[] Foo() => new string[] // [|Id|]
+{
+    "a",
+    "b",
+    "c"
+};]]></Before>
+            <After><![CDATA[public string[] Foo()
+{
+    return new string[]
+    {
+        "a",
+        "b",
+        "c"
+    };
+}]]></After>
+          </Sample>
+        </Samples>
+      </Option>
+      <Option Identifier="ConvertExpressionBodyToBlockBodyWhenDeclarationIsMultiLine">
+        <Title>Convert expression-body to block body when declaration is multi-line.</Title>
+        <Id>b</Id>
+        <Kind>Change</Kind>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[public string[] Foo(
+    string a,
+    string b,
+    string c) => new string[] { a, b, c }; // [|Id|]]]></Before>
+            <After><![CDATA[public string[] Foo(
+    string a,
+    string b,
+    string c)
+{
+    return new string[] { a, b, c };
+}]]></After>
+          </Sample>
+        </Samples>
+      </Option>
+    </Options>
   </Analyzer>
   <Analyzer Identifier="AvoidMultilineExpressionBody">
     <Id>RCS1017</Id>
-    <Title>Avoid multiline expression body.</Title>
-    <MessageFormat>Expand expression body with multiline expression.</MessageFormat>
+    <Title>[deprecated] Avoid multiline expression body.</Title>
+    <MessageFormat>[deprecated] Use analyzer RCS1016a instead.</MessageFormat>
     <Category>Style</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>false</IsEnabledByDefault>
+    <Summary>This analyzer has been deprecated. Use analyzer [RCS1016a](RCS1016a.md) instead.</Summary>
     <Samples>
       <Sample>
         <Before><![CDATA[public string[] Foo() => new string[] // [|Id|]
@@ -333,9 +405,10 @@ foreach (var item in items) // [|Id|]
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="AddAccessibilityModifiers">
+  <Analyzer Identifier="AddAccessibilityModifiersOrViceVersa">
     <Id>RCS1018</Id>
-    <Title>Add accessibility modifiers.</Title>
+    <Title>Add accessibility modifiers (or vice versa).</Title>
+    <MessageFormat>Add accessibility modifiers.</MessageFormat>
     <Category>Readability</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
@@ -355,6 +428,30 @@ foreach (var item in items) // [|Id|]
 }]]></After>
       </Sample>
     </Samples>
+    <Options>
+      <Option Identifier="RemoveAccessibilityModifiers">
+        <Title>Remove accessibility modifiers.</Title>
+        <Id>i</Id>
+        <Kind>Invert</Kind>
+        <SupportsFadeOut>true</SupportsFadeOut>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[internal class Foo // [|Id|]
+{
+    private void Bar() // [|Id|]
+    {
+    }
+}]]></Before>
+            <After><![CDATA[class Foo
+{
+    void Bar()
+    {
+    }
+}]]></After>
+          </Sample>
+        </Samples>
+      </Option>
+    </Options>
   </Analyzer>
   <Analyzer Identifier="OrderModifiers">
     <Id>RCS1019</Id>
@@ -391,9 +488,10 @@ protected internal class Foo
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="SimplifyLambdaExpression">
+  <Analyzer Identifier="ConvertLambdaExpressionBodyToExpressionBody">
     <Id>RCS1021</Id>
-    <Title>Simplify lambda expression.</Title>
+    <Title>Convert lambda expression body to expression-body.</Title>
+    <MessageFormat>Use expression-bodied lambda.</MessageFormat>
     <Category>Simplification</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
@@ -416,7 +514,7 @@ protected internal class Foo
     <IsEnabledByDefault>false</IsEnabledByDefault>
     <SupportsFadeOutAnalyzer>true</SupportsFadeOutAnalyzer>
   </Analyzer>
-  <Analyzer Identifier="FormatEmptyBlock">
+  <Analyzer Identifier="FormatEmptyBlock" IsObsolete="true">
     <Id>RCS1023</Id>
     <Title>Format empty block.</Title>
     <Category>Formatting</Category>
@@ -432,7 +530,7 @@ protected internal class Foo
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="FormatAccessorList">
+  <Analyzer Identifier="FormatAccessorList" IsObsolete="true">
     <Id>RCS1024</Id>
     <Title>Format accessor list.</Title>
     <Category>Formatting</Category>
@@ -449,7 +547,7 @@ protected internal class Foo
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="AddNewLineBeforeEnumMember">
+  <Analyzer Identifier="AddNewLineBeforeEnumMember" IsObsolete="true">
     <Id>RCS1025</Id>
     <Title>Add new line before enum member.</Title>
     <Category>Formatting</Category>
@@ -467,7 +565,7 @@ protected internal class Foo
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="AddNewLineBeforeStatement">
+  <Analyzer Identifier="AddNewLineBeforeStatement" IsObsolete="true">
     <Id>RCS1026</Id>
     <Title>Add new line before statement.</Title>
     <Category>Formatting</Category>
@@ -481,7 +579,7 @@ Bar();]]></After>
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="AddNewLineBeforeEmbeddedStatement">
+  <Analyzer Identifier="AddNewLineBeforeEmbeddedStatement" IsObsolete="true">
     <Id>RCS1027</Id>
     <Title>Add new line before embedded statement.</Title>
     <Category>Formatting</Category>
@@ -497,7 +595,7 @@ Bar();]]></After>
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="AddNewLineAfterSwitchLabel">
+  <Analyzer Identifier="AddNewLineAfterSwitchLabel" IsObsolete="true">
     <Id>RCS1028</Id>
     <Title>Add new line after switch label.</Title>
     <Category>Formatting</Category>
@@ -520,7 +618,7 @@ Bar();]]></After>
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="FormatBinaryOperatorOnNextLine">
+  <Analyzer Identifier="FormatBinaryOperatorOnNextLine" IsObsolete="true">
     <Id>RCS1029</Id>
     <Title>Format binary operator on next line.</Title>
     <Category>Formatting</Category>
@@ -541,7 +639,7 @@ Bar();]]></After>
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="AddEmptyLineAfterEmbeddedStatement">
+  <Analyzer Identifier="AddEmptyLineAfterEmbeddedStatement" IsObsolete="true">
     <Id>RCS1030</Id>
     <Title>Add empty line after embedded statement.</Title>
     <Category>Formatting</Category>
@@ -716,6 +814,40 @@ if (f)
 }]]></After>
       </Sample>
     </Samples>
+    <Options>
+      <Option Identifier="RemoveEmptyLineBetweenClosingBraceAndSwitchSection">
+        <Id>a</Id>
+        <Title>Remove empty line between closing brace and switch section.</Title>
+        <Kind>Enable</Kind>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[switch (x)
+{
+    case "a":
+        {
+            M();
+            break;
+        }
+            
+    case "b":
+        break;
+}
+    ]]></Before>
+            <After><![CDATA[switch (x)
+{
+    case "a":
+        {
+            M();
+            break;
+        }
+    case "b":
+        break;
+}
+    ]]></After>
+          </Sample>
+        </Samples>
+      </Option>
+    </Options>
   </Analyzer>
   <Analyzer Identifier="RemoveTrailingWhitespace">
     <Id>RCS1037</Id>
@@ -876,6 +1008,18 @@ catch (Exception ex)
         <After><![CDATA[private string _f;]]></After>
       </Sample>
     </Samples>
+    <Options>
+      <Option Identifier="DoNotRenamePrivateStaticReadOnlyFieldToCamelCaseWithUnderscore">
+        <Title>Do not rename private static read-only field to camel case with underscore.</Title>
+        <Id>a</Id>
+        <Kind>Disable</Kind>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[private static readonly string f;]]></Before>
+          </Sample>
+        </Samples>
+      </Option>
+    </Options>
   </Analyzer>
   <Analyzer Identifier="AsynchronousMethodNameShouldEndWithAsync">
     <Id>RCS1046</Id>
@@ -966,18 +1110,33 @@ if (!f)
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="AddArgumentListToObjectCreation">
+  <Analyzer Identifier="AddArgumentListToObjectCreationOrViceVersa">
     <Id>RCS1050</Id>
-    <Title>Add argument list to object creation expression.</Title>
+    <Title>Add argument list to object creation expression (or vice versa).</Title>
+    <MessageFormat>Add argument list to object creation expression.</MessageFormat>
     <Category>Style</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>false</IsEnabledByDefault>
+    <SupportsFadeOut>true</SupportsFadeOut>
     <Samples>
       <Sample>
         <Before><![CDATA[var items = new List<string> { "a", "b", "c"  };]]></Before>
         <After><![CDATA[var items = new List<string>() { "a", "b", "c"  };]]></After>
       </Sample>
     </Samples>
+    <Options>
+      <Option Identifier="RemoveArgumentListFromObjectCreation">
+        <Title>Remove argument list from object creation expression.</Title>
+        <Id>i</Id>
+        <Kind>Invert</Kind>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[var items = new List<string>() { "a", "b", "c" };]]></Before>
+            <After><![CDATA[var items = new List<string> { "a", "b", "c" };]]></After>
+          </Sample>
+        </Samples>
+      </Option>
+    </Options>
   </Analyzer>
   <Analyzer Identifier="ParenthesizeConditionOfConditionalExpression">
     <Id>RCS1051</Id>
@@ -987,10 +1146,24 @@ if (!f)
     <IsEnabledByDefault>false</IsEnabledByDefault>
     <Samples>
       <Sample>
-        <Before><![CDATA[object x = condition ? WhenTrue() : WhenFalse();]]></Before>
-        <After><![CDATA[object x = (condition) ? WhenTrue() : WhenFalse();]]></After>
+        <Before><![CDATA[x = y != null ? "true" : "false"]]></Before>
+        <After><![CDATA[x = (y != null) ? "true" : "false"]]></After>
       </Sample>
     </Samples>
+    <Options>
+      <Option Identifier="RemoveParenthesesFromConditionOfConditionalExpressionWhenExpressionIsSingleToken">
+        <Id>a</Id>
+        <Title>Remove parentheses from condition of conditional expression (when condition is a single token).</Title>
+        <MessageFormat>Remove parentheses from condition of conditional expression.</MessageFormat>
+        <Kind>Change</Kind>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[x = (condition) ? "true" : "false";]]></Before>
+            <After><![CDATA[x = condition ? "true" : "false";]]></After>
+          </Sample>
+        </Samples>
+      </Option>
+    </Options>
   </Analyzer>
   <Analyzer Identifier="DeclareEachAttributeSeparately">
     <Id>RCS1052</Id>
@@ -1074,7 +1247,7 @@ public class Foo
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="AddEmptyLineBetweenDeclarations">
+  <Analyzer Identifier="AddEmptyLineBetweenDeclarations" IsObsolete="true">
     <Id>RCS1057</Id>
     <Title>Add empty line between declarations.</Title>
     <Category>Formatting</Category>
@@ -1156,12 +1329,27 @@ enum Bar
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
     <SupportsFadeOutAnalyzer>true</SupportsFadeOutAnalyzer>
+    <MinLanguageVersion>8.0 (??= operator)</MinLanguageVersion>
     <Samples>
       <Sample>
-        <Before><![CDATA[i = i + 2;]]></Before>
-        <After><![CDATA[i += 2;]]></After>
+        <Before><![CDATA[x = x + 2;]]></Before>
+        <After><![CDATA[x += 2;]]></After>
+      </Sample>
+      <Sample>
+        <Before><![CDATA[x ?? (x = M())]]></Before>
+        <After><![CDATA[x ??= M()]]></After>
       </Sample>
     </Samples>
+    <Links>
+      <Link>
+        <Url>https://docs.microsoft.com/cs-cz/dotnet/csharp/language-reference/operators/arithmetic-operators#compound-assignment</Url>
+        <Text>Compound assignment</Text>
+      </Link>
+      <Link>
+        <Url>https://docs.microsoft.com/dotnet/csharp/language-reference/operators/null-coalescing-operator</Url>
+        <Text>?? and ??= operators</Text>
+      </Link>
+    </Links>
   </Analyzer>
   <Analyzer Identifier="AvoidLockingOnPubliclyAccessibleInstance">
     <Id>RCS1059</Id>
@@ -1228,7 +1416,7 @@ public class Bar
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="AvoidInterpolatedStringWithNoInterpolation">
+  <Analyzer Identifier="AvoidInterpolatedStringWithNoInterpolation" IsObsolete="true">
     <Id>RCS1062</Id>
     <Title>Avoid interpolated string with no interpolation.</Title>
     <MessageFormat>Remove '$' from interpolated string with no interpolation.</MessageFormat>
@@ -1340,7 +1528,7 @@ catch (Exception ex)
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="RemoveArgumentListFromObjectCreation">
+  <Analyzer Identifier="RemoveArgumentListFromObjectCreation2" IsObsolete="true">
     <Id>RCS1067</Id>
     <Title>Remove argument list from object creation expression.</Title>
     <Category>Style</Category>
@@ -1540,7 +1728,7 @@ catch (Exception ex) // [|Id|]
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="FormatDeclarationBraces">
+  <Analyzer Identifier="FormatDeclarationBraces" IsObsolete="true">
     <Id>RCS1076</Id>
     <Title>Format declaration braces.</Title>
     <Category>Formatting</Category>
@@ -1635,11 +1823,15 @@ object x = items.Peek();]]></After>
         <Before><![CDATA[enumerable.SelectMany(f => f.Items).Count()]]></Before>
         <After><![CDATA[enumerable.Sum(f => f.Items.Count)]]></After>
       </Sample>
+      <Sample>
+        <Before><![CDATA[listOfT.Select(f => M(f)).ToList()]]></Before>
+        <After><![CDATA[listOfT.ConvertAll(f => M(f))]]></After>
+      </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="UseEmptyStringLiteralInsteadOfStringEmpty">
+  <Analyzer Identifier="UseEmptyStringLiteralInsteadOfStringEmptyOrViceVersa">
     <Id>RCS1078</Id>
-    <Title>Use "" instead of string.Empty.</Title>
+    <Title>Use "" instead of string.Empty (or vice versa).</Title>
     <MessageFormat>Use "" instead of string.Empty</MessageFormat>
     <Category>General</Category>
     <DefaultSeverity>Info</DefaultSeverity>
@@ -1651,6 +1843,19 @@ object x = items.Peek();]]></After>
         <After><![CDATA[string s = "";]]></After>
       </Sample>
     </Samples>
+    <Options>
+      <Option Identifier="UseStringEmptyInsteadOfEmptyStringLiteral">
+        <Title>Use string.Empty instead of "".</Title>
+        <Id>i</Id>
+        <Kind>Invert</Kind>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[string s = "";]]></Before>
+            <After><![CDATA[string s = string.Empty;]]></After>
+          </Sample>
+        </Samples>
+      </Option>
+    </Options>
   </Analyzer>
   <Analyzer Identifier="ThrowingOfNewNotImplementedException">
     <Id>RCS1079</Id>
@@ -1768,21 +1973,21 @@ public string Foo // [|Id|]
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="UseLinefeedAsNewLine">
+  <Analyzer Identifier="UseLinefeedAsNewLine" IsObsolete="true">
     <Id>RCS1086</Id>
     <Title>Use linefeed as newline.</Title>
     <Category>General</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>false</IsEnabledByDefault>
   </Analyzer>
-  <Analyzer Identifier="UseCarriageReturnAndLinefeedAsNewLine">
+  <Analyzer Identifier="UseCarriageReturnAndLinefeedAsNewLine" IsObsolete="true">
     <Id>RCS1087</Id>
     <Title>Use carriage return + linefeed as newline.</Title>
     <Category>General</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>false</IsEnabledByDefault>
   </Analyzer>
-  <Analyzer Identifier="UseSpacesInsteadOfTab">
+  <Analyzer Identifier="UseSpacesInsteadOfTab" IsObsolete="true">
     <Id>RCS1088</Id>
     <Title>Use space(s) instead of tab.</Title>
     <Category>General</Category>
@@ -1808,10 +2013,10 @@ public string Foo // [|Id|]
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="CallConfigureAwait">
+  <Analyzer Identifier="AddCallToConfigureAwaitOrViceVersa">
     <Id>RCS1090</Id>
-    <Title>Call 'ConfigureAwait(false)'.</Title>
-    <MessageFormat>Call 'ConfigureAwait(false).</MessageFormat>
+    <Title>Add call to 'ConfigureAwait' (or vice versa).</Title>
+    <MessageFormat>Add call to 'ConfigureAwait'.</MessageFormat>
     <Category>Design</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
@@ -1827,6 +2032,26 @@ public string Foo // [|Id|]
 }]]></After>
       </Sample>
     </Samples>
+    <Options>
+      <Option Identifier="RemoveCallToConfigureAwait">
+        <Title>Remove call to 'ConfigureAwait'.</Title>
+        <Id>i</Id>
+        <Kind>Invert</Kind>
+        <SupportsFadeOut>true</SupportsFadeOut>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[public async Task FooAsync()
+{
+    await GetValueAsync().ConfigureAwait(false); // [|Id|]
+}]]></Before>
+            <After><![CDATA[public async Task FooAsync()
+{
+    await GetValueAsync();
+}]]></After>
+          </Sample>
+        </Samples>
+      </Option>
+    </Options>
   </Analyzer>
   <Analyzer Identifier="RemoveEmptyRegion">
     <Id>RCS1091</Id>
@@ -1843,7 +2068,7 @@ public string Foo // [|Id|]
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="AddEmptyLineBeforeWhileInDoStatement">
+  <Analyzer Identifier="AddEmptyLineBeforeWhileInDoStatement" IsObsolete="true">
     <Id>RCS1092</Id>
     <Title>Add empty line before 'while' keyword in 'do' statement.</Title>
     <Category>Formatting</Category>
@@ -1897,22 +2122,38 @@ namespace Foo
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
   </Analyzer>
-  <Analyzer Identifier="UseBitwiseOperationInsteadOfCallingHasFlag">
+  <Analyzer Identifier="ConvertHasFlagCallToBitwiseOperationOrViceVersa">
     <Id>RCS1096</Id>
-    <Title>Use bitwise operation instead of calling 'HasFlag'.</Title>
+    <Title>Convert 'HasFlag' call to bitwise operation (or vice versa).</Title>
+    <MessageFormat>Convert 'HasFlag' call to bitwise operation.</MessageFormat>
     <Category>Performance</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
     <Samples>
       <Sample>
-        <Before><![CDATA[if (options.HasFlag(RegexOptions.IgnoreCase)) // [|Id|]
-{
-}]]></Before>
-        <After><![CDATA[if ((options & RegexOptions.IgnoreCase) != 0)
-{
-}]]></After>
+        <Before><![CDATA[options.HasFlag(RegexOptions.IgnoreCase)]]></Before>
+        <After><![CDATA[(options & RegexOptions.IgnoreCase) != 0]]></After>
       </Sample>
     </Samples>
+    <Options>
+      <Option Identifier="ConvertBitwiseOperationToHasFlagCall">
+        <Title>Convert bitwise operation to 'HasFlag' call.</Title>
+        <Id>i</Id>
+        <Kind>Invert</Kind>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[(options & RegexOptions.IgnoreCase) != 0]]></Before>
+            <After><![CDATA[options.HasFlag(RegexOptions.IgnoreCase)]]></After>
+          </Sample>
+        </Samples>
+        <Links>
+          <Link>
+            <Url>https://devblogs.microsoft.com/dotnet/performance-improvements-in-net-core-2-1/</Url>
+            <Text>Performance Improvements in .NET Core 2.1</Text>
+          </Link>
+        </Links>
+      </Option>
+    </Options>
   </Analyzer>
   <Analyzer Identifier="RemoveRedundantToStringCall">
     <Id>RCS1097</Id>
@@ -1932,17 +2173,16 @@ namespace Foo
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="AvoidNullLiteralExpressionOnLeftSideOfBinaryExpression">
+  <Analyzer Identifier="ConstantValuesShouldBePlacedOnRightSideOfComparisons">
     <Id>RCS1098</Id>
-    <Title>Avoid 'null' on the left side of a binary expression.</Title>
-    <MessageFormat>'null' should be on the right side of a binary expression.</MessageFormat>
+    <Title>Constant values should be placed on right side of comparisons.</Title>
     <Category>Readability</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
     <Samples>
       <Sample>
         <Before><![CDATA[if (null == x) // [|Id|]
-{
+{ 
 }]]></Before>
         <After><![CDATA[if (x == null)
 {
@@ -2100,6 +2340,23 @@ else
         <After><![CDATA[bool x = y || z;]]></After>
       </Sample>
     </Samples>
+    <Options>
+      <Option Identifier="SimplifyConditionalExpressionWhenItIncludesNegationOfCondition">
+        <Title>Simplify conditional expression (when it includes negation of condition).</Title>
+        <Id>a</Id>
+        <Kind>Enable</Kind>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[bool x = y ? false : z;]]></Before>
+            <After><![CDATA[bool x = !y && z;]]></After>
+          </Sample>
+          <Sample>
+            <Before><![CDATA[bool x = y ? z : true;]]></Before>
+            <After><![CDATA[bool x = !y || z;]]></After>
+          </Sample>
+        </Samples>
+      </Option>
+    </Options>
   </Analyzer>
   <Analyzer Identifier="UnnecessaryInterpolation">
     <Id>RCS1105</Id>
@@ -2366,9 +2623,9 @@ string s2 = s + "b";]]></After>
     <DefaultSeverity>Hidden</DefaultSeverity>
     <IsEnabledByDefault>false</IsEnabledByDefault>
   </Analyzer>
-  <Analyzer Identifier="AddParenthesesAccordingToOperatorPrecedence">
+  <Analyzer Identifier="AddParenthesesWhenNecessary">
     <Id>RCS1123</Id>
-    <Title>Add parentheses according to operator precedence.</Title>
+    <Title>Add parentheses when necessary.</Title>
     <Category>Readability</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
@@ -2380,6 +2637,10 @@ string s2 = s + "b";]]></After>
         <After><![CDATA[if (x || (y && z))
 {
 }]]></After>
+      </Sample>
+      <Sample>
+        <Before><![CDATA[x?.y!.z]]></Before>
+        <After><![CDATA[(x?.y)!.z]]></After>
       </Sample>
     </Samples>
   </Analyzer>
@@ -2901,7 +3162,7 @@ string s2 = s as string; // [|Id|]]]></Before>
     <DefaultSeverity>Hidden</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
   </Analyzer>
-  <Analyzer Identifier="AddEmptyLineAfterClosingBrace">
+  <Analyzer Identifier="AddEmptyLineAfterClosingBrace" IsObsolete="true">
     <Id>RCS1153</Id>
     <Title>Add empty line after closing brace.</Title>
     <Category>Formatting</Category>
@@ -3173,13 +3434,22 @@ Unused parameter is not reported when its name consists of underscore(s).</Remar
     <Samples>
       <Sample>
         <Before><![CDATA[int x = 0;
+IntPtr y = IntPtr.Zero
 
 // ...
 
 if (x == null) // [|Id|]
 {
+}
+
+if (y == null) // [|Id|]
+{
 }]]></Before>
         <After><![CDATA[if (x == 0)
+{
+}
+
+if (y == default)
 {
 }]]></After>
       </Sample>
@@ -3401,9 +3671,9 @@ else
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="UseReturnInsteadOfAssignment">
+  <Analyzer Identifier="UnnecessaryAssignment">
     <Id>RCS1179</Id>
-    <Title>Use return instead of assignment.</Title>
+    <Title>Unnecessary assignment.</Title>
     <Category>Simplification</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
@@ -3499,7 +3769,7 @@ public string Value { get; }]]></After>
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="FormatInitializerWithSingleExpressionOnSingleLine">
+  <Analyzer Identifier="FormatInitializerWithSingleExpressionOnSingleLine" IsObsolete="true">
     <Id>RCS1183</Id>
     <Title>Format initializer with single expression on single line.</Title>
     <Category>Formatting</Category>
@@ -3515,7 +3785,7 @@ public string Value { get; }]]></After>
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="FormatConditionalExpression">
+  <Analyzer Identifier="FormatConditionalExpression" IsObsolete="true">
     <Id>RCS1184</Id>
     <Title>Format conditional expression (format ? and : on next line).</Title>
     <MessageFormat>Format conditional expression.</MessageFormat>
@@ -3533,7 +3803,7 @@ Bar();]]></Before>
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="FormatSingleLineBlock">
+  <Analyzer Identifier="FormatSingleLineBlock" IsObsolete="true">
     <Id>RCS1185</Id>
     <Title>Format single-line block.</Title>
     <Category>Formatting</Category>
@@ -3661,23 +3931,23 @@ public enum Foo
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="UseRegularStringLiteralInsteadOfVerbatimStringLiteral">
+  <Analyzer Identifier="UnnecessaryUsageOfVerbatimStringLiteral">
     <Id>RCS1192</Id>
-    <Title>Use regular string literal instead of verbatim string literal.</Title>
+    <Title>Unnecessary usage of verbatim string literal.</Title>
     <Category>Readability</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
     <SupportsFadeOut>true</SupportsFadeOut>
     <Samples>
       <Sample>
-        <Before><![CDATA[string s = @"x";]]></Before>
-        <After><![CDATA[string s = "x";]]></After>
+        <Before><![CDATA[string s = @"textWithoutEscapeSequence";]]></Before>
+        <After><![CDATA[string s = "textWithoutEscapeSequence";]]></After>
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="OverridingMemberCannotChangeParamsModifier">
+  <Analyzer Identifier="OverridingMemberShouldNotChangeParamsModifier">
     <Id>RCS1193</Id>
-    <Title>Overriding member cannot change 'params' modifier.</Title>
+    <Title>Overriding member should not change 'params' modifier.</Title>
     <Category>Design</Category>
     <DefaultSeverity>Warning</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
@@ -3795,10 +4065,10 @@ string x = s + i; // [|Id|]]]></Before>
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="SimplifyBooleanExpression">
+  <Analyzer Identifier="UnnecessaryNullCheck">
     <Id>RCS1199</Id>
-    <Title>Simplify boolean expression.</Title>
-    <Category>Simplification</Category>
+    <Title>Unncessary null check.</Title>
+    <Category>Redundancy</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
     <Samples>
@@ -3811,6 +4081,19 @@ if (x.HasValue && x.Value) // [|Id|]
 {
 }]]></Before>
         <After><![CDATA[if (x == true)
+{
+}]]></After>
+      </Sample>
+      <Sample>
+        <Before><![CDATA[bool? x = null;
+bool y = false;
+
+// ...
+
+if (x != null && x.Value == y) // [|Id|]
+{
+}]]></Before>
+        <After><![CDATA[if (x == y)
 {
 }]]></After>
       </Sample>
@@ -3948,12 +4231,13 @@ int i = (x != null) ? x.Value.GetHashCode() : 0; // [|Id|]]]></Before>
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="UseMethodGroupInsteadOfAnonymousFunction">
+  <Analyzer Identifier="ConvertAnonymousFunctionToMethodGroupOrViceVersa">
     <Id>RCS1207</Id>
-    <Title>Use method group instead of anonymous function.</Title>
+    <Title>Convert anonymous function to method group (or vice versa).</Title>
+    <MessageFormat>Convert anonymous function to method group.</MessageFormat>
     <Category>Simplification</Category>
     <DefaultSeverity>Hidden</DefaultSeverity>
-    <IsEnabledByDefault>true</IsEnabledByDefault>
+    <IsEnabledByDefault>false</IsEnabledByDefault>
     <SupportsFadeOutAnalyzer>true</SupportsFadeOutAnalyzer>
     <Samples>
       <Sample>
@@ -3961,6 +4245,19 @@ int i = (x != null) ? x.Value.GetHashCode() : 0; // [|Id|]]]></Before>
         <After><![CDATA[var x = items.Select(Foo);]]></After>
       </Sample>
     </Samples>
+    <Options>
+      <Option Identifier="ConvertMethodGroupToAnonymousFunction">
+        <Title>Convert method group to anonymous function.</Title>
+        <Id>i</Id>
+        <Kind>Invert</Kind>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[var x = items.Select(Foo);]]></Before>
+            <After><![CDATA[var x = items.Select(f => Foo(f));]]></After>
+          </Sample>
+        </Samples>
+      </Option>
+    </Options>
   </Analyzer>
   <Analyzer Identifier="ReduceIfNesting">
     <Id>RCS1208</Id>
@@ -4030,9 +4327,10 @@ Foo3();]]></After>
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="ReturnTaskInsteadOfNull">
+  <Analyzer Identifier="ReturnCompletedTaskInsteadOfNull">
     <Id>RCS1210</Id>
-    <Title>Return Task.FromResult instead of returning null.</Title>
+    <Title>Return completed task instead of returning null.</Title>
+    <MessageFormat>Return '{0}' instead of returning null.</MessageFormat>
     <Category>Usage</Category>
     <DefaultSeverity>Warning</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
@@ -4141,8 +4439,12 @@ x = "";]]></Before>
     <SupportsFadeOutAnalyzer>true</SupportsFadeOutAnalyzer>
     <Samples>
       <Sample>
-        <Before><![CDATA[$"{y}"]]></Before>
-        <After><![CDATA[y]]></After>
+        <Before><![CDATA[string s = $"abc";]]></Before>
+        <After><![CDATA[string s = "abc";]]></After>
+      </Sample>
+      <Sample>
+        <Before><![CDATA[$"{x}"]]></Before>
+        <After><![CDATA[x]]></After>
       </Sample>
     </Samples>
   </Analyzer>
@@ -4315,7 +4617,7 @@ else
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="CallSkipAndAnyInsteadOfCount">
+  <Analyzer Identifier="CallSkipAndAnyInsteadOfCount" IsObsolete="true">
     <Id>RCS1219</Id>
     <Title>Call 'Enumerable.Skip' and 'Enumerable.Any' instead of 'Enumerable.Count'.</Title>
     <Category>Performance</Category>
@@ -4589,9 +4891,9 @@ public string Foo()
       </Link>
     </Links>
   </Analyzer>
-  <Analyzer Identifier="UnnecessaryUsageOfEnumerator">
+  <Analyzer Identifier="UnnecessaryExplicitUseOfEnumerator">
     <Id>RCS1230</Id>
-    <Title>Unnecessary usage of enumerator.</Title>
+    <Title>Unnecessary explicit use of enumerator.</Title>
     <Category>Readability</Category>
     <DefaultSeverity>Info</DefaultSeverity>
     <IsEnabledByDefault>true</IsEnabledByDefault>
@@ -4646,7 +4948,7 @@ public string Foo()
         <Before><![CDATA[class C
 {
     /// <summary></summary>
-    /// <param name="p3"></param> [|Id|]
+    /// <param name="p3"></param> // [|Id|]
     /// <param name="p2"></param>
     /// <param name="p1"></param>
     void M(object p1, object p2, object p3)
@@ -4674,11 +4976,11 @@ public string Foo()
     <IsEnabledByDefault>true</IsEnabledByDefault>
     <Samples>
       <Sample>
-        <Before><![CDATA[boolExpr1 & boolExpr2 [|Id|]]]></Before>
+        <Before><![CDATA[boolExpr1 & boolExpr2]]></Before>
         <After><![CDATA[boolExpr1 && boolExpr2]]></After>
       </Sample>
       <Sample>
-        <Before><![CDATA[boolExpr1 | boolExpr2 [|Id|]]]></Before>
+        <Before><![CDATA[boolExpr1 | boolExpr2]]></Before>
         <After><![CDATA[boolExpr1 || boolExpr2]]></After>
       </Sample>
     </Samples>
@@ -4695,7 +4997,7 @@ public string Foo()
 {
     A = 1,
     B = 2,
-    C = 2, [|Id|]
+    C = 2, // [|Id|]
 }]]></Before>
         <After><![CDATA[enum E
 {
@@ -4773,10 +5075,23 @@ catch (Exception ex) when (ex is InvalidOperationException)
 }]]></After>
       </Sample>
     </Samples>
+    <Remarks>The accepted [answer](https://stackoverflow.com/a/28879616) from Stack Overflow states:
+&gt;"If there is an exception thrown within the filter, then that exception will be silently swallowed and the filter simply fails."
+
+It is impossible to definitely detect if an exception can be thrown within an expression.
+
+So the expression is considered as the one that can throw an exception if it contains method call that meets one of the following requirements:
+
+* Its name starts with `ThrowIf`.
+* Its XML comment contains `&lt;exception&gt;` element.</Remarks>
     <Links>
       <Link>
         <Url>https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-6#exception-filters</Url>
         <Text>What's New in C# 6.0 - Exception Filters</Text>
+      </Link>
+      <Link>
+        <Url>https://thomaslevesque.com/2015/06/21/exception-filters-in-c-6/</Url>
+        <Text>Exception filters in C# 6: their biggest advantage is not what you think</Text>
       </Link>
     </Links>
   </Analyzer>
@@ -4862,7 +5177,7 @@ while (x) // [|Id|]
     <IsEnabledByDefault>true</IsEnabledByDefault>
     <Samples>
       <Sample>
-        <Before><![CDATA[array.Length <= 0 [|Id|]]]></Before>
+        <Before><![CDATA[array.Length <= 0]]></Before>
         <After><![CDATA[array.Length == 0]]></After>
       </Sample>
     </Samples>
@@ -4884,7 +5199,7 @@ public class C
 {
 }
 
-public abstract class Comparable : IComparable<C> [|Id|]
+public abstract class Comparable : IComparable<C> // [|Id|]
 {
     public abstract int CompareTo(C other);
 }]]></Before>
@@ -4924,7 +5239,7 @@ public class C
 {
 }
 
-public abstract class Comparer : IComparer<C> [|Id|]
+public abstract class Comparer : IComparer<C> // [|Id|]
 {
     public abstract int Compare(C x, C y);
 }]]></Before>
@@ -4981,7 +5296,7 @@ public class C
 {
 }
 
-public abstract class EqualityComparer : IEqualityComparer<C> [|Id|]
+public abstract class EqualityComparer : IEqualityComparer<C> // [|Id|]
 {
     public abstract bool Equals(C x, C y);
 
@@ -5109,9 +5424,9 @@ public class C
     <Summary>This analyzer is similar to [IDE0034](https://docs.microsoft.com/visualstudio/ide/common-quick-actions#remove-type-from-default-value-expression) but there are some differences. For example this analyzer does not simplify 'default' expression passed as an argument expression.</Summary>
     <Samples>
       <Sample>
-        <Before><![CDATA[Foo M(Foo foo = default(Foo)) [|Id|]
+        <Before><![CDATA[Foo M(Foo foo = default(Foo)) // [|Id|]
 {
-    return default(Foo); [|Id|]
+    return default(Foo); // [|Id|]
 }]]></Before>
         <After><![CDATA[Foo M(Foo foo = default)
 {
@@ -5120,7 +5435,7 @@ public class C
       </Sample>
     </Samples>
   </Analyzer>
-  <Analyzer Identifier="SimplifyConditionalExpression2">
+  <Analyzer Identifier="SimplifyConditionalExpression2" IsObsolete="true">
     <Id>RCS1245</Id>
     <Title>Simplify conditional expression.</Title>
     <Category>Simplification</Category>
@@ -5153,5 +5468,109 @@ public class C
         <After><![CDATA[list[1]]]></After>
       </Sample>
     </Samples>
+    <Options>
+      <Option Identifier="DoNotUseElementAccessWhenExpressionIsInvocation">
+        <Title>Do not use element access when expression is invocation.</Title>
+        <Id>a</Id>
+        <Kind>Disable</Kind>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[M().First()]]></Before>
+          </Sample>
+        </Samples>
+      </Option>
+    </Options>
+  </Analyzer>
+  <Analyzer Identifier="FixDocumentationCommentTag">
+    <Id>RCS1247</Id>
+    <Title>Fix documentation comment tag.</Title>
+    <Category>Readability</Category>
+    <DefaultSeverity>Info</DefaultSeverity>
+    <IsEnabledByDefault>true</IsEnabledByDefault>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[/// <summary>
+/// <code>null</code> // [|Id|]
+/// </summary>
+void M()
+{
+}]]></Before>
+        <After><![CDATA[/// <summary>
+/// <c>null<c>
+/// </summary>
+void M()
+{
+}]]></After>
+      </Sample>
+      <Sample>
+        <Before><![CDATA[/// <summary>
+/// <c> // [|Id|]
+/// if (x == null)
+///     x = new object();
+/// </c>
+/// </summary>
+void M()
+{
+}]]></Before>
+        <After><![CDATA[/// <summary>
+/// <code>
+/// if (x == null)
+///     x = new object();
+/// </code>
+/// </summary>
+void M()
+{
+}]]></After>
+      </Sample>
+    </Samples>
+    <Links>
+      <Link>
+        <Url>https://docs.microsoft.com/dotnet/csharp/programming-guide/xmldoc/recommended-tags-for-documentation-comments</Url>
+        <Text>Recommended tags for documentation comments (C# programming guide)</Text>
+      </Link>
+    </Links>
+  </Analyzer>
+  <Analyzer Identifier="UseIsNullPatternInsteadOfComparisonOrViceVersa">
+    <Id>RCS1248</Id>
+    <Title>Use 'is null' pattern instead of comparison (or vice versa).</Title>
+    <MessageFormat>Use 'is null' pattern instead of '{0}' operator.</MessageFormat>
+    <Category>Style</Category>
+    <DefaultSeverity>Info</DefaultSeverity>
+    <IsEnabledByDefault>false</IsEnabledByDefault>
+    <MinLanguageVersion>7.0</MinLanguageVersion>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[x == null]]></Before>
+        <After><![CDATA[x is null]]></After>
+      </Sample>
+    </Samples>
+    <Options>
+      <Option Identifier="UseIsNullPatternInsteadOfInequalityOperator">
+        <Id>a</Id>
+        <Title>Use 'is null' pattern instead of '!=' operator.</Title>
+        <Kind>Enable</Kind>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[x != null]]></Before>
+            <After><![CDATA[!(x is null)]]></After>
+          </Sample>
+        </Samples>
+      </Option>
+      <Option Identifier="UseComparisonInsteadOfIsNullPattern">
+        <Id>i</Id>
+        <Title>Use comparison instead of 'is null' pattern.</Title>
+        <Kind>Invert</Kind>
+        <Samples>
+          <Sample>
+            <Before><![CDATA[x is null]]></Before>
+            <After><![CDATA[x == null]]></After>
+          </Sample>
+          <Sample>
+            <Before><![CDATA[!(x is null)]]></Before>
+            <After><![CDATA[x != null]]></After>
+          </Sample>
+        </Samples>
+      </Option>
+    </Options>
   </Analyzer>
 </Analyzers>

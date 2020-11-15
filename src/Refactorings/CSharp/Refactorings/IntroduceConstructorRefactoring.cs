@@ -50,7 +50,7 @@ namespace Roslynator.CSharp.Refactorings
 
                         if (CanBeAssignedFromConstructor(member, context.Span, semanticModel, context.CancellationToken))
                         {
-                            (members ?? (members = new List<MemberDeclarationSyntax>())).Add(member);
+                            (members ??= new List<MemberDeclarationSyntax>()).Add(member);
                         }
                     }
                 }
@@ -343,8 +343,8 @@ namespace Roslynator.CSharp.Refactorings
                 string parameterName = StringUtility.ToCamelCase(name);
 
                 statements.Add(SimpleAssignmentStatement(
-                        IdentifierName(name).QualifyWithThis(),
-                        IdentifierName(parameterName)));
+                    IdentifierName(name).QualifyWithThis(),
+                    IdentifierName(parameterName)));
 
                 parameters.Add(Parameter(
                     default(SyntaxList<AttributeListSyntax>),

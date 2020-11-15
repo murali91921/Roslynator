@@ -13,7 +13,8 @@ namespace Roslynator.CSharp.Refactorings
                 && context.Span.IsEmpty
                 && InsertInterpolationRefactoring.CanRefactor(context, interpolatedString))
             {
-                context.RegisterRefactoring("Insert interpolation",
+                context.RegisterRefactoring(
+                    "Insert interpolation",
                     cancellationToken =>
                     {
                         return InsertInterpolationRefactoring.RefactorAsync(
@@ -27,9 +28,10 @@ namespace Roslynator.CSharp.Refactorings
             }
 
             if (context.IsRefactoringEnabled(RefactoringIdentifiers.ConvertInterpolatedStringToStringLiteral)
-                && ReplaceInterpolatedStringWithStringLiteralAnalysis.IsFixable(interpolatedString))
+                && ConvertInterpolatedStringToStringLiteralAnalysis.IsFixable(interpolatedString))
             {
-                context.RegisterRefactoring("Remove '$'",
+                context.RegisterRefactoring(
+                    "Remove '$'",
                     cancellationToken =>
                     {
                         return ConvertInterpolatedStringToStringLiteralRefactoring.RefactorAsync(

@@ -22,7 +22,7 @@ namespace Roslynator.CSharp.Analysis
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeSwitchSection, SyntaxKind.SwitchSection);
+            context.RegisterSyntaxNodeAction(f => AnalyzeSwitchSection(f), SyntaxKind.SwitchSection);
         }
 
         private static void AnalyzeSwitchSection(SyntaxNodeAnalysisContext context)
@@ -48,7 +48,8 @@ namespace Roslynator.CSharp.Analysis
 
                     if (!switchSection.ContainsDirectives(span))
                     {
-                        DiagnosticHelpers.ReportDiagnostic(context,
+                        DiagnosticHelpers.ReportDiagnostic(
+                            context,
                             DiagnosticDescriptors.DefaultLabelShouldBeLastLabelInSwitchSection,
                             label);
 

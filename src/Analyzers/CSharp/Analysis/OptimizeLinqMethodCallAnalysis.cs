@@ -19,7 +19,7 @@ namespace Roslynator.CSharp.Analysis
     {
         public static void AnalyzeAny(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
         {
-            bool isLogicalNot = false;
+            var isLogicalNot = false;
 
             InvocationExpressionSyntax invocationExpression = invocationInfo.InvocationExpression;
 
@@ -100,11 +100,24 @@ namespace Roslynator.CSharp.Analysis
             SimplifyLinqMethodChain(
                 context,
                 invocationInfo,
-                "Where");
+                "Where",
+                Properties.SimplifyLinqMethodChain);
         }
 
         // items.Select(selector).Min/Max() >>> items.Min/Max(selector)
         public static void AnalyzeSelectAndMinOrMax(
+            SyntaxNodeAnalysisContext context,
+            in SimpleMemberInvocationExpressionInfo invocationInfo)
+        {
+            SimplifyLinqMethodChain(
+                context,
+                invocationInfo,
+                "Select",
+                Properties.SimplifyLinqMethodChain);
+        }
+
+        // list.Select(selector).ToList() >>> list.ConvertAll(selector)
+        public static void AnalyzeSelectAndToList(
             SyntaxNodeAnalysisContext context,
             in SimpleMemberInvocationExpressionInfo invocationInfo)
         {
@@ -117,7 +130,8 @@ namespace Roslynator.CSharp.Analysis
         private static void SimplifyLinqMethodChain(
             SyntaxNodeAnalysisContext context,
             in SimpleMemberInvocationExpressionInfo invocationInfo,
-            string methodName)
+            string methodName,
+            ImmutableDictionary<string, string> properties = null)
         {
             SimpleMemberInvocationExpressionInfo invocationInfo2 = SyntaxInfo.SimpleMemberInvocationExpressionInfo(invocationInfo.Expression);
 
@@ -162,6 +176,15 @@ namespace Roslynator.CSharp.Analysis
                         if (!SymbolUtility.IsLinqSelect(methodSymbol2, allowImmutableArrayExtension: true))
                             return;
 
+                        if (invocationInfo.NameText == "ToList"
+                            && semanticModel
+                                .GetTypeSymbol(invocationInfo2.Expression, cancellationToken)?
+                                .OriginalDefinition
+                                .HasMetadataName(MetadataNames.System_Collections_Generic_List_T) != true)
+                        {
+                            return;
+                        }
+
                         break;
                     }
                 default:
@@ -173,7 +196,7 @@ namespace Roslynator.CSharp.Analysis
 
             TextSpan span = TextSpan.FromBounds(invocationInfo2.Name.SpanStart, invocation.Span.End);
 
-            Report(context, invocation, span, checkDirectives: true, properties: Properties.SimplifyLinqMethodChain);
+            Report(context, invocation, span, checkDirectives: true, properties: properties);
         }
 
         public static void AnalyzeFirstOrDefault(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
@@ -195,7 +218,7 @@ namespace Roslynator.CSharp.Analysis
             if (containingType == null)
                 return;
 
-            bool success = false;
+            var success = false;
 
             if (containingType.HasMetadataName(MetadataNames.System_Linq_Enumerable))
             {
@@ -582,6 +605,55 @@ namespace Roslynator.CSharp.Analysis
             }
         }
 
+        // x.OrderBy          (f => f).Where(func) >>> x.Where(func).OrderBy          (f => f)
+        // x.OrderByDescending(f => f).Where(func) >>> x.Where(func).OrderByDescending(f => f)
+        public static void AnalyzeOrderByAndWhere(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
+        {
+            SimpleMemberInvocationExpressionInfo invocationInfo2 = SyntaxInfo.SimpleMemberInvocationExpressionInfo(invocationInfo.Expression);
+
+            if (!invocationInfo2.Success)
+                return;
+
+            if (invocationInfo2.Arguments.Count < 1
+                && invocationInfo2.Arguments.Count > 2)
+            {
+                return;
+            }
+
+            string name2 = invocationInfo2.NameText;
+
+            if (!string.Equals(name2, "OrderBy", StringComparison.Ordinal)
+                && !string.Equals(name2, "OrderByDescending", StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            InvocationExpressionSyntax invocationExpression = invocationInfo.InvocationExpression;
+
+            SemanticModel semanticModel = context.SemanticModel;
+            CancellationToken cancellationToken = context.CancellationToken;
+
+            IMethodSymbol methodSymbol = semanticModel.GetReducedExtensionMethodInfo(invocationExpression, cancellationToken).Symbol;
+
+            if (methodSymbol == null)
+                return;
+
+            if (!SymbolUtility.IsLinqExtensionOfIEnumerableOfT(methodSymbol, "Where", parameterCount: 2))
+                return;
+
+            IMethodSymbol methodSymbol2 = semanticModel.GetReducedExtensionMethodInfo(invocationInfo2.InvocationExpression, cancellationToken).Symbol;
+
+            if (methodSymbol2 == null)
+                return;
+
+            if (!SymbolUtility.IsLinqExtensionOfIEnumerableOfT(methodSymbol2, name2, new Interval(2, 3)))
+                return;
+
+            TextSpan span = TextSpan.FromBounds(invocationInfo2.Name.SpanStart, invocationExpression.Span.End);
+
+            Report(context, invocationExpression, span, checkDirectives: true);
+        }
+
         // x.OrderBy(f => f).Reverse() >>> x.OrderByDescending(f => f)
         public static void AnalyzeOrderByAndReverse(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
         {
@@ -662,6 +734,9 @@ namespace Roslynator.CSharp.Analysis
                 return false;
 
             ExpressionSyntax expression = GetLambdaExpression(argument.Expression);
+
+            if (expression == null)
+                return false;
 
             ITypeSymbol typeSymbol = semanticModel.GetTypeSymbol(expression, cancellationToken);
 
@@ -783,7 +858,8 @@ namespace Roslynator.CSharp.Analysis
                 return;
             }
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 descriptor: DiagnosticDescriptors.OptimizeLinqMethodCall,
                 location: Location.Create(node.SyntaxTree, span),
                 properties: properties ?? ImmutableDictionary<string, string>.Empty,
@@ -818,25 +894,25 @@ namespace Roslynator.CSharp.Analysis
                 }
             }
 
-            public static ImmutableDictionary<string, string> Peek { get; } = ImmutableDictionary.CreateRange(new KeyValuePair<string, string>[] { new KeyValuePair<string, string>("MethodName", "Peek") });
+            public static ImmutableDictionary<string, string> Peek { get; } = ImmutableDictionary.CreateRange(new[] { new KeyValuePair<string, string>("MethodName", "Peek") });
 
-            public static ImmutableDictionary<string, string> SimplifyLinqMethodChain { get; } = ImmutableDictionary.CreateRange(new KeyValuePair<string, string>[] { new KeyValuePair<string, string>("Name", "SimplifyLinqMethodChain") });
+            public static ImmutableDictionary<string, string> SimplifyLinqMethodChain { get; } = ImmutableDictionary.CreateRange(new[] { new KeyValuePair<string, string>("Name", "SimplifyLinqMethodChain") });
 
-            public static ImmutableDictionary<string, string> Count { get; } = ImmutableDictionary.CreateRange(new KeyValuePair<string, string>[] { new KeyValuePair<string, string>("PropertyName", "Count") });
+            public static ImmutableDictionary<string, string> Count { get; } = ImmutableDictionary.CreateRange(new[] { new KeyValuePair<string, string>("PropertyName", "Count") });
 
-            public static ImmutableDictionary<string, string> Length { get; } = ImmutableDictionary.CreateRange(new KeyValuePair<string, string>[] { new KeyValuePair<string, string>("PropertyName", "Length") });
+            public static ImmutableDictionary<string, string> Length { get; } = ImmutableDictionary.CreateRange(new[] { new KeyValuePair<string, string>("PropertyName", "Length") });
 
-            public static ImmutableDictionary<string, string> Sum_Count { get; } = ImmutableDictionary.CreateRange(new KeyValuePair<string, string>[]
-            {
-                new KeyValuePair<string, string>("PropertyName", "Count"),
-                new KeyValuePair<string, string>("MethodName", "Sum")
-            });
+            public static ImmutableDictionary<string, string> Sum_Count { get; } = ImmutableDictionary.CreateRange(new[]
+                {
+                    new KeyValuePair<string, string>("PropertyName", "Count"),
+                    new KeyValuePair<string, string>("MethodName", "Sum")
+                });
 
-            public static ImmutableDictionary<string, string> Sum_Length { get; } = ImmutableDictionary.CreateRange(new KeyValuePair<string, string>[]
-            {
-                new KeyValuePair<string, string>("PropertyName", "Length"),
-                new KeyValuePair<string, string>("MethodName", "Sum")
-            });
+            public static ImmutableDictionary<string, string> Sum_Length { get; } = ImmutableDictionary.CreateRange(new[]
+                {
+                    new KeyValuePair<string, string>("PropertyName", "Length"),
+                    new KeyValuePair<string, string>("MethodName", "Sum")
+                });
         }
     }
 }
