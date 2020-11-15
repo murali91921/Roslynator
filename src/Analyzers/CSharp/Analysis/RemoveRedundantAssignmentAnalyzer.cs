@@ -18,17 +18,118 @@ namespace Roslynator.CSharp.Analysis
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(DiagnosticDescriptors.RemoveRedundantAssignment); }
+            get
+            {
+                return ImmutableArray.Create(
+                    DiagnosticDescriptors.RemoveRedundantAssignment,
+                    DiagnosticDescriptors.RemoveRedundantAssignmentFadeOut);
+            }
         }
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeSimpleAssignment, SyntaxKind.SimpleAssignmentExpression);
+            context.RegisterCompilationStartAction(startContext =>
+            {
+                if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.RemoveRedundantAssignmentFadeOut))
+                    return;
+
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeLocalDeclarationStatement(f), SyntaxKind.LocalDeclarationStatement);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeSimpleAssignment(f), SyntaxKind.SimpleAssignmentExpression);
+            });
+        }
+
+        private static void AnalyzeLocalDeclarationStatement(SyntaxNodeAnalysisContext context)
+        {
+            var localDeclaration = (LocalDeclarationStatementSyntax)context.Node;
+
+            if (localDeclaration.ContainsDiagnostics)
+                return;
+
+            if (localDeclaration.SpanOrTrailingTriviaContainsDirectives())
+                return;
+
+            if (localDeclaration.IsConst)
+                return;
+
+            SingleLocalDeclarationStatementInfo localInfo = SyntaxInfo.SingleLocalDeclarationStatementInfo(localDeclaration);
+
+            if (!localInfo.Success)
+                return;
+
+            SimpleAssignmentStatementInfo assignmentInfo = SyntaxInfo.SimpleAssignmentStatementInfo(localDeclaration.NextStatement());
+
+            if (!assignmentInfo.Success)
+                return;
+
+            if (assignmentInfo.Statement.ContainsDiagnostics)
+                return;
+
+            if (assignmentInfo.Statement.SpanOrLeadingTriviaContainsDirectives())
+                return;
+
+            if (!(assignmentInfo.Left is IdentifierNameSyntax identifierName))
+                return;
+
+            string name = identifierName.Identifier.ValueText;
+
+            if (!string.Equals(localInfo.IdentifierText, name, StringComparison.Ordinal))
+                return;
+
+            SemanticModel semanticModel = context.SemanticModel;
+            CancellationToken cancellationToken = context.CancellationToken;
+
+            if (!(semanticModel.GetSymbol(identifierName, cancellationToken) is ILocalSymbol localSymbol))
+                return;
+
+            if (!SymbolEqualityComparer.Default.Equals(localSymbol, semanticModel.GetDeclaredSymbol(localInfo.Declarator, cancellationToken)))
+                return;
+
+            ExpressionSyntax value = localInfo.Value;
+
+            if (value != null)
+            {
+                ITypeSymbol typeSymbol = semanticModel.GetTypeSymbol(localInfo.Type, cancellationToken);
+
+                if (typeSymbol == null)
+                    return;
+
+                if (!semanticModel.IsDefaultValue(typeSymbol, value, cancellationToken))
+                    return;
+
+                if (IsReferenced(localSymbol, assignmentInfo.Right, semanticModel, cancellationToken))
+                    return;
+            }
+
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.RemoveRedundantAssignment, localInfo.Identifier);
+
+            if (value != null)
+            {
+                DiagnosticHelpers.ReportNode(context, DiagnosticDescriptors.RemoveRedundantAssignmentFadeOut, localInfo.Initializer);
+                DiagnosticHelpers.ReportToken(context, DiagnosticDescriptors.RemoveRedundantAssignmentFadeOut, assignmentInfo.OperatorToken);
+            }
+
+            DiagnosticHelpers.ReportToken(context, DiagnosticDescriptors.RemoveRedundantAssignmentFadeOut, localDeclaration.SemicolonToken);
+            DiagnosticHelpers.ReportNode(context, DiagnosticDescriptors.RemoveRedundantAssignmentFadeOut, assignmentInfo.Left);
+        }
+
+        private static bool IsReferenced(
+            ILocalSymbol localSymbol,
+            SyntaxNode node,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
+        {
+            foreach (SyntaxNode descendantOrSelf in node.DescendantNodesAndSelf())
+            {
+                if (descendantOrSelf.IsKind(SyntaxKind.IdentifierName)
+                    && SymbolEqualityComparer.Default.Equals(semanticModel.GetSymbol((IdentifierNameSyntax)descendantOrSelf, cancellationToken), localSymbol))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void AnalyzeSimpleAssignment(SyntaxNodeAnalysisContext context)
@@ -108,6 +209,9 @@ namespace Roslynator.CSharp.Analysis
                     }
             }
 
+            if (IsAssignedInsideAnonymousFunctionButDeclaredOutsideOfIt())
+                return;
+
             RemoveRedundantAssignmentWalker walker = RemoveRedundantAssignmentWalker.GetInstance();
 
             walker.Symbol = symbol;
@@ -125,6 +229,55 @@ namespace Roslynator.CSharp.Analysis
                 return;
 
             DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.RemoveRedundantAssignment, assignment);
+
+            bool IsAssignedInsideAnonymousFunctionButDeclaredOutsideOfIt()
+            {
+                SyntaxNode declaringSyntax = null;
+                SyntaxNode n = assignment.Parent;
+
+                do
+                {
+                    if (CSharpFacts.IsAnonymousFunctionExpression(n.Kind()))
+                    {
+                        if (declaringSyntax == null)
+                        {
+                            declaringSyntax = symbol.GetSyntaxOrDefault();
+
+                            Debug.Assert(declaringSyntax != null, "");
+
+                            if (declaringSyntax == null)
+                                break;
+
+                            Debug.Assert(declaringSyntax.IsKind(SyntaxKind.VariableDeclarator, SyntaxKind.Parameter), declaringSyntax.Kind().ToString());
+                        }
+
+                        SyntaxNode n2 = declaringSyntax.Parent;
+
+                        do
+                        {
+                            if (CSharpFacts.IsAnonymousFunctionExpression(n2.Kind()))
+                                return !object.ReferenceEquals(n, n2);
+
+                            if (n2 is MemberDeclarationSyntax)
+                                break;
+
+                            n2 = n2.Parent;
+
+                        } while (n2 != null);
+
+                        return true;
+                    }
+                    else if (n is MemberDeclarationSyntax)
+                    {
+                        break;
+                    }
+
+                    n = n.Parent;
+
+                } while (n != null);
+
+                return false;
+            }
         }
 
         private class RemoveRedundantAssignmentWalker : LocalOrParameterReferenceWalker
@@ -152,7 +305,7 @@ namespace Roslynator.CSharp.Analysis
                 CancellationToken.ThrowIfCancellationRequested();
 
                 if (string.Equals(node.Identifier.ValueText, Symbol.Name, StringComparison.Ordinal)
-                    && SemanticModel.GetSymbol(node, CancellationToken)?.Equals(Symbol) == true)
+                    && SymbolEqualityComparer.Default.Equals(SemanticModel.GetSymbol(node, CancellationToken), Symbol))
                 {
                     Result = true;
                 }

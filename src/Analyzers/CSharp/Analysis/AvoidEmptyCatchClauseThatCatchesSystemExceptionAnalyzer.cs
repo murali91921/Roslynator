@@ -19,9 +19,6 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
             context.RegisterCompilationStartAction(startContext =>
@@ -55,10 +52,11 @@ namespace Roslynator.CSharp.Analysis
 
             ITypeSymbol typeSymbol = context.SemanticModel.GetTypeSymbol(type, context.CancellationToken);
 
-            if (typeSymbol?.Equals(exceptionSymbol) != true)
+            if (!SymbolEqualityComparer.Default.Equals(typeSymbol, exceptionSymbol))
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.AvoidEmptyCatchClauseThatCatchesSystemException,
                 catchClause.CatchKeyword);
         }

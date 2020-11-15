@@ -20,12 +20,9 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeConditionalExpression, SyntaxKind.ConditionalExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeConditionalExpression(f), SyntaxKind.ConditionalExpression);
         }
 
         private static void AnalyzeConditionalExpression(SyntaxNodeAnalysisContext context)
@@ -37,7 +34,7 @@ namespace Roslynator.CSharp.Analysis
                 if (conditionalExpression.WhenTrue.WalkDownParentheses().IsKind(SyntaxKind.ConditionalExpression)
                     || conditionalExpression.WhenFalse.WalkDownParentheses().IsKind(SyntaxKind.ConditionalExpression))
                 {
-                    context.ReportDiagnostic(DiagnosticDescriptors.AvoidNestedConditionalOperators, conditionalExpression);
+                    DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.AvoidNestedConditionalOperators, conditionalExpression);
                 }
             }
         }

@@ -25,20 +25,16 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
             context.RegisterCompilationStartAction(startContext =>
             {
                 if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.UseUnaryOperatorInsteadOfAssignment))
                     return;
 
-                startContext.RegisterSyntaxNodeAction(AnalyzeSimpleAssignmentExpression, SyntaxKind.SimpleAssignmentExpression);
-                startContext.RegisterSyntaxNodeAction(AnalyzeAddAssignmentExpression, SyntaxKind.AddAssignmentExpression);
-                startContext.RegisterSyntaxNodeAction(AnalyzeSubtractAssignmentExpression, SyntaxKind.SubtractAssignmentExpression);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeSimpleAssignmentExpression(f), SyntaxKind.SimpleAssignmentExpression);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeAddAssignmentExpression(f), SyntaxKind.AddAssignmentExpression);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeSubtractAssignmentExpression(f), SyntaxKind.SubtractAssignmentExpression);
             });
         }
 
@@ -49,8 +45,15 @@ namespace Roslynator.CSharp.Analysis
 
             var assignment = (AssignmentExpressionSyntax)context.Node;
 
-            if (assignment.IsParentKind(SyntaxKind.ObjectInitializerExpression))
+            //TODO: SyntaxKind.WithInitializerExpression
+            if (assignment.Parent is InitializerExpressionSyntax
+                && !assignment.IsParentKind(
+                    SyntaxKind.CollectionInitializerExpression,
+                    SyntaxKind.ArrayInitializerExpression,
+                    SyntaxKind.ComplexElementInitializerExpression))
+            {
                 return;
+            }
 
             ExpressionSyntax left = assignment.Left;
             ExpressionSyntax right = assignment.Right;
@@ -132,7 +135,8 @@ namespace Roslynator.CSharp.Analysis
 
         private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, AssignmentExpressionSyntax assignment, string operatorText)
         {
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.UseUnaryOperatorInsteadOfAssignment,
                 assignment,
                 operatorText);

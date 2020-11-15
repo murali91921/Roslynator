@@ -19,12 +19,9 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeNamespaceDeclaration, SyntaxKind.NamespaceDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeNamespaceDeclaration(f), SyntaxKind.NamespaceDeclaration);
         }
 
         private static void AnalyzeNamespaceDeclaration(SyntaxNodeAnalysisContext context)
@@ -59,7 +56,8 @@ namespace Roslynator.CSharp.Analysis
                 }
             }
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.DeclareUsingDirectiveOnTopLevel,
                 Location.Create(namespaceDeclaration.SyntaxTree, usings.Span));
         }

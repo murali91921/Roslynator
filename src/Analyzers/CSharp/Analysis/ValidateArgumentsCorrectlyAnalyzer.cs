@@ -21,12 +21,9 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeMethodDeclaration, SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeMethodDeclaration(f), SyntaxKind.MethodDeclaration);
         }
 
         private static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
@@ -90,7 +87,8 @@ namespace Roslynator.CSharp.Analysis
             if (yieldStatement.SpanStart < statements[index].Span.End)
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.ValidateArgumentsCorrectly,
                 Location.Create(body.SyntaxTree, new TextSpan(statements[index + 1].SpanStart, 0)));
         }

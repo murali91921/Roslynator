@@ -248,7 +248,8 @@ namespace Roslynator.CSharp.Refactorings
                         statementsInfo,
                         statementIndex,
                         lastStatementIndex,
-                        cancellationToken).ConfigureAwait(false);
+                        cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
 
@@ -336,7 +337,7 @@ namespace Roslynator.CSharp.Refactorings
                     {
                         ISymbol symbol2 = semanticModel.GetSymbol(node, cancellationToken);
 
-                        if (symbol.Equals(symbol2))
+                        if (SymbolEqualityComparer.Default.Equals(symbol, symbol2))
                             return i;
                     }
                 }

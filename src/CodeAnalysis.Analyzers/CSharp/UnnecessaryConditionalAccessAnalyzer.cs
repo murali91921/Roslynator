@@ -28,7 +28,7 @@ namespace Roslynator.CodeAnalysis.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeBinaryExpression, SyntaxKind.EqualsExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeBinaryExpression(f), SyntaxKind.EqualsExpression);
         }
 
         private static void AnalyzeBinaryExpression(SyntaxNodeAnalysisContext context)
@@ -106,8 +106,8 @@ namespace Roslynator.CodeAnalysis.CSharp
             if (!parameters[1].Type.HasMetadataName(CSharpMetadataNames.Microsoft_CodeAnalysis_CSharp_SyntaxKind))
                 return;
 
-            context.ReportDiagnostic(DiagnosticDescriptors.UnnecessaryConditionalAccess, conditionalAccess.OperatorToken);
-            context.ReportDiagnostic(DiagnosticDescriptors.UnnecessaryConditionalAccessFadeOut, binaryExpression.Right);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UnnecessaryConditionalAccess, conditionalAccess.OperatorToken);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UnnecessaryConditionalAccessFadeOut, binaryExpression.Right);
         }
     }
 }

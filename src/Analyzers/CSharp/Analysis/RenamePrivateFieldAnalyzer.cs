@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -12,17 +11,14 @@ namespace Roslynator.CSharp.Analysis
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(DiagnosticDescriptors.RenamePrivateFieldAccordingToCamelCaseWithUnderscore); }
+            get { return ImmutableArray.Create(DiagnosticDescriptors.RenamePrivateFieldToCamelCaseWithUnderscore); }
         }
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSymbolAction(AnalyzeFieldSymbol, SymbolKind.Field);
+            context.RegisterSymbolAction(f => AnalyzeFieldSymbol(f), SymbolKind.Field);
         }
 
         private static void AnalyzeFieldSymbol(SymbolAnalysisContext context)
@@ -35,9 +31,15 @@ namespace Roslynator.CSharp.Analysis
                 && !string.IsNullOrEmpty(fieldSymbol.Name)
                 && !IsValidIdentifier(fieldSymbol.Name))
             {
-                DiagnosticHelpers.ReportDiagnostic(context,
-                    DiagnosticDescriptors.RenamePrivateFieldAccordingToCamelCaseWithUnderscore,
-                    fieldSymbol.Locations[0]);
+                if (!fieldSymbol.IsStatic
+                    || !fieldSymbol.IsReadOnly
+                    || context.IsAnalyzerSuppressed(AnalyzerOptions.DoNotRenamePrivateStaticReadOnlyFieldToCamelCaseWithUnderscore))
+                {
+                    DiagnosticHelpers.ReportDiagnostic(
+                        context,
+                        DiagnosticDescriptors.RenamePrivateFieldToCamelCaseWithUnderscore,
+                        fieldSymbol.Locations[0]);
+                }
             }
         }
 

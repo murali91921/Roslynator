@@ -33,8 +33,8 @@ namespace Roslynator.CSharp.Refactorings
             }
 
             if (context.IsAnyRefactoringEnabled(
-                    RefactoringIdentifiers.ExpandProperty,
-                    RefactoringIdentifiers.ExpandPropertyAndAddBackingField)
+                RefactoringIdentifiers.ExpandProperty,
+                RefactoringIdentifiers.ExpandPropertyAndAddBackingField)
                 && propertyDeclaration.Span.Contains(context.Span)
                 && ExpandPropertyRefactoring.CanRefactor(propertyDeclaration))
             {
@@ -55,14 +55,14 @@ namespace Roslynator.CSharp.Refactorings
                 }
             }
 
-            if (context.IsRefactoringEnabled(RefactoringIdentifiers.UseExpressionBodiedMember)
+            if (context.IsRefactoringEnabled(RefactoringIdentifiers.ConvertBlockBodyToExpressionBody)
                 && context.SupportsCSharp6
-                && UseExpressionBodiedMemberRefactoring.CanRefactor(propertyDeclaration, context.Span))
+                && ConvertBlockBodyToExpressionBodyRefactoring.CanRefactor(propertyDeclaration, context.Span))
             {
                 context.RegisterRefactoring(
-                    UseExpressionBodiedMemberRefactoring.Title,
-                    ct => UseExpressionBodiedMemberRefactoring.RefactorAsync(context.Document, propertyDeclaration, ct),
-                    RefactoringIdentifiers.UseExpressionBodiedMember);
+                    ConvertBlockBodyToExpressionBodyRefactoring.Title,
+                    ct => ConvertBlockBodyToExpressionBodyRefactoring.RefactorAsync(context.Document, propertyDeclaration, ct),
+                    RefactoringIdentifiers.ConvertBlockBodyToExpressionBody);
             }
 
             if (context.IsRefactoringEnabled(RefactoringIdentifiers.NotifyWhenPropertyChange))
@@ -137,7 +137,8 @@ namespace Roslynator.CSharp.Refactorings
                 newName,
                 symbol,
                 context.Solution,
-                cancellationToken: context.CancellationToken).ConfigureAwait(false))
+                cancellationToken: context.CancellationToken)
+                .ConfigureAwait(false))
             {
                 return;
             }

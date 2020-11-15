@@ -35,44 +35,6 @@ namespace Roslynator.CSharp
                     return CarriageReturnLineFeed;
             }
         }
-
-        internal static SyntaxTriviaList IncreaseIndentation(SyntaxTrivia trivia)
-        {
-            return TriviaList(trivia, SingleIndentation(trivia));
-        }
-
-        internal static SyntaxTrivia SingleIndentation(SyntaxTrivia trivia)
-        {
-            if (trivia.IsWhitespaceTrivia())
-            {
-                string s = trivia.ToString();
-
-                int length = s.Length;
-
-                if (length > 0)
-                {
-                    if (s.All(f => f == '\t'))
-                    {
-                        return Tab;
-                    }
-                    else if (s.All(f => f == ' '))
-                    {
-                        if (length % 4 == 0)
-                            return Whitespace("    ");
-
-                        if (length % 3 == 0)
-                            return Whitespace("   ");
-
-                        if (length % 2 == 0)
-                            return Whitespace("  ");
-                    }
-                }
-            }
-
-            return DefaultIndentation;
-        }
-
-        internal static SyntaxTrivia DefaultIndentation { get; } = Whitespace("    ");
         #endregion Trivia
 
         #region Token
@@ -1556,6 +1518,16 @@ namespace Roslynator.CSharp
         {
             return AssignmentExpression(SyntaxKind.RightShiftAssignmentExpression, left, operatorToken, right);
         }
+
+        public static AssignmentExpressionSyntax CoalesceAssignmentExpression(ExpressionSyntax left, ExpressionSyntax right)
+        {
+            return AssignmentExpression(SyntaxKind.CoalesceAssignmentExpression, left, right);
+        }
+
+        public static AssignmentExpressionSyntax CoalesceAssignmentExpression(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+        {
+            return AssignmentExpression(SyntaxKind.CoalesceAssignmentExpression, left, operatorToken, right);
+        }
         #endregion AssignmentExpression
 
         #region LiteralExpression
@@ -1961,15 +1933,15 @@ namespace Roslynator.CSharp
         }
 
         public static TypeParameterConstraintClauseSyntax TypeParameterConstraintClause(
-    string name,
-    TypeParameterConstraintSyntax typeParameterConstraint)
+            string name,
+            TypeParameterConstraintSyntax typeParameterConstraint)
         {
             return TypeParameterConstraintClause(IdentifierName(name), typeParameterConstraint);
         }
 
         public static TypeParameterConstraintClauseSyntax TypeParameterConstraintClause(
-    IdentifierNameSyntax identifierName,
-    TypeParameterConstraintSyntax typeParameterConstraint)
+            IdentifierNameSyntax identifierName,
+            TypeParameterConstraintSyntax typeParameterConstraint)
         {
             return SyntaxFactory.TypeParameterConstraintClause(identifierName, SingletonSeparatedList(typeParameterConstraint));
         }

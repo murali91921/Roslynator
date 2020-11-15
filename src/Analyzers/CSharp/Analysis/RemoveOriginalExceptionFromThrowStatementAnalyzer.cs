@@ -22,12 +22,9 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeCatchClause, SyntaxKind.CatchClause);
+            context.RegisterSyntaxNodeAction(f => AnalyzeCatchClause(f), SyntaxKind.CatchClause);
         }
 
         private static void AnalyzeCatchClause(SyntaxNodeAnalysisContext context)
@@ -61,7 +58,8 @@ namespace Roslynator.CSharp.Analysis
 
             if (expression != null)
             {
-                DiagnosticHelpers.ReportDiagnostic(context,
+                DiagnosticHelpers.ReportDiagnostic(
+                    context,
                     DiagnosticDescriptors.RemoveOriginalExceptionFromThrowStatement,
                     expression);
             }
@@ -92,7 +90,7 @@ namespace Roslynator.CSharp.Analysis
                 {
                     ISymbol symbol = SemanticModel.GetSymbol(expression, CancellationToken);
 
-                    if (Symbol.Equals(symbol))
+                    if (SymbolEqualityComparer.Default.Equals(Symbol, symbol))
                         ThrowStatement = node;
                 }
 

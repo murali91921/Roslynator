@@ -31,7 +31,7 @@ namespace Roslynator.CSharp.Refactorings
             RegisterRefactoring(context, parameter, semanticModel);
         }
 
-        [SuppressMessage("Simplification", "RCS1180:Inline lazy initialization.", Justification = "<Pending>")]
+        [SuppressMessage("Simplification", "RCS1180:Inline lazy initialization.")]
         public static void ComputeRefactoring(RefactoringContext context, SeparatedSyntaxListSelection<ParameterSyntax> selectedParameters, SemanticModel semanticModel)
         {
             ParameterSyntax singleParameter = null;
@@ -79,13 +79,13 @@ namespace Roslynator.CSharp.Refactorings
             SemanticModel semanticModel)
         {
             context.RegisterRefactoring(
-            $"Check {name} for null",
-            cancellationToken => RefactorAsync(
-                context.Document,
-                parameters,
-                semanticModel,
-                cancellationToken),
-            RefactoringIdentifiers.CheckParameterForNull);
+                $"Check {name} for null",
+                cancellationToken => RefactorAsync(
+                    context.Document,
+                    parameters,
+                    semanticModel,
+                    cancellationToken),
+                RefactoringIdentifiers.CheckParameterForNull);
         }
 
         public static bool CanRefactor(

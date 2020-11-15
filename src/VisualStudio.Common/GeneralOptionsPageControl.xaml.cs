@@ -122,7 +122,7 @@ namespace Roslynator.VisualStudio
                 configuration.Save(dialog.FileName);
             }
             catch (Exception ex) when (ex is IOException
-                    || ex is UnauthorizedAccessException)
+                || ex is UnauthorizedAccessException)
             {
                 ShowErrorMessage(ex);
             }
@@ -140,7 +140,7 @@ namespace Roslynator.VisualStudio
             if (dialog.ShowDialog() != true)
                 return;
 
-            CodeAnalysisConfiguration configuration = CodeAnalysisConfiguration.LoadAndCatchIfThrows(dialog.FileName, ShowErrorMessage);
+            CodeAnalysisConfiguration configuration = CodeAnalysisConfiguration.LoadAndCatchIfThrows(dialog.FileName, f => ShowErrorMessage(f));
 
             AbstractPackage package = AbstractPackage.Instance;
 

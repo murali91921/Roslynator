@@ -9,11 +9,11 @@ using Xunit;
 
 namespace Roslynator.Formatting.CSharp.Tests
 {
-    public class RemoveEmptyLineBetweenUsingDirectivesWithSameRootNamespaceTests : AbstractCSharpFixVerifier
+    public class RCS0038RemoveEmptyLineBetweenUsingDirectivesWithSameRootNamespaceTests : AbstractCSharpFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.RemoveEmptyLineBetweenUsingDirectivesWithSameRootNamespace;
 
-        public override DiagnosticAnalyzer Analyzer { get; } = new EmptyLineBetweenUsingDirectiveAnalyzer();
+        public override DiagnosticAnalyzer Analyzer { get; } = new AddOrRemoveEmptyLineBetweenUsingDirectiveAnalyzer();
 
         public override CodeFixProvider FixProvider { get; } = new SyntaxTriviaCodeFixProvider();
 

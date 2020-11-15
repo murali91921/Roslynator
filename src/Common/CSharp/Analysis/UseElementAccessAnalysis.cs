@@ -88,7 +88,7 @@ namespace Roslynator.CSharp.Analysis
         }
 
         private static bool CheckInfiniteRecursion(
-        IPropertySymbol indexerSymbol,
+            IPropertySymbol indexerSymbol,
             int position,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
@@ -111,7 +111,7 @@ namespace Roslynator.CSharp.Analysis
                         propertySymbol = methodSymbol.AssociatedSymbol as IPropertySymbol;
                 }
 
-                if (propertySymbol == indexerSymbol)
+                if (SymbolEqualityComparer.Default.Equals(propertySymbol, indexerSymbol))
                     return false;
             }
 

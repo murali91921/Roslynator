@@ -112,7 +112,7 @@ namespace Roslynator.Documentation
                         rootInterfaces.Add(Interfaces[i]);
                 }
 
-                FillHierarchyItems(rootInterfaces, interfaceRoot, FillHierarchyItem);
+                FillHierarchyItems(rootInterfaces, interfaceRoot, (f, g) => FillHierarchyItem(f, g));
             }
 
             return interfaceRoot;
@@ -123,7 +123,7 @@ namespace Roslynator.Documentation
                 {
                     foreach (TypeHierarchyItem interfaceItem in Interfaces)
                     {
-                        if (interfaceItem.Symbol == interfaceSymbol2)
+                        if (SymbolEqualityComparer.Default.Equals(interfaceItem.Symbol, interfaceSymbol2))
                             return false;
                     }
                 }
@@ -144,7 +144,7 @@ namespace Roslynator.Documentation
                 if (derivedInterfaces.Length > 0)
                 {
                     Array.Reverse(derivedInterfaces);
-                    FillHierarchyItems(derivedInterfaces, item, FillHierarchyItem);
+                    FillHierarchyItems(derivedInterfaces, item, (f, g) => FillHierarchyItem(f, g));
                 }
 
                 return item;
@@ -229,29 +229,31 @@ namespace Roslynator.Documentation
                 {
                     if (symbol.SpecialType == SpecialType.System_Object)
                     {
-                        Array.Sort(derivedTypes, (x, y) =>
-                        {
-                            if (x.Symbol.IsStatic)
+                        Array.Sort(
+                            derivedTypes,
+                            (x, y) =>
                             {
-                                if (!y.Symbol.IsStatic)
+                                if (x.Symbol.IsStatic)
                                 {
-                                    return -1;
+                                    if (!y.Symbol.IsStatic)
+                                    {
+                                        return -1;
+                                    }
                                 }
-                            }
-                            else if (y.Symbol.IsStatic)
-                            {
-                                return 1;
-                            }
+                                else if (y.Symbol.IsStatic)
+                                {
+                                    return 1;
+                                }
 
-                            return Compare(x, y);
-                        });
+                                return Compare(x, y);
+                            });
                     }
                     else
                     {
-                        Array.Sort(derivedTypes, Compare);
+                        Array.Sort(derivedTypes, (x, y) => Compare(x, y));
                     }
 
-                    FillHierarchyItems(derivedTypes, item, FillHierarchyItem);
+                    FillHierarchyItems(derivedTypes, item, (f, g) => FillHierarchyItem(f, g));
                 }
 
                 return item;

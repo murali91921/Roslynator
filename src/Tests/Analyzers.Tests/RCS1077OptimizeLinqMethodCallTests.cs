@@ -768,62 +768,6 @@ class C
         }
 
         [Theory, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
-        [InlineData("((List<object>)x).[|First()|]", "((List<object>)x)[0]")]
-        [InlineData("((IList<object>)x).[|First()|]", "((IList<object>)x)[0]")]
-        [InlineData("((IReadOnlyList<object>)x).[|First()|]", "((IReadOnlyList<object>)x)[0]")]
-        [InlineData("((Collection<object>)x).[|First()|]", "((Collection<object>)x)[0]")]
-        [InlineData("((ImmutableArray<object>)x).[|First()|]", "((ImmutableArray<object>)x)[0]")]
-        [InlineData("((object[])x).[|First()|]", "((object[])x)[0]")]
-        [InlineData("((string)x).[|First()|]", "((string)x)[0]")]
-        public async Task Test_UseElementAccessInsteadOfFirst(string source, string expected)
-        {
-            await VerifyDiagnosticAndFixAsync(@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-
-class C
-{
-    void M()
-    {
-        object x = null;
-        var y = [||];
-    }
-}
-", source, expected);
-        }
-
-        [Theory, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
-        [InlineData("((List<object>)x).[|ElementAt(1)|]", "((List<object>)x)[1]")]
-        [InlineData("((IList<object>)x).[|ElementAt(1)|]", "((IList<object>)x)[1]")]
-        [InlineData("((IReadOnlyList<object>)x).[|ElementAt(1)|]", "((IReadOnlyList<object>)x)[1]")]
-        [InlineData("((Collection<object>)x).[|ElementAt(1)|]", "((Collection<object>)x)[1]")]
-        [InlineData("((ImmutableArray<object>)x).[|ElementAt(1)|]", "((ImmutableArray<object>)x)[1]")]
-        [InlineData("((object[])x).[|ElementAt(1)|]", "((object[])x)[1]")]
-        [InlineData("((string)x).[|ElementAt(1)|]", "((string)x)[1]")]
-        public async Task Test_UseElementAccessInsteadOfElementAt(string source, string expected)
-        {
-            await VerifyDiagnosticAndFixAsync(@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-
-class C
-{
-    void M()
-    {
-        object x = null;
-        var y = [||];
-    }
-}
-", source, expected);
-        }
-
-        [Theory, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
         [InlineData("items.[|Count()|] != 0", "items.Any()")]
         [InlineData("items.[|Count()|] > 0", "items.Any()")]
         [InlineData("items.[|Count()|] >= 1", "items.Any()")]
@@ -994,6 +938,134 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
+        public async Task Test_CallOrderByAndWhereInReverseOrder()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        IEnumerable<object> x = null;
+
+        x = x.[|OrderBy(f => f).Where(_ => true)|];
+    }
+}
+", @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        IEnumerable<object> x = null;
+
+        x = x.Where(_ => true).OrderBy(f => f);
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
+        public async Task Test_CallOrderByAndWhereInReverseOrder2()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        IEnumerable<object> x = null;
+
+        x = x.[|OrderBy(f => f, default(IComparer<object>)).Where(_ => true)|];
+    }
+}
+", @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        IEnumerable<object> x = null;
+
+        x = x.Where(_ => true).OrderBy(f => f, default(IComparer<object>));
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
+        public async Task Test_CallOrderByDescendingAndWhereInReverseOrder()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        IEnumerable<object> x = null;
+
+        x = x.[|OrderByDescending(f => f).Where(_ => true)|];
+    }
+}
+", @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        IEnumerable<object> x = null;
+
+        x = x.Where(_ => true).OrderByDescending(f => f);
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
+        public async Task Test_CallOrderByDescendingAndWhereInReverseOrder2()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        IEnumerable<object> x = null;
+
+        x = x.[|OrderByDescending(f => f, default(IComparer<object>)).Where(_ => true)|];
+    }
+}
+", @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        IEnumerable<object> x = null;
+
+        x = x.Where(_ => true).OrderByDescending(f => f, default(IComparer<object>));
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
         public async Task Test_CallSumInsteadOfSelectManyAndCount()
         {
             await VerifyDiagnosticAndFixAsync(@"
@@ -1020,6 +1092,38 @@ class C
         IEnumerable<List<object>> x = null;
 
         int count = x.Sum(f => f.Count);
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
+        public async Task Test_CallConvertAllInsteadOfSelectAndToList_List()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        List<object> x = null;
+
+        List<string> x2 = x.[|Select(f => f.ToString()).ToList()|];
+    }
+}
+", @"
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        List<object> x = null;
+
+        List<string> x2 = x.ConvertAll(f => f.ToString());
     }
 }
 ");
@@ -1249,110 +1353,6 @@ class C
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
-        public async Task TestNoDiagnostic_UseElementAccessInsteadOfElementAt()
-        {
-            await VerifyNoDiagnosticAsync(@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-
-class C
-{
-    void M()
-    {
-        object x = null;
-
-        x = ((ICollection<object>)x).ElementAt(1);
-        x = ((IReadOnlyCollection<object>)x).ElementAt(1);
-        x = ((IEnumerable<object>)x).ElementAt(1);
-
-        x = ((Dictionary<object, object>)x).ElementAt(1);
-
-        x = ((List<object>)x).ToList().ElementAt(1);
-        x = ((object[])x).ToArray().ElementAt(1);
-        x = ((ImmutableArray<object>)x).ToImmutableArray().ElementAt(1);
-        x = ((string)x).ToString().ElementAt(1);
-    }
-}
-");
-        }
-
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
-        public async Task TestNoDiagnostic_UseElementAccessInsteadOfFirst()
-        {
-            await VerifyNoDiagnosticAsync(@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-
-class C
-{
-    void M()
-    {
-        object x = null;
-
-        x = ((ICollection<object>)x).First();
-        x = ((IReadOnlyCollection<object>)x).First();
-        x = ((IEnumerable<object>)x).First();
-
-        x = ((Dictionary<object, object>)x).First();
-
-        x = ((List<object>)x).ToList().First();
-        x = ((object[])x).ToArray().First();
-        x = ((ImmutableArray<object>)x).ToImmutableArray().First();
-        x = ((string)x).ToString().First();
-    }
-}
-");
-        }
-
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
-        public async Task TestNoDiagnostic_UseElementAccess_ExpressionStatement()
-        {
-            await VerifyNoDiagnosticAsync(@"
-using System.Linq;
-using System.Collections.Generic;
-
-class C
-{
-    void M()
-    {
-        object x = null;
-
-        ((List<object>)x).First();
-        ((List<object>)x).ElementAt(1);
-    }
-}
-");
-        }
-
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
-        public async Task TestNoDiagnostic_UseElementAccessInsteadOfElementAt_InfiniteRecursion()
-        {
-            await VerifyNoDiagnosticAsync(@"
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-
-class C : IReadOnlyList<int>
-{
-    public int this[int index] => this.ElementAt(index);
-
-    public int Count => throw new NotImplementedException();
-
-    public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
-
-    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-}
-");
-        }
-
-        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
         public async Task TestNoDiagnostic_CallFindInsteadOfFirstOrDefault_Array_ConditionalAccess()
         {
             await VerifyNoDiagnosticAsync(@"
@@ -1368,6 +1368,28 @@ class C
     }
 
     object[] Items { get; }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.OptimizeLinqMethodCall)]
+        public async Task TestNoDiagnostic_CallSumInsteadOfSelectManyAndCount()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M()
+    {
+        _ = Enumerable.Empty<string>()
+            .SelectMany(M2())
+            .Count();
+    }
+
+    Func<string, IEnumerable<string>> M2() => null;
 }
 ");
         }

@@ -18,9 +18,6 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
             context.RegisterCompilationStartAction(startContext =>
@@ -30,8 +27,8 @@ namespace Roslynator.CSharp.Analysis
                 if (debuggerDisplayAttributeSymbol != null)
                 {
                     startContext.RegisterSymbolAction(
-                       nodeContext => AnalyzerNamedTypeSymbol(nodeContext, debuggerDisplayAttributeSymbol),
-                       SymbolKind.NamedType);
+                        nodeContext => AnalyzerNamedTypeSymbol(nodeContext, debuggerDisplayAttributeSymbol),
+                        SymbolKind.NamedType);
                 }
             });
         }

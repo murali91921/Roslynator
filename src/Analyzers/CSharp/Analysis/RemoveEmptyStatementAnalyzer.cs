@@ -18,12 +18,9 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeEmptyStatement, SyntaxKind.EmptyStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeEmptyStatement(f), SyntaxKind.EmptyStatement);
         }
 
         private static void AnalyzeEmptyStatement(SyntaxNodeAnalysisContext context)

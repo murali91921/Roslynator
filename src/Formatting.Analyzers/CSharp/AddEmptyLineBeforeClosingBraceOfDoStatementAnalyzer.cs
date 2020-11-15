@@ -22,7 +22,7 @@ namespace Roslynator.Formatting.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeDoStatement, SyntaxKind.DoStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeDoStatement(f), SyntaxKind.DoStatement);
         }
 
         private static void AnalyzeDoStatement(SyntaxNodeAnalysisContext context)
@@ -68,7 +68,8 @@ namespace Roslynator.Formatting.CSharp
             if (!trivia.IsEndOfLineTrivia())
                 return;
 
-            context.ReportDiagnostic(
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.AddEmptyLineBeforeClosingBraceOfDoStatement,
                 Location.Create(trivia.SyntaxTree, trivia.Span.WithLength(0)));
         }

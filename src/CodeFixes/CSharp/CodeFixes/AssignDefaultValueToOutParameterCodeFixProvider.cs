@@ -87,7 +87,7 @@ namespace Roslynator.CSharp.CodeFixes
             ImmutableArray<ISymbol> alwaysAssigned = dataFlowAnalysis.AlwaysAssigned;
 
             IParameterSymbol singleParameter = null;
-            bool isAny = false;
+            var isAny = false;
             foreach (IParameterSymbol parameter in parameters)
             {
                 if (parameter.RefKind == RefKind.Out
@@ -156,7 +156,7 @@ namespace Roslynator.CSharp.CodeFixes
 
             if (bodyOrExpressionBody is ArrowExpressionClauseSyntax expressionBody)
             {
-                newNode = ExpandExpressionBodyRefactoring.Refactor(expressionBody, semanticModel, cancellationToken);
+                newNode = ConvertExpressionBodyToBlockBodyRefactoring.Refactor(expressionBody, semanticModel, cancellationToken);
 
                 newNode = InsertStatements(newNode, expressionStatements);
             }

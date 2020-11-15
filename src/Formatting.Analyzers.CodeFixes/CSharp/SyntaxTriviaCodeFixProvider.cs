@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Roslynator.CSharp;
 using Roslynator.Formatting.CSharp;
 
 namespace Roslynator.Formatting.CodeFixes.CSharp
@@ -19,15 +20,14 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
             get
             {
                 return ImmutableArray.Create(
+                    DiagnosticIdentifiers.AddEmptyLineAfterTopComment,
+                    DiagnosticIdentifiers.AddEmptyLineBeforeTopDeclaration,
                     DiagnosticIdentifiers.AddEmptyLineBetweenAccessors,
-                    DiagnosticIdentifiers.AddEmptyLineBetweenSingleLineAccessors,
-                    DiagnosticIdentifiers.AddEmptyLineBetweenUsingDirectivesWithDifferentRootNamespace,
-                    DiagnosticIdentifiers.RemoveEmptyLineBetweenSingleLineAccessors,
-                    DiagnosticIdentifiers.RemoveEmptyLineBetweenUsingDirectivesWithDifferentRootNamespace,
+                    DiagnosticIdentifiers.AddEmptyLineBetweenSingleLineAccessorsOrViceVersa,
+                    DiagnosticIdentifiers.AddEmptyLineBetweenUsingDirectivesWithDifferentRootNamespaceOrViceVersa,
                     DiagnosticIdentifiers.RemoveEmptyLineBetweenUsingDirectivesWithSameRootNamespace,
                     DiagnosticIdentifiers.RemoveNewLineBetweenIfKeywordAndElseKeyword,
-                    DiagnosticIdentifiers.RemoveNewLineBeforeBaseList,
-                    DiagnosticIdentifiers.RemoveNewLineBetweenClosingBraceAndWhileKeyword);
+                    DiagnosticIdentifiers.RemoveNewLineBeforeBaseList);
             }
         }
 
@@ -43,9 +43,18 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
             switch (diagnostic.Id)
             {
+                case DiagnosticIdentifiers.AddEmptyLineAfterTopComment:
+                    {
+                        CodeAction codeAction = CodeAction.Create(
+                            CodeFixTitles.AddEmptyLine,
+                            ct => document.ReplaceTokenAsync(trivia.Token, trivia.Token.AppendEndOfLineToLeadingTrivia(), ct),
+                            GetEquivalenceKey(diagnostic));
+
+                        context.RegisterCodeFix(codeAction, diagnostic);
+                        break;
+                    }
+                case DiagnosticIdentifiers.AddEmptyLineBeforeTopDeclaration:
                 case DiagnosticIdentifiers.AddEmptyLineBetweenAccessors:
-                case DiagnosticIdentifiers.AddEmptyLineBetweenSingleLineAccessors:
-                case DiagnosticIdentifiers.AddEmptyLineBetweenUsingDirectivesWithDifferentRootNamespace:
                     {
                         CodeAction codeAction = CodeAction.Create(
                             CodeFixTitles.AddEmptyLine,
@@ -55,8 +64,30 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         context.RegisterCodeFix(codeAction, diagnostic);
                         break;
                     }
-                case DiagnosticIdentifiers.RemoveEmptyLineBetweenSingleLineAccessors:
-                case DiagnosticIdentifiers.RemoveEmptyLineBetweenUsingDirectivesWithDifferentRootNamespace:
+                case DiagnosticIdentifiers.AddEmptyLineBetweenSingleLineAccessorsOrViceVersa:
+                case DiagnosticIdentifiers.AddEmptyLineBetweenUsingDirectivesWithDifferentRootNamespaceOrViceVersa:
+                    {
+                        if (DiagnosticProperties.ContainsInvert(diagnostic.Properties))
+                        {
+                            CodeAction codeAction = CodeAction.Create(
+                                CodeFixTitles.RemoveEmptyLine,
+                                ct => CodeFixHelpers.RemoveEmptyLinesBeforeAsync(document, trivia.Token, ct),
+                                GetEquivalenceKey(diagnostic));
+
+                            context.RegisterCodeFix(codeAction, diagnostic);
+                        }
+                        else
+                        {
+                            CodeAction codeAction = CodeAction.Create(
+                                CodeFixTitles.AddEmptyLine,
+                                ct => CodeFixHelpers.AppendEndOfLineAsync(document, trivia.Token, ct),
+                                GetEquivalenceKey(diagnostic));
+
+                            context.RegisterCodeFix(codeAction, diagnostic);
+                        }
+
+                        break;
+                    }
                 case DiagnosticIdentifiers.RemoveEmptyLineBetweenUsingDirectivesWithSameRootNamespace:
                     {
                         CodeAction codeAction = CodeAction.Create(
@@ -68,7 +99,6 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         break;
                     }
                 case DiagnosticIdentifiers.RemoveNewLineBeforeBaseList:
-                case DiagnosticIdentifiers.RemoveNewLineBetweenClosingBraceAndWhileKeyword:
                 case DiagnosticIdentifiers.RemoveNewLineBetweenIfKeywordAndElseKeyword:
                     {
                         CodeAction codeAction = CodeAction.Create(

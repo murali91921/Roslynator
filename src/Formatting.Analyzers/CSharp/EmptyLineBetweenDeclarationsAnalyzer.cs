@@ -31,12 +31,12 @@ namespace Roslynator.Formatting.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeCompilationUnit, SyntaxKind.CompilationUnit);
-            context.RegisterSyntaxNodeAction(AnalyzeNamespaceDeclaration, SyntaxKind.NamespaceDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeTypeDeclaration, SyntaxKind.ClassDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeTypeDeclaration, SyntaxKind.StructDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeTypeDeclaration, SyntaxKind.InterfaceDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeEnumDeclaration, SyntaxKind.EnumDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeCompilationUnit(f), SyntaxKind.CompilationUnit);
+            context.RegisterSyntaxNodeAction(f => AnalyzeNamespaceDeclaration(f), SyntaxKind.NamespaceDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeTypeDeclaration(f), SyntaxKind.ClassDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeTypeDeclaration(f), SyntaxKind.StructDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeTypeDeclaration(f), SyntaxKind.InterfaceDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeEnumDeclaration(f), SyntaxKind.EnumDeclaration);
         }
 
         private static void AnalyzeCompilationUnit(SyntaxNodeAnalysisContext context)
@@ -252,7 +252,7 @@ namespace Roslynator.Formatting.CSharp
             SyntaxTrivia trivia)
         {
             if (!context.IsAnalyzerSuppressed(descriptor))
-                context.ReportDiagnostic(descriptor, Location.Create(context.Node.SyntaxTree, trivia.Span.WithLength(0)));
+                DiagnosticHelpers.ReportDiagnostic(context, descriptor, Location.Create(context.Node.SyntaxTree, trivia.Span.WithLength(0)));
         }
     }
 }

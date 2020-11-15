@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -22,17 +23,13 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeMethodDeclaration, SyntaxKind.MethodDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeLocalFunctionStatement, SyntaxKind.LocalFunctionStatement);
-            context.RegisterSyntaxNodeAction(AnalyzeSimpleLambdaExpression, SyntaxKind.SimpleLambdaExpression);
-            context.RegisterSyntaxNodeAction(AnalyzeParenthesizedLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression);
-            context.RegisterSyntaxNodeAction(AnalyzeAnonymousMethodExpression, SyntaxKind.AnonymousMethodExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeMethodDeclaration(f), SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeLocalFunctionStatement(f), SyntaxKind.LocalFunctionStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeSimpleLambdaExpression(f), SyntaxKind.SimpleLambdaExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeParenthesizedLambdaExpression(f), SyntaxKind.ParenthesizedLambdaExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeAnonymousMethodExpression(f), SyntaxKind.AnonymousMethodExpression);
         }
 
         private static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
@@ -200,14 +197,16 @@ namespace Roslynator.CSharp.Analysis
 
             private int _usingStatementDepth;
             private bool _shouldVisit = true;
+            private readonly List<int> _usingDeclarations = new List<int>();
 
             public override bool ShouldVisit => _shouldVisit;
 
             public ReturnStatementSyntax ReturnStatement { get; private set; }
 
-            public void Reset()
+            private void Reset()
             {
                 _shouldVisit = true;
+                _usingDeclarations.Clear();
                 ReturnStatement = null;
             }
 
@@ -218,9 +217,45 @@ namespace Roslynator.CSharp.Analysis
                 _usingStatementDepth--;
             }
 
+            public override void VisitBlock(BlockSyntax node)
+            {
+                _usingDeclarations.Add(0);
+                base.VisitBlock(node);
+                _usingDeclarations.RemoveAt(_usingDeclarations.Count - 1);
+            }
+
+            public override void VisitSwitchSection(SwitchSectionSyntax node)
+            {
+                _usingDeclarations.Add(0);
+                base.VisitSwitchSection(node);
+                _usingDeclarations.RemoveAt(_usingDeclarations.Count - 1);
+            }
+
+            public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
+            {
+                if (node.UsingKeyword.IsKind(SyntaxKind.UsingKeyword))
+                    _usingDeclarations[_usingDeclarations.Count - 1]++;
+
+                base.VisitLocalDeclarationStatement(node);
+            }
+
             public override void VisitReturnStatement(ReturnStatementSyntax node)
             {
-                if (_usingStatementDepth > 0)
+                bool isInsideUsing = _usingStatementDepth > 0;
+
+                if (!isInsideUsing)
+                {
+                    foreach (int count in _usingDeclarations)
+                    {
+                        if (count > 0)
+                        {
+                            isInsideUsing = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (isInsideUsing)
                 {
                     ExpressionSyntax expression = node.Expression;
 

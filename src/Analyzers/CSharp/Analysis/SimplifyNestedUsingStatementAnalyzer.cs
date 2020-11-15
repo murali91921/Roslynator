@@ -25,9 +25,6 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
             context.RegisterCompilationStartAction(startContext =>
@@ -35,7 +32,7 @@ namespace Roslynator.CSharp.Analysis
                 if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.SimplifyNestedUsingStatement))
                     return;
 
-                startContext.RegisterSyntaxNodeAction(AnalyzeUsingStatement, SyntaxKind.UsingStatement);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeUsingStatement(f), SyntaxKind.UsingStatement);
             });
         }
 

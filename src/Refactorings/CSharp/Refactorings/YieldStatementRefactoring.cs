@@ -34,14 +34,14 @@ namespace Roslynator.CSharp.Refactorings
 
                         ITypeSymbol expressionTypeSymbol = semanticModel.GetTypeSymbol(expression, context.CancellationToken);
 
-                        if (argumentSymbol != expressionTypeSymbol)
+                        if (!SymbolEqualityComparer.Default.Equals(argumentSymbol, expressionTypeSymbol))
                         {
                             ModifyExpressionRefactoring.ComputeRefactoring(
-                               context,
-                               expression,
-                               argumentSymbol,
-                               semanticModel,
-                               addCastExpression: false);
+                                context,
+                                expression,
+                                argumentSymbol,
+                                semanticModel,
+                                addCastExpression: false);
                         }
                     }
                 }

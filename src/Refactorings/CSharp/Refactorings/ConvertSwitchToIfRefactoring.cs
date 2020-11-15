@@ -19,12 +19,13 @@ namespace Roslynator.CSharp.Refactorings
         {
             SyntaxList<SwitchSectionSyntax> sections = switchStatement.Sections;
 
-            bool containsSectionWithoutDefault = false;
+            var containsNonDefaultSection = false;
+            var containsSectionWithoutDefault = false;
 
             foreach (SwitchSectionSyntax section in sections)
             {
-                bool containsPattern = false;
-                bool containsDefault = false;
+                var containsPattern = false;
+                var containsDefault = false;
 
                 foreach (SwitchLabelSyntax label in section.Labels)
                 {
@@ -61,7 +62,13 @@ namespace Roslynator.CSharp.Refactorings
                         containsSectionWithoutDefault = true;
                     }
                 }
+
+                if (!containsDefault)
+                    containsNonDefaultSection = true;
             }
+
+            if (!containsNonDefaultSection)
+                return;
 
             if (!containsSectionWithoutDefault)
                 return;
@@ -166,7 +173,8 @@ namespace Roslynator.CSharp.Refactorings
                             {
                                 expression = LogicalAndExpression(
                                     expression,
-                                    patternLabel.WhenClause.Condition.Parenthesize()).Parenthesize();
+                                    patternLabel.WhenClause.Condition.Parenthesize())
+                                    .Parenthesize();
                             }
 
                             break;

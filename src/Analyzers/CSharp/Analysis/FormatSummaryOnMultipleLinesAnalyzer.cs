@@ -19,13 +19,10 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
             context.RegisterSyntaxNodeAction(
-                AnalyzeSingleLineDocumentationCommentTrivia,
+                f => AnalyzeSingleLineDocumentationCommentTrivia(f),
                 SyntaxKind.SingleLineDocumentationCommentTrivia);
         }
 
@@ -39,7 +36,8 @@ namespace Roslynator.CSharp.Analysis
                 && summaryElement.EndTag?.IsMissing == false
                 && summaryElement.IsSingleLine(includeExteriorTrivia: false, trim: false))
             {
-                DiagnosticHelpers.ReportDiagnostic(context,
+                DiagnosticHelpers.ReportDiagnostic(
+                    context,
                     DiagnosticDescriptors.FormatDocumentationSummaryOnMultipleLines,
                     summaryElement);
             }

@@ -20,7 +20,7 @@ namespace Roslynator.Formatting.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeEnumDeclaration, SyntaxKind.EnumDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeEnumDeclaration(f), SyntaxKind.EnumDeclaration);
         }
 
         private static void AnalyzeEnumDeclaration(SyntaxNodeAnalysisContext context)
@@ -38,7 +38,8 @@ namespace Roslynator.Formatting.CSharp
             {
                 if (members[i].GetSpanStartLine() == previousIndex)
                 {
-                    context.ReportDiagnostic(
+                    DiagnosticHelpers.ReportDiagnostic(
+                        context,
                         DiagnosticDescriptors.AddNewLineBeforeEnumMember,
                         Location.Create(enumDeclaration.SyntaxTree, members[i].Span.WithLength(0)));
 

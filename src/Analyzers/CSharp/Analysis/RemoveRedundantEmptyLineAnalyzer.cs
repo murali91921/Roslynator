@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -20,37 +19,33 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeClassDeclaration, SyntaxKind.ClassDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeStructDeclaration, SyntaxKind.StructDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeInterfaceDeclaration, SyntaxKind.InterfaceDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeNamespaceDeclaration, SyntaxKind.NamespaceDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeSwitchStatement, SyntaxKind.SwitchStatement);
-            context.RegisterSyntaxNodeAction(AnalyzeTryStatement, SyntaxKind.TryStatement);
-            context.RegisterSyntaxNodeAction(AnalyzeElseClause, SyntaxKind.ElseClause);
+            context.RegisterSyntaxNodeAction(f => AnalyzeClassDeclaration(f), SyntaxKind.ClassDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeStructDeclaration(f), SyntaxKind.StructDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeInterfaceDeclaration(f), SyntaxKind.InterfaceDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeNamespaceDeclaration(f), SyntaxKind.NamespaceDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeSwitchStatement(f), SyntaxKind.SwitchStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeTryStatement(f), SyntaxKind.TryStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeElseClause(f), SyntaxKind.ElseClause);
 
-            context.RegisterSyntaxNodeAction(AnalyzeIfStatement, SyntaxKind.IfStatement);
-            context.RegisterSyntaxNodeAction(AnalyzeCommonForEachStement, SyntaxKind.ForEachStatement);
-            context.RegisterSyntaxNodeAction(AnalyzeCommonForEachStement, SyntaxKind.ForEachVariableStatement);
-            context.RegisterSyntaxNodeAction(AnalyzeForStatement, SyntaxKind.ForStatement);
-            context.RegisterSyntaxNodeAction(AnalyzeUsingStatement, SyntaxKind.UsingStatement);
-            context.RegisterSyntaxNodeAction(AnalyzeWhileStatement, SyntaxKind.WhileStatement);
-            context.RegisterSyntaxNodeAction(AnalyzeDoStatement, SyntaxKind.DoStatement);
-            context.RegisterSyntaxNodeAction(AnalyzeLockStatement, SyntaxKind.LockStatement);
-            context.RegisterSyntaxNodeAction(AnalyzeFixedStatement, SyntaxKind.FixedStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeIfStatement(f), SyntaxKind.IfStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeCommonForEachStement(f), SyntaxKind.ForEachStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeCommonForEachStement(f), SyntaxKind.ForEachVariableStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeForStatement(f), SyntaxKind.ForStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeUsingStatement(f), SyntaxKind.UsingStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeWhileStatement(f), SyntaxKind.WhileStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeDoStatement(f), SyntaxKind.DoStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeLockStatement(f), SyntaxKind.LockStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeFixedStatement(f), SyntaxKind.FixedStatement);
 
-            context.RegisterSyntaxNodeAction(AnalyzeAccessorList, SyntaxKind.AccessorList);
-            context.RegisterSyntaxNodeAction(AnalyzeBlock, SyntaxKind.Block);
-            context.RegisterSyntaxNodeAction(AnalyzeSingleLineDocumentationCommentTrivia, SyntaxKind.SingleLineDocumentationCommentTrivia);
+            context.RegisterSyntaxNodeAction(f => AnalyzeAccessorList(f), SyntaxKind.AccessorList);
+            context.RegisterSyntaxNodeAction(f => AnalyzeBlock(f), SyntaxKind.Block);
+            context.RegisterSyntaxNodeAction(f => AnalyzeSingleLineDocumentationCommentTrivia(f), SyntaxKind.SingleLineDocumentationCommentTrivia);
 
-            context.RegisterSyntaxNodeAction(AnalyzeInitializer, SyntaxKind.ArrayInitializerExpression);
-            context.RegisterSyntaxNodeAction(AnalyzeInitializer, SyntaxKind.CollectionInitializerExpression);
-            context.RegisterSyntaxNodeAction(AnalyzeInitializer, SyntaxKind.ObjectInitializerExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeInitializer(f), SyntaxKind.ArrayInitializerExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeInitializer(f), SyntaxKind.CollectionInitializerExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeInitializer(f), SyntaxKind.ObjectInitializerExpression);
         }
 
         private static void AnalyzeClassDeclaration(SyntaxNodeAnalysisContext context)
@@ -125,6 +120,22 @@ namespace Roslynator.CSharp.Analysis
             {
                 AnalyzeStart(context, sections[0], switchStatement.OpenBraceToken);
                 AnalyzeEnd(context, sections.Last(), switchStatement.CloseBraceToken);
+
+                if (sections.Count > 1
+                    && !context.IsAnalyzerSuppressed(AnalyzerOptions.RemoveEmptyLineBetweenClosingBraceAndSwitchSection))
+                {
+                    SwitchSectionSyntax prevSection = sections[0];
+
+                    for (int i = 1; i < sections.Count; i++)
+                    {
+                        SwitchSectionSyntax section = sections[i];
+
+                        if (prevSection.Statements.LastOrDefault() is BlockSyntax block)
+                            Analyze(context, block.CloseBraceToken, section);
+
+                        prevSection = section;
+                    }
+                }
             }
         }
 
@@ -278,7 +289,8 @@ namespace Roslynator.CSharp.Analysis
             if (!leadingTrivia.IsEmptyOrWhitespace())
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.RemoveRedundantEmptyLine,
                 Location.Create(node1.SyntaxTree, TextSpan.FromBounds(node2.FullSpan.Start, trivia.Span.End)));
         }
@@ -322,7 +334,8 @@ namespace Roslynator.CSharp.Analysis
             if (!leadingTrivia.IsEmptyOrWhitespace())
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.RemoveRedundantEmptyLine,
                 Location.Create(token.SyntaxTree, TextSpan.FromBounds(node.FullSpan.Start, trivia.Span.End)));
         }
@@ -376,7 +389,8 @@ namespace Roslynator.CSharp.Analysis
                     && index < leadingTrivia.Count - 1
                     && leadingTrivia[index + 1].IsEndOfLineTrivia())
                 {
-                    DiagnosticHelpers.ReportDiagnostic(context,
+                    DiagnosticHelpers.ReportDiagnostic(
+                        context,
                         DiagnosticDescriptors.RemoveRedundantEmptyLine,
                         leadingTrivia[index + 1].GetLocation());
                 }
@@ -468,7 +482,8 @@ namespace Roslynator.CSharp.Analysis
             if (span == null)
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.RemoveRedundantEmptyLine,
                 Location.Create(context.Node.SyntaxTree, span.Value));
         }
@@ -494,7 +509,8 @@ namespace Roslynator.CSharp.Analysis
             if (IsEmptyLastLineInDoStatement(node, braceLine, span.Value))
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.RemoveRedundantEmptyLine,
                 Location.Create(context.Node.SyntaxTree, span.Value));
         }
@@ -520,7 +536,8 @@ namespace Roslynator.CSharp.Analysis
             if (span == null)
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.RemoveRedundantEmptyLine,
                 Location.Create(tree, span.Value));
         }
@@ -612,7 +629,8 @@ namespace Roslynator.CSharp.Analysis
 
         private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, TextSpan span)
         {
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.RemoveRedundantEmptyLine,
                 Location.Create(context.Node.SyntaxTree, span));
         }

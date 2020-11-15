@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -15,33 +14,25 @@ namespace Roslynator.CSharp.Analysis
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get
-            {
-                return ImmutableArray.Create(
-                    DiagnosticDescriptors.SimplifyConditionalExpression,
-                    DiagnosticDescriptors.SimplifyConditionalExpression2);
-            }
+            get { return ImmutableArray.Create(DiagnosticDescriptors.SimplifyConditionalExpression); }
         }
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeConditionalExpression, SyntaxKind.ConditionalExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeConditionalExpression(f), SyntaxKind.ConditionalExpression);
         }
 
         private static void AnalyzeConditionalExpression(SyntaxNodeAnalysisContext context)
         {
-            var conditionalExpression = (ConditionalExpressionSyntax)context.Node;
-
             if (context.Node.ContainsDiagnostics)
                 return;
 
             if (context.Node.SpanContainsDirectives())
                 return;
+
+            var conditionalExpression = (ConditionalExpressionSyntax)context.Node;
 
             ConditionalExpressionInfo info = SyntaxInfo.ConditionalExpressionInfo(conditionalExpression);
 
@@ -58,7 +49,7 @@ namespace Roslynator.CSharp.Analysis
                 if (falseKind == SyntaxKind.FalseLiteralExpression
                     || context.SemanticModel.GetTypeInfo(info.WhenFalse, context.CancellationToken).ConvertedType?.SpecialType == SpecialType.System_Boolean)
                 {
-                    Report(DiagnosticDescriptors.SimplifyConditionalExpression);
+                    ReportDiagnostic();
                 }
             }
             else if (trueKind == SyntaxKind.FalseLiteralExpression)
@@ -66,20 +57,22 @@ namespace Roslynator.CSharp.Analysis
                 /// a ? false : true >>> !a
                 if (falseKind == SyntaxKind.TrueLiteralExpression)
                 {
-                    Report(DiagnosticDescriptors.SimplifyConditionalExpression);
+                    ReportDiagnostic();
                 }
                 /// a ? false : b >>> !a && b
-                else if (context.SemanticModel.GetTypeInfo(info.WhenFalse, context.CancellationToken).ConvertedType?.SpecialType == SpecialType.System_Boolean)
+                else if (!context.IsAnalyzerSuppressed(AnalyzerOptions.SimplifyConditionalExpressionWhenItIncludesNegationOfCondition)
+                    && context.SemanticModel.GetTypeInfo(info.WhenFalse, context.CancellationToken).ConvertedType?.SpecialType == SpecialType.System_Boolean)
                 {
-                    Report(DiagnosticDescriptors.SimplifyConditionalExpression2);
+                    ReportDiagnostic();
                 }
             }
             else if (falseKind == SyntaxKind.TrueLiteralExpression)
             {
                 // a ? b : true >>> !a || b
-                if (context.SemanticModel.GetTypeInfo(info.WhenTrue, context.CancellationToken).ConvertedType?.SpecialType == SpecialType.System_Boolean)
+                if (!context.IsAnalyzerSuppressed(AnalyzerOptions.SimplifyConditionalExpressionWhenItIncludesNegationOfCondition)
+                    && context.SemanticModel.GetTypeInfo(info.WhenTrue, context.CancellationToken).ConvertedType?.SpecialType == SpecialType.System_Boolean)
                 {
-                    Report(DiagnosticDescriptors.SimplifyConditionalExpression2);
+                    ReportDiagnostic();
                 }
             }
             else if (falseKind == SyntaxKind.FalseLiteralExpression)
@@ -87,13 +80,13 @@ namespace Roslynator.CSharp.Analysis
                 // a ? b : false >>> a && b
                 if (context.SemanticModel.GetTypeInfo(info.WhenTrue, context.CancellationToken).ConvertedType?.SpecialType == SpecialType.System_Boolean)
                 {
-                    Report(DiagnosticDescriptors.SimplifyConditionalExpression);
+                    ReportDiagnostic();
                 }
             }
 
-            void Report(DiagnosticDescriptor descriptor)
+            void ReportDiagnostic()
             {
-                DiagnosticHelpers.ReportDiagnosticIfNotSuppressed(context, descriptor, conditionalExpression);
+                DiagnosticHelpers.ReportDiagnosticIfNotSuppressed(context, DiagnosticDescriptors.SimplifyConditionalExpression, conditionalExpression);
             }
         }
     }

@@ -18,16 +18,13 @@ namespace Roslynator.CSharp.Analysis
             get
             {
                 return ImmutableArray.Create(
-                  DiagnosticDescriptors.UseLambdaExpressionInsteadOfAnonymousMethod,
-                  DiagnosticDescriptors.UseLambdaExpressionInsteadOfAnonymousMethodFadeOut);
+                    DiagnosticDescriptors.UseLambdaExpressionInsteadOfAnonymousMethod,
+                    DiagnosticDescriptors.UseLambdaExpressionInsteadOfAnonymousMethodFadeOut);
             }
         }
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
             context.RegisterCompilationStartAction(startContext =>
@@ -35,7 +32,7 @@ namespace Roslynator.CSharp.Analysis
                 if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.UseLambdaExpressionInsteadOfAnonymousMethod))
                     return;
 
-                startContext.RegisterSyntaxNodeAction(AnalyzeAnonymousMethod, SyntaxKind.AnonymousMethodExpression);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeAnonymousMethod(f), SyntaxKind.AnonymousMethodExpression);
             });
         }
 
@@ -45,7 +42,8 @@ namespace Roslynator.CSharp.Analysis
 
             if (UseLambdaExpressionInsteadOfAnonymousMethodAnalysis.IsFixable(anonymousMethod))
             {
-                DiagnosticHelpers.ReportDiagnostic(context,
+                DiagnosticHelpers.ReportDiagnostic(
+                    context,
                     DiagnosticDescriptors.UseLambdaExpressionInsteadOfAnonymousMethod,
                     anonymousMethod);
 

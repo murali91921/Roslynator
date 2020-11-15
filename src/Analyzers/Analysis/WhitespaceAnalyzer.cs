@@ -24,12 +24,9 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSyntaxTreeAction(AnalyzeTrailingTrivia);
+            context.RegisterSyntaxTreeAction(f => AnalyzeTrailingTrivia(f));
         }
 
         private static void AnalyzeTrailingTrivia(SyntaxTreeAnalysisContext context)
@@ -41,12 +38,12 @@ namespace Roslynator.CSharp.Analysis
                 return;
 
             var emptyLines = default(TextSpan);
-            bool previousLineIsEmpty = false;
+            var previousLineIsEmpty = false;
             int i = 0;
 
             foreach (TextLine textLine in sourceText.Lines)
             {
-                bool lineIsEmpty = false;
+                var lineIsEmpty = false;
 
                 if (textLine.Span.Length == 0)
                 {
@@ -77,7 +74,8 @@ namespace Roslynator.CSharp.Analysis
                 {
                     if (!emptyLines.IsEmpty)
                     {
-                        DiagnosticHelpers.ReportDiagnostic(context,
+                        DiagnosticHelpers.ReportDiagnostic(
+                            context,
                             DiagnosticDescriptors.RemoveRedundantEmptyLine,
                             Location.Create(context.Tree, emptyLines));
                     }
@@ -105,7 +103,8 @@ namespace Roslynator.CSharp.Analysis
                                     whitespace.End);
                             }
 
-                            DiagnosticHelpers.ReportDiagnostic(context,
+                            DiagnosticHelpers.ReportDiagnostic(
+                                context,
                                 DiagnosticDescriptors.RemoveTrailingWhitespace,
                                 Location.Create(context.Tree, whitespace));
                         }

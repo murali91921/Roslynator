@@ -19,12 +19,9 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeClassDeclaration, SyntaxKind.ClassDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeClassDeclaration(f), SyntaxKind.ClassDeclaration);
         }
 
         private static void AnalyzeClassDeclaration(SyntaxNodeAnalysisContext context)
@@ -68,9 +65,9 @@ namespace Roslynator.CSharp.Analysis
                 if (parameter.Modifiers.Contains(SyntaxKind.ParamsKeyword))
                     continue;
 
-                bool isThis = false;
-                bool isIn = false;
-                bool isRef = false;
+                var isThis = false;
+                var isIn = false;
+                var isRef = false;
 
                 foreach (SyntaxToken modifier in parameter.Modifiers)
                 {

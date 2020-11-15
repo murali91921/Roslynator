@@ -20,15 +20,12 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
             context.RegisterCompilationStartAction(startContext =>
             {
                 if (((CSharpCompilation)startContext.Compilation).LanguageVersion >= LanguageVersion.CSharp7_1)
-                    startContext.RegisterSyntaxNodeAction(AnalyzeDefaultExpression, SyntaxKind.DefaultExpression);
+                    startContext.RegisterSyntaxNodeAction(f => AnalyzeDefaultExpression(f), SyntaxKind.DefaultExpression);
             });
         }
 
@@ -80,12 +77,12 @@ namespace Roslynator.CSharp.Analysis
                         ITypeSymbol type = typeInfo.Type;
                         ITypeSymbol convertedType = typeInfo.ConvertedType;
 
-                        if (type != convertedType)
+                        if (!SymbolEqualityComparer.Default.Equals(type, convertedType))
                             return;
 
                         ITypeSymbol type2 = context.SemanticModel.GetTypeSymbol(expression2, context.CancellationToken);
 
-                        if (type != type2)
+                        if (!SymbolEqualityComparer.Default.Equals(type, type2))
                             return;
 
                         ReportDiagnostic();
@@ -102,7 +99,7 @@ namespace Roslynator.CSharp.Analysis
 
                         TypeInfo typeInfo = context.SemanticModel.GetTypeInfo(expression, context.CancellationToken);
 
-                        if (typeInfo.Type != typeInfo.ConvertedType)
+                        if (!SymbolEqualityComparer.Default.Equals(typeInfo.Type, typeInfo.ConvertedType))
                             return;
 
                         ReportDiagnostic();
@@ -111,6 +108,11 @@ namespace Roslynator.CSharp.Analysis
                 case SyntaxKind.EqualsExpression:
                 case SyntaxKind.NotEqualsExpression:
                     {
+                        TypeInfo typeInfo = context.SemanticModel.GetTypeInfo(expression, context.CancellationToken);
+
+                        if (!SymbolEqualityComparer.Default.Equals(typeInfo.Type, typeInfo.ConvertedType))
+                            return;
+
                         ReportDiagnostic();
                         return;
                     }

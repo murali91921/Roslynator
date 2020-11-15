@@ -23,12 +23,9 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeAddExpression, SyntaxKind.AddExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeAddExpression(f), SyntaxKind.AddExpression);
         }
 
         private static void AnalyzeAddExpression(SyntaxNodeAnalysisContext context)
@@ -48,8 +45,8 @@ namespace Roslynator.CSharp.Analysis
 
             ExpressionSyntax firstExpression = null;
             ExpressionSyntax lastExpression = null;
-            bool isLiteral = false;
-            bool isVerbatim = false;
+            var isLiteral = false;
+            var isVerbatim = false;
 
             foreach (ExpressionSyntax expression in addExpression.AsChain().Reverse())
             {
@@ -152,7 +149,8 @@ namespace Roslynator.CSharp.Analysis
             if (isVerbatim
                 || tree.IsSingleLineSpan(span, cancellationToken))
             {
-                DiagnosticHelpers.ReportDiagnostic(context,
+                DiagnosticHelpers.ReportDiagnostic(
+                    context,
                     DiagnosticDescriptors.JoinStringExpressions,
                     Location.Create(tree, span));
             }

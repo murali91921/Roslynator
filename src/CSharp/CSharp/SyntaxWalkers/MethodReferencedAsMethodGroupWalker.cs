@@ -30,7 +30,7 @@ namespace Roslynator.CSharp.SyntaxWalkers
 
             if (string.Equals(Symbol.Name, node.Identifier.ValueText, StringComparison.Ordinal)
                 && !IsInvoked(node)
-                && SemanticModel.GetSymbol(node, CancellationToken)?.Equals(Symbol) == true)
+                && SymbolEqualityComparer.Default.Equals(SemanticModel.GetSymbol(node, CancellationToken), Symbol))
             {
                 Result = true;
             }
@@ -87,7 +87,7 @@ namespace Roslynator.CSharp.SyntaxWalkers
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            bool result = false;
+            var result = false;
 
             MethodReferencedAsMethodGroupWalker walker = null;
 

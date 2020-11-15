@@ -146,7 +146,7 @@ namespace Roslynator.CSharp
                         NameSyntax name = usingDirective.Name;
 
                         if (name != null
-                            && staticClassSymbol.Equals(semanticModel.GetSymbol(name, cancellationToken)))
+                            && SymbolEqualityComparer.Default.Equals(staticClassSymbol, semanticModel.GetSymbol(name, cancellationToken)))
                         {
                             return true;
                         }
@@ -332,15 +332,16 @@ namespace Roslynator.CSharp
             return default;
         }
 
-        public static bool IsPartOfExpressionThatMustBeConstant(LiteralExpressionSyntax literalExpression)
+        public static bool IsPartOfExpressionThatMustBeConstant(ExpressionSyntax expression)
         {
-            for (SyntaxNode parent = literalExpression.Parent; parent != null; parent = parent.Parent)
+            for (SyntaxNode parent = expression.Parent; parent != null; parent = parent.Parent)
             {
                 switch (parent.Kind())
                 {
                     case SyntaxKind.AttributeArgument:
                     case SyntaxKind.Parameter:
                     case SyntaxKind.CaseSwitchLabel:
+                    case SyntaxKind.ConstantPattern:
                         return true;
                     case SyntaxKind.FieldDeclaration:
                         return ((FieldDeclarationSyntax)parent).Modifiers.Contains(SyntaxKind.ConstKeyword);
@@ -398,6 +399,33 @@ namespace Roslynator.CSharp
                     case SyntaxKind.UnknownAccessorDeclaration:
                     case SyntaxKind.IncompleteMember:
                         return false;
+#if DEBUG
+                    default:
+                        {
+                            if (parent is ExpressionSyntax)
+                                break;
+
+                            switch (parent.Kind())
+                            {
+                                case SyntaxKind.Argument:
+                                case SyntaxKind.ArgumentList:
+                                case SyntaxKind.EqualsValueClause:
+                                case SyntaxKind.Interpolation:
+                                case SyntaxKind.VariableDeclaration:
+                                case SyntaxKind.VariableDeclarator:
+                                    {
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        Debug.Fail(parent.Kind().ToString());
+                                        break;
+                                    }
+                            }
+
+                            break;
+                        }
+#endif
                 }
             }
 
@@ -626,7 +654,7 @@ namespace Roslynator.CSharp
             }
         }
 
-        public static bool ContainsOutArgumentWithLocal(
+        public static bool ContainsOutArgumentWithLocalOrParameter(
             ExpressionSyntax expression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken = default)
@@ -639,7 +667,7 @@ namespace Roslynator.CSharp
                     ExpressionSyntax argumentExpression = argument.Expression;
 
                     if (argumentExpression?.IsMissing == false
-                        && semanticModel.GetSymbol(argumentExpression, cancellationToken)?.Kind == SymbolKind.Local)
+                        && semanticModel.GetSymbol(argumentExpression, cancellationToken)?.IsKind(SymbolKind.Local, SymbolKind.Parameter) == true)
                     {
                         return true;
                     }

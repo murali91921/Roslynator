@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -23,12 +22,9 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeAsExpression, SyntaxKind.AsExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeAsExpression(f), SyntaxKind.AsExpression);
         }
 
         public static void Analyze(SyntaxNodeAnalysisContext context, in SimpleMemberInvocationExpressionInfo invocationInfo)
@@ -45,22 +41,99 @@ namespace Roslynator.CSharp.Analysis
             if (methodSymbol?.ReturnType.IsReferenceType != true)
                 return;
 
+            methodSymbol = methodSymbol.OriginalDefinition.ReducedFromOrSelf();
+
             INamedTypeSymbol containingType = methodSymbol.ContainingType;
 
             if (containingType == null)
                 return;
 
-            if (methodSymbol.IsExtensionMethod)
-            {
-                if (containingType.HasMetadataName(MetadataNames.System_Linq_Enumerable))
-                    ReportDiagnostic(context, expression);
-            }
-            else if (!methodSymbol.IsStatic)
-            {
-                Debug.Assert(containingType.Implements(SpecialType.System_Collections_Generic_IEnumerable_T, allInterfaces: true), "Type does not implement IEnumerable<T>");
+            string methodName = methodSymbol.Name.Remove(methodSymbol.Name.Length - "OrDefault".Length);
 
-                if (containingType.Implements(SpecialType.System_Collections_Generic_IEnumerable_T, allInterfaces: true))
-                    ReportDiagnostic(context, expression);
+            if (!ContainsComplementMethod(methodSymbol, containingType.GetMembers(methodName)))
+                return;
+
+            ReportDiagnostic(context, expression);
+
+            static bool ContainsComplementMethod(IMethodSymbol methodSymbol, ImmutableArray<ISymbol> symbols)
+            {
+                foreach (ISymbol symbol in symbols)
+                {
+                    if (symbol.Kind != SymbolKind.Method)
+                        continue;
+
+                    var methodSymbol2 = (IMethodSymbol)symbol;
+
+                    if (methodSymbol.TypeParameters.Length != methodSymbol2.TypeParameters.Length)
+                        continue;
+
+                    if (!TypeSymbolEquals(methodSymbol.ReturnType, methodSymbol2.ReturnType))
+                        continue;
+
+                    ImmutableArray<IParameterSymbol> parameters = methodSymbol.Parameters;
+                    ImmutableArray<IParameterSymbol> parameters2 = methodSymbol2.Parameters;
+
+                    if (parameters.Length != parameters2.Length)
+                        continue;
+
+                    for (int i = 0; i < parameters.Length; i++)
+                    {
+                        if (!ParameterSymbolEquals(parameters[i], parameters2[i]))
+                            continue;
+                    }
+
+                    return true;
+                }
+
+                return false;
+
+                static bool TypeSymbolEquals(ITypeSymbol symbol1, ITypeSymbol symbol2)
+                {
+                    if (symbol1.TypeKind == TypeKind.TypeParameter
+                        && symbol2.TypeKind == TypeKind.TypeParameter
+                        && SymbolEqualityComparer.Default.Equals(symbol1.ContainingType, symbol2.ContainingType)
+                        && string.Equals(symbol1.Name, symbol2.Name, StringComparison.Ordinal))
+                    {
+                        return true;
+                    }
+
+                    return SymbolEqualityComparer.Default.Equals(symbol1.OriginalDefinition, symbol2.OriginalDefinition);
+                }
+
+                static bool ParameterSymbolEquals(IParameterSymbol x, IParameterSymbol y)
+                {
+                    if (object.ReferenceEquals(x, y))
+                        return true;
+
+                    if (x == null)
+                        return false;
+
+                    if (y == null)
+                        return false;
+
+                    if (x.RefKind != y.RefKind)
+                        return false;
+
+                    if (x.IsParams != y.IsParams)
+                        return false;
+
+                    if (x.IsOptional != y.IsOptional)
+                        return false;
+
+                    if (x.IsThis != y.IsThis)
+                        return false;
+
+                    if (x.IsDiscard != y.IsDiscard)
+                        return false;
+
+                    if (x.HasExplicitDefaultValue != y.HasExplicitDefaultValue)
+                        return false;
+
+                    if (!TypeSymbolEquals(x.Type, y.Type))
+                        return false;
+
+                    return true;
+                }
             }
         }
 
@@ -140,7 +213,6 @@ namespace Roslynator.CSharp.Analysis
 
                         break;
                     }
-
                 case SyntaxKind.ElementAccessExpression:
                     {
                         var elementAccess = (ElementAccessExpressionSyntax)parent;
@@ -157,7 +229,8 @@ namespace Roslynator.CSharp.Analysis
 
         private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, ExpressionSyntax expression)
         {
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.AvoidNullReferenceException,
                 Location.Create(expression.SyntaxTree, new TextSpan(expression.Span.End, 1)));
         }

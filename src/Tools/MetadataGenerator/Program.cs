@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
@@ -26,7 +29,7 @@ namespace Roslynator.CodeGeneration
             if (args == null || args.Length == 0)
             {
 #if DEBUG
-                args = new string[] { @"..\..\..\..\.." };
+                args = new[] { @"..\..\..\..\.." };
 #else
                 args = new string[] { Environment.CurrentDirectory };
 #endif
@@ -45,13 +48,11 @@ namespace Roslynator.CodeGeneration
             ImmutableArray<CodeFixMetadata> codeFixes = metadata.CodeFixes;
             ImmutableArray<CompilerDiagnosticMetadata> compilerDiagnostics = metadata.CompilerDiagnostics;
 
-            WriteAnalyzersReadMe(@"Analyzers\README.md", analyzers);
+            WriteAnalyzersReadMe(@"Analyzers\README.md", analyzers, "Roslynator.Analyzers");
 
-            WriteAnalyzersReadMe(@"CodeAnalysis.Analyzers\README.md", codeAnalysisAnalyzers);
+            WriteAnalyzersReadMe(@"CodeAnalysis.Analyzers\README.md", codeAnalysisAnalyzers, "Roslynator.CodeAnalysis.Analyzers");
 
-            WriteAnalyzersReadMe(@"Formatting.Analyzers\README.md", formattingAnalyzers);
-
-            WriteAnalyzersByCategory(@"Analyzers\AnalyzersByCategory.md", analyzers);
+            WriteAnalyzersReadMe(@"Formatting.Analyzers\README.md", formattingAnalyzers, "Roslynator.Formatting.Analyzers");
 #if !DEBUG
             VisualStudioInstance instance = MSBuildLocator.QueryVisualStudioInstances().First(f => f.Version.Major == 16);
 
@@ -72,6 +73,8 @@ namespace Roslynator.CodeGeneration
                 RoslynatorInfo roslynatorInfo = await RoslynatorInfo.Create(solution).ConfigureAwait(false);
 
                 IOrderedEnumerable<SourceFile> sourceFiles = analyzers
+                    .Concat(codeAnalysisAnalyzers)
+                    .Concat(formattingAnalyzers)
                     .Select(f => new SourceFile(f.Id, roslynatorInfo.GetAnalyzerFilesAsync(f.Identifier).Result))
                     .Concat(refactorings
                         .Select(f => new SourceFile(f.Id, roslynatorInfo.GetRefactoringFilesAsync(f.Identifier).Result)))
@@ -80,29 +83,13 @@ namespace Roslynator.CodeGeneration
                 MetadataFile.SaveSourceFiles(sourceFiles, @"..\SourceFiles.xml");
             }
 #endif
-            foreach (AnalyzerMetadata analyzer in codeAnalysisAnalyzers)
-            {
-                WriteAllText(
-                    $@"..\docs\analyzers\{analyzer.Id}.md",
-                    MarkdownGenerator.CreateAnalyzerMarkdown(analyzer, new (string, string)[] { ("Roslynator.CodeAnalysis.Analyzers", "https://www.nuget.org/packages/Roslynator.CodeAnalysis.Analyzers") }),
-                    fileMustExists: false);
-            }
+            WriteAnalyzerMarkdowns(codeAnalysisAnalyzers, new (string, string)[] { ("Roslynator.CodeAnalysis.Analyzers", "https://www.nuget.org/packages/Roslynator.CodeAnalysis.Analyzers") });
 
-            foreach (AnalyzerMetadata analyzer in analyzers.Concat(formattingAnalyzers))
-            {
-                WriteAllText(
-                    $@"..\docs\analyzers\{analyzer.Id}.md",
-                    MarkdownGenerator.CreateAnalyzerMarkdown(analyzer, new (string, string)[] { ("Roslynator.Formatting.Analyzers", "https://www.nuget.org/packages/Roslynator.Formatting.Analyzers") }),
-                    fileMustExists: false);
-            }
+            WriteAnalyzerMarkdowns(formattingAnalyzers, new (string, string)[] { ("Roslynator.Formatting.Analyzers", "https://www.nuget.org/packages/Roslynator.Formatting.Analyzers") });
 
-            foreach (AnalyzerMetadata analyzer in analyzers)
-            {
-                WriteAllText(
-                    $@"..\docs\analyzers\{analyzer.Id}.md",
-                    MarkdownGenerator.CreateAnalyzerMarkdown(analyzer),
-                    fileMustExists: false);
-            }
+            WriteAnalyzerMarkdowns(analyzers);
+
+            DeleteInvalidAnalyzerMarkdowns();
 
             foreach (RefactoringMetadata refactoring in refactorings)
             {
@@ -158,18 +145,105 @@ namespace Roslynator.CodeGeneration
                 }
             }
 
-            void WriteAnalyzersReadMe(string path, ImmutableArray<AnalyzerMetadata> descriptors)
+            UpdateChangeLog();
+
+            void WriteAnalyzerMarkdowns(IEnumerable<AnalyzerMetadata> analyzers, IEnumerable<(string title, string url)> appliesTo = null)
             {
-                WriteAllText(
-                    path,
-                    MarkdownGenerator.CreateAnalyzersReadMe(descriptors.Where(f => !f.IsObsolete), comparer));
+                foreach (AnalyzerMetadata analyzer in analyzers)
+                {
+                    WriteAnalyzerMarkdown(analyzer, appliesTo);
+                }
+
+                foreach (AnalyzerMetadata analyzer in analyzers.SelectMany(a => a.OptionAnalyzers))
+                {
+                    WriteAnalyzerMarkdown(analyzer, appliesTo);
+                }
             }
 
-            void WriteAnalyzersByCategory(string path, ImmutableArray<AnalyzerMetadata> descriptors)
+            void WriteAnalyzerMarkdown(AnalyzerMetadata analyzer, IEnumerable<(string title, string url)> appliesTo = null)
+            {
+                WriteAllText(
+                    $@"..\docs\analyzers\{analyzer.Id}.md",
+                    MarkdownGenerator.CreateAnalyzerMarkdown(analyzer, appliesTo),
+                    fileMustExists: false);
+
+                foreach (AnalyzerMetadata optionAnalyzer in analyzer.OptionAnalyzers)
+                {
+                    WriteAllText(
+                        $@"..\docs\analyzers\{optionAnalyzer.Id}.md",
+                        MarkdownGenerator.CreateAnalyzerMarkdown(optionAnalyzer),
+                        fileMustExists: false);
+                }
+            }
+
+            void DeleteInvalidAnalyzerMarkdowns()
+            {
+                AnalyzerMetadata[] allAnalyzers = analyzers
+                    .Concat(codeAnalysisAnalyzers)
+                    .Concat(formattingAnalyzers)
+                    .ToArray();
+
+                IEnumerable<string> allIds = allAnalyzers
+                    .Concat(allAnalyzers.SelectMany(f => f.OptionAnalyzers))
+                    .Select(f => f.Id);
+
+                string directoryPath = GetPath(@"..\docs\analyzers");
+
+                foreach (string id in Directory.GetFiles(directoryPath, "*.*", SearchOption.TopDirectoryOnly)
+                    .Select(f => Path.GetFileNameWithoutExtension(f))
+                    .Except(allIds))
+                {
+                    if (id == "RCSXXXX")
+                        break;
+
+                    string filePath = Path.Combine(directoryPath, Path.ChangeExtension(id, ".md"));
+
+                    Console.WriteLine($"Delete file '{filePath}'");
+
+                    File.Delete(filePath);
+                }
+            }
+
+            void WriteAnalyzersReadMe(string path, ImmutableArray<AnalyzerMetadata> descriptors, string title)
             {
                 WriteAllText(
                     path,
-                    MarkdownGenerator.CreateAnalyzersByCategoryMarkdown(descriptors.Where(f => !f.IsObsolete), comparer));
+                    MarkdownGenerator.CreateAnalyzersReadMe(descriptors.Where(f => !f.IsObsolete), title, comparer));
+            }
+
+            void UpdateChangeLog()
+            {
+                var issueRegex = new Regex(@"\(\#(?<issue>\d+)\)");
+                var analyzerRegex = new Regex(@"(\p{Lu}\p{Ll}+){2,}\ +\((?<id>RCS\d{4}[a-z]?)\)");
+
+                string path = GetPath(@"..\ChangeLog.md");
+                string s = File.ReadAllText(path, _utf8NoBom);
+
+                List<AnalyzerMetadata> allAnalyzers = analyzers
+                    .Concat(formattingAnalyzers)
+                    .Concat(codeAnalysisAnalyzers)
+                    .ToList();
+
+                ImmutableDictionary<string, AnalyzerMetadata> dic = allAnalyzers
+                    .Concat(allAnalyzers.SelectMany(f => f.OptionAnalyzers))
+                    .ToImmutableDictionary(f => f.Id, f => f);
+
+                s = issueRegex.Replace(s, "([issue](https://github.com/JosefPihrt/Roslynator/issues/${issue}))");
+
+                s = analyzerRegex.Replace(
+                    s,
+                    m =>
+                    {
+                        string id = m.Groups["id"].Value;
+
+                        Debug.Assert(dic.ContainsKey(id), id);
+
+                        AnalyzerMetadata analyzer = dic[id];
+
+                        return $"[{id}](https://github.com/JosefPihrt/Roslynator/blob/master/docs/analyzers/{id}.md) ({analyzer.Title.TrimEnd('.')})";
+                    });
+
+                File.WriteAllText(path, s, _utf8NoBom);
             }
 
             void WriteAllText(string relativePath, string content, bool onlyIfChanges = true, bool fileMustExists = true)

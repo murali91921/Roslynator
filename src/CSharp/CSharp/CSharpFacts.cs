@@ -11,20 +11,20 @@ namespace Roslynator.CSharp
 {
     public static class CSharpFacts
     {
-        internal static ImmutableArray<SyntaxKind> AssignmentExpressionKinds { get; } = ImmutableArray.CreateRange(new SyntaxKind[]
-        {
-            SyntaxKind.SimpleAssignmentExpression,
-            SyntaxKind.AddAssignmentExpression,
-            SyntaxKind.SubtractAssignmentExpression,
-            SyntaxKind.MultiplyAssignmentExpression,
-            SyntaxKind.DivideAssignmentExpression,
-            SyntaxKind.ModuloAssignmentExpression,
-            SyntaxKind.AndAssignmentExpression,
-            SyntaxKind.ExclusiveOrAssignmentExpression,
-            SyntaxKind.OrAssignmentExpression,
-            SyntaxKind.LeftShiftAssignmentExpression,
-            SyntaxKind.RightShiftAssignmentExpression
-        });
+        internal static ImmutableArray<SyntaxKind> AssignmentExpressionKinds { get; } = ImmutableArray.CreateRange(new[]
+            {
+                SyntaxKind.SimpleAssignmentExpression,
+                SyntaxKind.AddAssignmentExpression,
+                SyntaxKind.SubtractAssignmentExpression,
+                SyntaxKind.MultiplyAssignmentExpression,
+                SyntaxKind.DivideAssignmentExpression,
+                SyntaxKind.ModuloAssignmentExpression,
+                SyntaxKind.AndAssignmentExpression,
+                SyntaxKind.ExclusiveOrAssignmentExpression,
+                SyntaxKind.OrAssignmentExpression,
+                SyntaxKind.LeftShiftAssignmentExpression,
+                SyntaxKind.RightShiftAssignmentExpression
+            });
 
         internal static string GetTitle(SyntaxNode node)
         {

@@ -77,8 +77,8 @@ namespace Roslynator.CodeAnalysis.CSharp
                     Interlocked.CompareExchange(ref _syntaxKindValuesToNames, syntaxKindValuesToNames.ToImmutable(), null);
                 }
 
-                startContext.RegisterSyntaxNodeAction(AnalyzeSwitchStatement, SyntaxKind.SwitchStatement);
-                startContext.RegisterSyntaxNodeAction(AnalyzeIfStatement, SyntaxKind.IfStatement);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeSwitchStatement(f), SyntaxKind.SwitchStatement);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeIfStatement(f), SyntaxKind.IfStatement);
             });
         }
 
@@ -179,7 +179,7 @@ namespace Roslynator.CodeAnalysis.CSharp
                 return;
             }
 
-            context.ReportDiagnostic(DiagnosticDescriptors.UsePatternMatching, switchStatement.SwitchKeyword);
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UsePatternMatching, switchStatement.SwitchKeyword);
 
             string GetName()
             {
@@ -312,7 +312,7 @@ namespace Roslynator.CodeAnalysis.CSharp
                 if (!CSharpFactory.AreEquivalent(isKindExpression.Expression, castExpression.Expression))
                     return;
 
-                context.ReportDiagnostic(DiagnosticDescriptors.UsePatternMatching, ifStatement.IfKeyword);
+                DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UsePatternMatching, ifStatement.IfKeyword);
             }
         }
 

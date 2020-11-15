@@ -22,12 +22,9 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeCoalesceExpression, SyntaxKind.CoalesceExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeCoalesceExpression(f), SyntaxKind.CoalesceExpression);
         }
 
         private static void AnalyzeCoalesceExpression(SyntaxNodeAnalysisContext context)
@@ -47,7 +44,8 @@ namespace Roslynator.CSharp.Analysis
             if (span == default)
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.SimplifyCoalesceExpression,
                 Location.Create(coalesceExpression.SyntaxTree, span));
         }

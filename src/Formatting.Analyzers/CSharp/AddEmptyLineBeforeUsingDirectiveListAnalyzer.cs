@@ -22,7 +22,7 @@ namespace Roslynator.Formatting.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeCompilationUnit, SyntaxKind.CompilationUnit);
+            context.RegisterSyntaxNodeAction(f => AnalyzeCompilationUnit(f), SyntaxKind.CompilationUnit);
         }
 
         private static void AnalyzeCompilationUnit(SyntaxNodeAnalysisContext context)
@@ -45,8 +45,8 @@ namespace Roslynator.Formatting.CSharp
                         ReportDiagnostic(usingDirective.SpanStart);
                 }
                 else if (en.Current.IsEndOfLineTrivia()
-                     && en.MoveNext()
-                     && en.Current.IsKind(SyntaxKind.SingleLineCommentTrivia))
+                    && en.MoveNext()
+                    && en.Current.IsKind(SyntaxKind.SingleLineCommentTrivia))
                 {
                     ReportDiagnostic(usingDirective.SpanStart);
                 }
@@ -66,9 +66,10 @@ namespace Roslynator.Formatting.CSharp
 
             void ReportDiagnostic(int position)
             {
-                context.ReportDiagnostic(
-                   DiagnosticDescriptors.AddEmptyLineBeforeUsingDirectiveList,
-                   Location.Create(compilationUnit.SyntaxTree, new TextSpan(position, 0)));
+                DiagnosticHelpers.ReportDiagnostic(
+                    context,
+                    DiagnosticDescriptors.AddEmptyLineBeforeUsingDirectiveList,
+                    Location.Create(compilationUnit.SyntaxTree, new TextSpan(position, 0)));
             }
         }
     }

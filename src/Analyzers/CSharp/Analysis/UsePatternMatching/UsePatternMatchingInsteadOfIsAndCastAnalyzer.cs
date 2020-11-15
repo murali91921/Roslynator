@@ -21,9 +21,6 @@ namespace Roslynator.CSharp.Analysis.UsePatternMatching
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
             context.RegisterCompilationStartAction(startContext =>
@@ -31,7 +28,7 @@ namespace Roslynator.CSharp.Analysis.UsePatternMatching
                 if (((CSharpCompilation)startContext.Compilation).LanguageVersion < LanguageVersion.CSharp7)
                     return;
 
-                startContext.RegisterSyntaxNodeAction(AnalyzeIsExpression, SyntaxKind.IsExpression);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeIsExpression(f), SyntaxKind.IsExpression);
             });
         }
 

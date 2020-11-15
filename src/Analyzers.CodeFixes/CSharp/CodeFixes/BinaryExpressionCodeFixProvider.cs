@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using Roslynator.CodeFixes;
 using Roslynator.CSharp.Refactorings;
 using Roslynator.CSharp.Syntax;
@@ -28,16 +29,16 @@ namespace Roslynator.CSharp.CodeFixes
             {
                 return ImmutableArray.Create(
                     DiagnosticIdentifiers.SimplifyBooleanComparison,
-                    DiagnosticIdentifiers.CallSkipAndAnyInsteadOfCount,
-                    DiagnosticIdentifiers.AvoidNullLiteralExpressionOnLeftSideOfBinaryExpression,
+                    DiagnosticIdentifiers.ConstantValuesShouldBePlacedOnRightSideOfComparisons,
                     DiagnosticIdentifiers.UseStringIsNullOrEmptyMethod,
                     DiagnosticIdentifiers.SimplifyCoalesceExpression,
                     DiagnosticIdentifiers.RemoveRedundantAsOperator,
+                    DiagnosticIdentifiers.UseStringLengthInsteadOfComparisonWithEmptyString,
                     DiagnosticIdentifiers.UnconstrainedTypeParameterCheckedForNull,
                     DiagnosticIdentifiers.ValueTypeObjectIsNeverEqualToNull,
                     DiagnosticIdentifiers.JoinStringExpressions,
                     DiagnosticIdentifiers.UseExclusiveOrOperator,
-                    DiagnosticIdentifiers.SimplifyBooleanExpression,
+                    DiagnosticIdentifiers.UnnecessaryNullCheck,
                     DiagnosticIdentifiers.UseShortCircuitingOperator,
                     DiagnosticIdentifiers.UnnecessaryOperator);
             }
@@ -67,21 +68,11 @@ namespace Roslynator.CSharp.CodeFixes
 
                             break;
                         }
-                    case DiagnosticIdentifiers.CallSkipAndAnyInsteadOfCount:
-                        {
-                            CodeAction codeAction = CodeAction.Create(
-                                "Call 'Skip' and 'Any' instead of 'Count'",
-                                cancellationToken => CallSkipAndAnyInsteadOfCountRefactoring.RefactorAsync(document, binaryExpression, cancellationToken),
-                                GetEquivalenceKey(diagnostic));
-
-                            context.RegisterCodeFix(codeAction, diagnostic);
-                            break;
-                        }
-                    case DiagnosticIdentifiers.AvoidNullLiteralExpressionOnLeftSideOfBinaryExpression:
+                    case DiagnosticIdentifiers.ConstantValuesShouldBePlacedOnRightSideOfComparisons:
                         {
                             CodeAction codeAction = CodeAction.Create(
                                 "Swap operands",
-                                cancellationToken => DocumentRefactorings.SwapBinaryOperandsAsync(document, binaryExpression, cancellationToken),
+                                cancellationToken => document.ReplaceNodeAsync(binaryExpression, SyntaxRefactorings.SwapBinaryOperands(binaryExpression), cancellationToken),
                                 GetEquivalenceKey(diagnostic));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
@@ -91,7 +82,7 @@ namespace Roslynator.CSharp.CodeFixes
                         {
                             CodeAction codeAction = CodeAction.Create(
                                 "Use 'string.IsNullOrEmpty' method",
-                                ct => UseStringIsNullOrEmptyMethodAsync(document, binaryExpression, ct),
+                                cancellationToken => UseStringIsNullOrEmptyMethodAsync(document, binaryExpression, cancellationToken),
                                 GetEquivalenceKey(diagnostic));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
@@ -120,6 +111,16 @@ namespace Roslynator.CSharp.CodeFixes
                             CodeAction codeAction = CodeAction.Create(
                                 "Remove redundant 'as' operator",
                                 cancellationToken => RemoveRedundantAsOperatorRefactoring.RefactorAsync(document, binaryExpression, cancellationToken),
+                                GetEquivalenceKey(diagnostic));
+
+                            context.RegisterCodeFix(codeAction, diagnostic);
+                            break;
+                        }
+                    case DiagnosticIdentifiers.UseStringLengthInsteadOfComparisonWithEmptyString:
+                        {
+                            CodeAction codeAction = CodeAction.Create(
+                                "Use string.Length",
+                                cancellationToken => UseStringLengthInsteadOfComparisonWithEmptyStringAsync(document, binaryExpression, cancellationToken),
                                 GetEquivalenceKey(diagnostic));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
@@ -156,7 +157,7 @@ namespace Roslynator.CSharp.CodeFixes
                             }
                             else
                             {
-                                title = $"Use EqualityComparer<{SymbolDisplay.ToMinimalDisplayString(typeSymbol, semanticModel, binaryExpression.Right.SpanStart, SymbolDisplayFormats.Default)}>.Default";
+                                title = $"Use EqualityComparer<{SymbolDisplay.ToMinimalDisplayString(typeSymbol, semanticModel, binaryExpression.Right.SpanStart, SymbolDisplayFormats.DisplayName)}>.Default";
                             }
 
                             CodeAction codeAction = CodeAction.Create(
@@ -187,11 +188,11 @@ namespace Roslynator.CSharp.CodeFixes
                             context.RegisterCodeFix(codeAction, diagnostic);
                             break;
                         }
-                    case DiagnosticIdentifiers.SimplifyBooleanExpression:
+                    case DiagnosticIdentifiers.UnnecessaryNullCheck:
                         {
                             CodeAction codeAction = CodeAction.Create(
-                                "Simplify boolean expression",
-                                cancellationToken => SimplifyBooleanExpressionRefactoring.RefactorAsync(document, binaryExpression, cancellationToken),
+                                "Remove unnecessary null check",
+                                ct => RemoveUnnecessaryNullCheckAsync(document, binaryExpression, ct),
                                 GetEquivalenceKey(diagnostic));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
@@ -260,50 +261,118 @@ namespace Roslynator.CSharp.CodeFixes
             }
         }
 
-        private static async Task<Document> UseStringIsNullOrEmptyMethodAsync(
+        private static Task<Document> UseStringIsNullOrEmptyMethodAsync(
             Document document,
             BinaryExpressionSyntax binaryExpression,
             CancellationToken cancellationToken)
         {
-            if (binaryExpression.IsKind(SyntaxKind.EqualsExpression))
+            NullCheckExpressionInfo nullCheck = SyntaxInfo.NullCheckExpressionInfo(binaryExpression.Left);
+
+            ExpressionSyntax newNode = SimpleMemberInvocationExpression(
+                CSharpTypeFactory.StringType(),
+                IdentifierName("IsNullOrEmpty"),
+                Argument(nullCheck.Expression));
+
+            if (nullCheck.IsCheckingNotNull)
+                newNode = LogicalNotExpression(newNode);
+
+            newNode = newNode
+                .WithTriviaFrom(binaryExpression)
+                .WithFormatterAnnotation();
+
+            return document.ReplaceNodeAsync(binaryExpression, newNode, cancellationToken);
+        }
+
+        private static async Task<Document> UseStringLengthInsteadOfComparisonWithEmptyStringAsync(
+            Document document,
+            BinaryExpressionSyntax binaryExpression,
+            CancellationToken cancellationToken)
+        {
+            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            ExpressionSyntax left = binaryExpression.Left;
+
+            ExpressionSyntax right = binaryExpression.Right;
+
+            BinaryExpressionSyntax newNode;
+
+            if (CSharpUtility.IsEmptyStringExpression(left, semanticModel, cancellationToken))
             {
-                SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                BinaryExpressionInfo binaryExpressionInfo = SyntaxInfo.BinaryExpressionInfo(binaryExpression);
-
-                ExpressionSyntax expression = (CSharpUtility.IsEmptyStringExpression(binaryExpressionInfo.Left, semanticModel, cancellationToken))
-                    ? binaryExpressionInfo.Right
-                    : binaryExpressionInfo.Left;
-
-                ExpressionSyntax newNode = SimpleMemberInvocationExpression(
-                    CSharpTypeFactory.StringType(),
-                    IdentifierName("IsNullOrEmpty"),
-                    Argument(expression));
-
-                newNode = newNode
-                    .WithTriviaFrom(binaryExpression)
-                    .WithFormatterAnnotation();
-
-                return await document.ReplaceNodeAsync(binaryExpression, newNode, cancellationToken).ConfigureAwait(false);
+                newNode = binaryExpression
+                    .WithLeft(NumericLiteralExpression(0))
+                    .WithRight(CreateConditionalAccess(right));
+            }
+            else if (CSharpUtility.IsEmptyStringExpression(right, semanticModel, cancellationToken))
+            {
+                newNode = binaryExpression
+                    .WithLeft(CreateConditionalAccess(left))
+                    .WithRight(NumericLiteralExpression(0));
             }
             else
             {
-                NullCheckExpressionInfo nullCheck = SyntaxInfo.NullCheckExpressionInfo(binaryExpression.Left);
-
-                ExpressionSyntax newNode = SimpleMemberInvocationExpression(
-                    CSharpTypeFactory.StringType(),
-                    IdentifierName("IsNullOrEmpty"),
-                    Argument(nullCheck.Expression));
-
-                if (nullCheck.IsCheckingNotNull)
-                    newNode = LogicalNotExpression(newNode);
-
-                newNode = newNode
-                    .WithTriviaFrom(binaryExpression)
-                    .WithFormatterAnnotation();
-
-                return await document.ReplaceNodeAsync(binaryExpression, newNode, cancellationToken).ConfigureAwait(false);
+                Debug.Fail(binaryExpression.ToString());
+                return document;
             }
+
+            newNode = newNode.WithTriviaFrom(binaryExpression).WithFormatterAnnotation();
+
+            return await document.ReplaceNodeAsync(binaryExpression, newNode, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static ConditionalAccessExpressionSyntax CreateConditionalAccess(ExpressionSyntax expression)
+        {
+            return ConditionalAccessExpression(
+                expression.Parenthesize(),
+                MemberBindingExpression(IdentifierName("Length")));
+        }
+
+        private static async Task<Document> RemoveUnnecessaryNullCheckAsync(
+            Document document,
+            BinaryExpressionSyntax logicalAnd,
+            CancellationToken cancellationToken)
+        {
+            BinaryExpressionInfo binaryExpressionInfo = SyntaxInfo.BinaryExpressionInfo(logicalAnd);
+
+            ExpressionSyntax right = binaryExpressionInfo.Right;
+
+            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            NullCheckExpressionInfo nullCheck = SyntaxInfo.NullCheckExpressionInfo(binaryExpressionInfo.Left, semanticModel, NullCheckStyles.HasValue | NullCheckStyles.NotEqualsToNull);
+
+            var binaryExpression = right as BinaryExpressionSyntax;
+
+            ExpressionSyntax newRight;
+            switch (right.Kind())
+            {
+                case SyntaxKind.SimpleMemberAccessExpression:
+                    {
+                        newRight = TrueLiteralExpression().WithTriviaFrom(right);
+                        break;
+                    }
+                case SyntaxKind.LogicalNotExpression:
+                    {
+                        newRight = FalseLiteralExpression().WithTriviaFrom(right);
+                        break;
+                    }
+                default:
+                    {
+                        newRight = binaryExpression.Right;
+                        break;
+                    }
+            }
+
+            BinaryExpressionSyntax newBinaryExpression = BinaryExpression(
+                (binaryExpression != null)
+                    ? right.Kind()
+                    : SyntaxKind.EqualsExpression,
+                nullCheck.Expression.WithLeadingTrivia(logicalAnd.GetLeadingTrivia()),
+                (binaryExpression != null)
+                    ? ((BinaryExpressionSyntax)right).OperatorToken
+                    : Token(SyntaxKind.EqualsEqualsToken).WithTriviaFrom(logicalAnd.OperatorToken),
+                newRight)
+                .WithFormatterAnnotation();
+
+            return await document.ReplaceNodeAsync(logicalAnd, newBinaryExpression, cancellationToken).ConfigureAwait(false);
         }
     }
 }

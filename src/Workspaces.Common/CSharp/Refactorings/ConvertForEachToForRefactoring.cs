@@ -76,8 +76,8 @@ namespace Roslynator.CSharp.Refactorings
                 {
                     return ElementAccessExpression(
                         forEachExpression.WithoutTrivia(),
-                        BracketedArgumentList(SingletonSeparatedList(Argument(IdentifierName(name))))
-                    ).WithTriviaFrom(node);
+                        BracketedArgumentList(SingletonSeparatedList(Argument(IdentifierName(name)))))
+                        .WithTriviaFrom(node);
                 });
 
             ForStatementSyntax forStatement = ForStatement(
@@ -88,8 +88,8 @@ namespace Roslynator.CSharp.Refactorings
                 statement: statement);
 
             forStatement = forStatement
-                 .WithTriviaFrom(forEachStatement)
-                 .WithFormatterAnnotation();
+                .WithTriviaFrom(forEachStatement)
+                .WithFormatterAnnotation();
 
             return document.ReplaceNodeAsync(forEachStatement, forStatement, cancellationToken);
         }
@@ -104,7 +104,7 @@ namespace Roslynator.CSharp.Refactorings
             foreach (SyntaxNode node in forEachStatement.Statement.DescendantNodes())
             {
                 if (node.Kind() == SyntaxKind.IdentifierName
-                    && symbol.Equals(semanticModel.GetSymbol(node, cancellationToken)))
+                    && SymbolEqualityComparer.Default.Equals(symbol, semanticModel.GetSymbol(node, cancellationToken)))
                 {
                     yield return (IdentifierNameSyntax)node;
                 }

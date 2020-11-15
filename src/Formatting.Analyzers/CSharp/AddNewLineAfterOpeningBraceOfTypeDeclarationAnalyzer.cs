@@ -21,9 +21,9 @@ namespace Roslynator.Formatting.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeTypeDeclaration, SyntaxKind.ClassDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeTypeDeclaration, SyntaxKind.StructDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeTypeDeclaration, SyntaxKind.InterfaceDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeTypeDeclaration(f), SyntaxKind.ClassDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeTypeDeclaration(f), SyntaxKind.StructDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeTypeDeclaration(f), SyntaxKind.InterfaceDeclaration);
         }
 
         private static void AnalyzeTypeDeclaration(SyntaxNodeAnalysisContext context)
@@ -38,7 +38,8 @@ namespace Roslynator.Formatting.CSharp
             if (!typeDeclaration.SyntaxTree.IsSingleLineSpan(TextSpan.FromBounds(openBrace.Span.End, openBrace.GetNextToken().SpanStart)))
                 return;
 
-            context.ReportDiagnostic(
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.AddNewLineAfterOpeningBraceOfTypeDeclaration,
                 Location.Create(typeDeclaration.SyntaxTree, new TextSpan(openBrace.Span.End, 0)));
         }

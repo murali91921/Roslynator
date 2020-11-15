@@ -292,7 +292,7 @@ namespace Roslynator.CSharp
                         if (en.MoveNext()
                             && en.Current.IsEndOfLineTrivia())
                         {
-                            (topTrivia ?? (topTrivia = new List<SyntaxTrivia>())).Add(trivia);
+                            (topTrivia ??= new List<SyntaxTrivia>()).Add(trivia);
                             topTrivia.Add(en.Current);
                         }
                         else
@@ -334,11 +334,25 @@ namespace Roslynator.CSharp
         #region ConstructorDeclarationSyntax
         internal static TextSpan HeaderSpan(this ConstructorDeclarationSyntax constructorDeclaration)
         {
-            if (constructorDeclaration == null)
-                throw new ArgumentNullException(nameof(constructorDeclaration));
+            int start;
+
+            SyntaxList<AttributeListSyntax> attributeLists = constructorDeclaration.AttributeLists;
+
+            if (attributeLists.Any())
+            {
+                SyntaxTokenList modifiers = constructorDeclaration.Modifiers;
+
+                start = (modifiers.Any())
+                    ? modifiers[0].SpanStart
+                    : constructorDeclaration.Identifier.SpanStart;
+            }
+            else
+            {
+                start = constructorDeclaration.SpanStart;
+            }
 
             return TextSpan.FromBounds(
-                constructorDeclaration.SpanStart,
+                start,
                 constructorDeclaration.Initializer?.Span.End
                     ?? constructorDeclaration.ParameterList?.Span.End
                     ?? constructorDeclaration.Identifier.Span.End);
@@ -368,6 +382,31 @@ namespace Roslynator.CSharp
                 throw new ArgumentNullException(nameof(conversionOperatorDeclaration));
 
             return conversionOperatorDeclaration.Body ?? (CSharpSyntaxNode)conversionOperatorDeclaration.ExpressionBody;
+        }
+
+        internal static TextSpan HeaderSpan(this ConversionOperatorDeclarationSyntax operatorDeclaration)
+        {
+            int start;
+
+            SyntaxList<AttributeListSyntax> attributeLists = operatorDeclaration.AttributeLists;
+
+            if (attributeLists.Any())
+            {
+                SyntaxTokenList modifiers = operatorDeclaration.Modifiers;
+
+                start = (modifiers.Any())
+                    ? modifiers[0].SpanStart
+                    : operatorDeclaration.ImplicitOrExplicitKeyword.SpanStart;
+            }
+            else
+            {
+                start = operatorDeclaration.SpanStart;
+            }
+
+            return TextSpan.FromBounds(
+                start,
+                operatorDeclaration.ParameterList?.Span.End
+                    ?? operatorDeclaration.Type.Span.End);
         }
         #endregion ConversionOperatorDeclarationSyntax
 
@@ -401,6 +440,31 @@ namespace Roslynator.CSharp
                 throw new ArgumentNullException(nameof(destructorDeclaration));
 
             return destructorDeclaration.Body ?? (CSharpSyntaxNode)destructorDeclaration.ExpressionBody;
+        }
+
+        internal static TextSpan HeaderSpan(this DestructorDeclarationSyntax destructorDeclaration)
+        {
+            int start;
+
+            SyntaxList<AttributeListSyntax> attributeLists = destructorDeclaration.AttributeLists;
+
+            if (attributeLists.Any())
+            {
+                SyntaxTokenList modifiers = destructorDeclaration.Modifiers;
+
+                start = (modifiers.Any())
+                    ? modifiers[0].SpanStart
+                    : destructorDeclaration.TildeToken.SpanStart;
+            }
+            else
+            {
+                start = destructorDeclaration.SpanStart;
+            }
+
+            return TextSpan.FromBounds(
+                start,
+                destructorDeclaration.ParameterList?.Span.End
+                    ?? destructorDeclaration.TildeToken.Span.End);
         }
         #endregion DestructorDeclarationSyntax
 
@@ -929,12 +993,27 @@ namespace Roslynator.CSharp
         #region IndexerDeclarationSyntax
         internal static TextSpan HeaderSpan(this IndexerDeclarationSyntax indexerDeclaration)
         {
-            if (indexerDeclaration == null)
-                throw new ArgumentNullException(nameof(indexerDeclaration));
+            int start;
+
+            SyntaxList<AttributeListSyntax> attributeLists = indexerDeclaration.AttributeLists;
+
+            if (attributeLists.Any())
+            {
+                SyntaxTokenList modifiers = indexerDeclaration.Modifiers;
+
+                start = (modifiers.Any())
+                    ? modifiers[0].SpanStart
+                    : indexerDeclaration.Type.SpanStart;
+            }
+            else
+            {
+                start = indexerDeclaration.SpanStart;
+            }
 
             return TextSpan.FromBounds(
-                indexerDeclaration.SpanStart,
-                indexerDeclaration.ParameterList?.Span.End ?? indexerDeclaration.ThisKeyword.Span.End);
+                start,
+                indexerDeclaration.ParameterList?.Span.End
+                    ?? indexerDeclaration.ThisKeyword.Span.End);
         }
 
         /// <summary>
@@ -1121,6 +1200,15 @@ namespace Roslynator.CSharp
 
             return localFunctionStatement.Body?.ContainsYield() == true;
         }
+
+        internal static TextSpan HeaderSpan(this LocalFunctionStatementSyntax localFunction)
+        {
+            return TextSpan.FromBounds(
+                localFunction.SpanStart,
+                localFunction.ConstraintClauses.LastOrDefault()?.Span.End
+                    ?? localFunction.ParameterList?.Span.End
+                    ?? localFunction.Identifier.Span.End);
+        }
         #endregion LocalFunctionStatementSyntax
 
         #region LockStatementSyntax
@@ -1232,7 +1320,7 @@ namespace Roslynator.CSharp
 
             return member
                 .GetLeadingTrivia()
-                .Any(IsDocumentationCommentTrivia);
+                .Any(f => IsDocumentationCommentTrivia(f));
         }
 
         internal static TMember WithNewSingleLineDocumentationComment<TMember>(
@@ -1319,12 +1407,28 @@ namespace Roslynator.CSharp
 
         internal static TextSpan HeaderSpan(this MethodDeclarationSyntax methodDeclaration)
         {
-            if (methodDeclaration == null)
-                throw new ArgumentNullException(nameof(methodDeclaration));
+            int start;
+
+            SyntaxList<AttributeListSyntax> attributeLists = methodDeclaration.AttributeLists;
+
+            if (attributeLists.Any())
+            {
+                SyntaxTokenList modifiers = methodDeclaration.Modifiers;
+
+                start = (modifiers.Any())
+                    ? modifiers[0].SpanStart
+                    : methodDeclaration.ReturnType.SpanStart;
+            }
+            else
+            {
+                start = methodDeclaration.SpanStart;
+            }
 
             return TextSpan.FromBounds(
-                methodDeclaration.SpanStart,
-                methodDeclaration.ParameterList?.Span.End ?? methodDeclaration.Identifier.Span.End);
+                start,
+                methodDeclaration.ConstraintClauses.LastOrDefault()?.Span.End
+                    ?? methodDeclaration.ParameterList?.Span.End
+                    ?? methodDeclaration.Identifier.Span.End);
         }
 
         /// <summary>
@@ -1398,6 +1502,31 @@ namespace Roslynator.CSharp
 
             return operatorDeclaration.Body ?? (CSharpSyntaxNode)operatorDeclaration.ExpressionBody;
         }
+
+        internal static TextSpan HeaderSpan(this OperatorDeclarationSyntax operatorDeclaration)
+        {
+            int start;
+
+            SyntaxList<AttributeListSyntax> attributeLists = operatorDeclaration.AttributeLists;
+
+            if (attributeLists.Any())
+            {
+                SyntaxTokenList modifiers = operatorDeclaration.Modifiers;
+
+                start = (modifiers.Any())
+                    ? modifiers[0].SpanStart
+                    : operatorDeclaration.ReturnType.SpanStart;
+            }
+            else
+            {
+                start = operatorDeclaration.SpanStart;
+            }
+
+            return TextSpan.FromBounds(
+                start,
+                operatorDeclaration.ParameterList?.Span.End
+                    ?? operatorDeclaration.OperatorToken.Span.End);
+        }
         #endregion OperatorDeclarationSyntax
 
         #region ParameterSyntax
@@ -1414,11 +1543,25 @@ namespace Roslynator.CSharp
         #region PropertyDeclarationSyntax
         internal static TextSpan HeaderSpan(this PropertyDeclarationSyntax propertyDeclaration)
         {
-            if (propertyDeclaration == null)
-                throw new ArgumentNullException(nameof(propertyDeclaration));
+            int start;
+
+            SyntaxList<AttributeListSyntax> attributeLists = propertyDeclaration.AttributeLists;
+
+            if (attributeLists.Any())
+            {
+                SyntaxTokenList modifiers = propertyDeclaration.Modifiers;
+
+                start = (modifiers.Any())
+                    ? modifiers[0].SpanStart
+                    : propertyDeclaration.Type.SpanStart;
+            }
+            else
+            {
+                start = propertyDeclaration.SpanStart;
+            }
 
             return TextSpan.FromBounds(
-                propertyDeclaration.SpanStart,
+                start,
                 propertyDeclaration.Identifier.Span.End);
         }
 
@@ -1551,26 +1694,17 @@ namespace Roslynator.CSharp
             bool trim = true,
             CancellationToken cancellationToken = default) where TNode : SyntaxNode
         {
-            int count = list.Count;
+            TextSpan span = GetSpan(list, includeExteriorTrivia, trim);
 
-            if (count == 0)
+            if (span.IsEmpty)
                 return false;
 
-            TNode firstNode = list[0];
-
-            if (count == 1)
-                return IsSingleLine(firstNode, includeExteriorTrivia, trim, cancellationToken);
-
-            SyntaxTree tree = firstNode.SyntaxTree;
+            SyntaxTree tree = list[0].SyntaxTree;
 
             if (tree == null)
                 return false;
 
-            TextSpan span = TextSpan.FromBounds(
-                GetStartIndex(firstNode, includeExteriorTrivia, trim),
-                GetEndIndex(list.Last(), includeExteriorTrivia, trim));
-
-            return tree.IsSingleLineSpan(span, cancellationToken);
+            return span.IsSingleLine(tree, cancellationToken);
         }
 
         internal static bool IsMultiLine<TNode>(
@@ -1579,26 +1713,51 @@ namespace Roslynator.CSharp
             bool trim = true,
             CancellationToken cancellationToken = default) where TNode : SyntaxNode
         {
-            int count = list.Count;
+            TextSpan span = GetSpan(list, includeExteriorTrivia, trim);
 
-            if (count == 0)
+            if (span.IsEmpty)
                 return false;
 
-            TNode firstNode = list[0];
-
-            if (count == 1)
-                return IsMultiLine(firstNode, includeExteriorTrivia, trim, cancellationToken);
-
-            SyntaxTree tree = firstNode.SyntaxTree;
+            SyntaxTree tree = list[0].SyntaxTree;
 
             if (tree == null)
                 return false;
 
-            TextSpan span = TextSpan.FromBounds(
-                GetStartIndex(firstNode, includeExteriorTrivia, trim),
-                GetEndIndex(list.Last(), includeExteriorTrivia, trim));
+            return span.IsMultiLine(tree, cancellationToken);
+        }
 
-            return tree.IsMultiLineSpan(span, cancellationToken);
+        internal static TextSpan GetSpan<TNode>(
+            this SeparatedSyntaxList<TNode> list,
+            bool includeExteriorTrivia = true,
+            bool trim = true) where TNode : SyntaxNode
+        {
+            if (!list.Any())
+                return default;
+
+            return TextSpan.FromBounds(
+                GetStartIndex(list[0], includeExteriorTrivia, trim),
+                GetEndIndex(list.Last(), includeExteriorTrivia, trim));
+        }
+
+        //TODO: make public
+        /// <summary>
+        /// Creates a new list with the elements in the specified range replaced with new node.
+        /// </summary>
+        /// <typeparam name="TNode"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        /// <param name="newNode"></param>
+        internal static SeparatedSyntaxList<TNode> ReplaceRange<TNode>(
+            this SeparatedSyntaxList<TNode> list,
+            int index,
+            int count,
+            TNode newNode) where TNode : SyntaxNode
+        {
+            if (newNode == null)
+                throw new ArgumentNullException(nameof(newNode));
+
+            return ReplaceRange(list, index, count, new TNode[] { newNode });
         }
 
         /// <summary>
@@ -1986,26 +2145,17 @@ namespace Roslynator.CSharp
             bool trim = true,
             CancellationToken cancellationToken = default) where TNode : SyntaxNode
         {
-            int count = list.Count;
+            TextSpan span = GetSpan(list, includeExteriorTrivia, trim);
 
-            if (count == 0)
+            if (span.IsEmpty)
                 return false;
 
-            TNode firstNode = list[0];
-
-            if (count == 1)
-                return IsSingleLine(firstNode, includeExteriorTrivia, trim, cancellationToken);
-
-            SyntaxTree tree = firstNode.SyntaxTree;
+            SyntaxTree tree = list[0].SyntaxTree;
 
             if (tree == null)
                 return false;
 
-            TextSpan span = TextSpan.FromBounds(
-                GetStartIndex(firstNode, includeExteriorTrivia, trim),
-                GetEndIndex(list.Last(), includeExteriorTrivia, trim));
-
-            return tree.IsSingleLineSpan(span, cancellationToken);
+            return span.IsSingleLine(tree, cancellationToken);
         }
 
         internal static bool IsMultiLine<TNode>(
@@ -2014,26 +2164,30 @@ namespace Roslynator.CSharp
             bool trim = true,
             CancellationToken cancellationToken = default) where TNode : SyntaxNode
         {
-            int count = list.Count;
+            TextSpan span = GetSpan(list, includeExteriorTrivia, trim);
 
-            if (count == 0)
+            if (span.IsEmpty)
                 return false;
 
-            TNode firstNode = list[0];
-
-            if (count == 1)
-                return IsMultiLine(firstNode, includeExteriorTrivia, trim, cancellationToken);
-
-            SyntaxTree tree = firstNode.SyntaxTree;
+            SyntaxTree tree = list[0].SyntaxTree;
 
             if (tree == null)
                 return false;
 
-            TextSpan span = TextSpan.FromBounds(
-                GetStartIndex(firstNode, includeExteriorTrivia, trim),
-                GetEndIndex(list.Last(), includeExteriorTrivia, trim));
+            return span.IsMultiLine(tree, cancellationToken);
+        }
 
-            return tree.IsMultiLineSpan(span, cancellationToken);
+        internal static TextSpan GetSpan<TNode>(
+            this SyntaxList<TNode> list,
+            bool includeExteriorTrivia = true,
+            bool trim = true) where TNode : SyntaxNode
+        {
+            if (!list.Any())
+                return default;
+
+            return TextSpan.FromBounds(
+                GetStartIndex(list[0], includeExteriorTrivia, trim),
+                GetEndIndex(list.Last(), includeExteriorTrivia, trim));
         }
 
         internal static StatementSyntax SingleOrDefault(this SyntaxList<StatementSyntax> statements, bool ignoreLocalFunctions, bool shouldThrow)
@@ -2096,6 +2250,27 @@ namespace Roslynator.CSharp
             }
 
             return statements.Insert(index, statement);
+        }
+
+        //TODO: make public
+        /// <summary>
+        /// Creates a new list with the elements in the specified range replaced with new node.
+        /// </summary>
+        /// <typeparam name="TNode"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="index"></param>
+        /// <param name="count"></param>
+        /// <param name="newNode"></param>
+        internal static SyntaxList<TNode> ReplaceRange<TNode>(
+            this SyntaxList<TNode> list,
+            int index,
+            int count,
+            TNode newNode) where TNode : SyntaxNode
+        {
+            if (newNode == null)
+                throw new ArgumentNullException(nameof(newNode));
+
+            return ReplaceRange(list, index, count, new TNode[] { newNode });
         }
 
         /// <summary>
@@ -2472,7 +2647,10 @@ namespace Roslynator.CSharp
             }
         }
 
-        private static TextSpan GetSpan(SyntaxNode node, bool includeExteriorTrivia, bool trim)
+        internal static TextSpan GetSpan(
+            this SyntaxNode node,
+            bool includeExteriorTrivia = true,
+            bool trim = true)
         {
             return TextSpan.FromBounds(
                 GetStartIndex(node, includeExteriorTrivia, trim),
@@ -2892,58 +3070,6 @@ namespace Roslynator.CSharp
             }
 
             return false;
-        }
-
-        internal static SyntaxTrivia GetIndentation(this SyntaxNode node, CancellationToken cancellationToken = default)
-        {
-            SyntaxTree tree = node.SyntaxTree;
-
-            if (tree != null)
-            {
-                TextSpan span = node.Span;
-
-                int lineStartIndex = span.Start - tree.GetLineSpan(span, cancellationToken).StartLinePosition.Character;
-
-                while (!node.FullSpan.Contains(lineStartIndex))
-                    node = node.GetParent(ascendOutOfTrivia: true);
-
-                if (node.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
-                {
-                    if (((DocumentationCommentTriviaSyntax)node)
-                        .ParentTrivia
-                        .TryGetContainingList(out SyntaxTriviaList leading, allowTrailing: false))
-                    {
-                        SyntaxTrivia trivia = leading.Last();
-
-                        if (trivia.IsWhitespaceTrivia())
-                            return trivia;
-                    }
-                }
-                else
-                {
-                    SyntaxToken token = node.FindToken(lineStartIndex);
-
-                    SyntaxTriviaList leading = token.LeadingTrivia;
-
-                    if (leading.Any()
-                        && leading.FullSpan.Contains(lineStartIndex))
-                    {
-                        SyntaxTrivia trivia = leading.Last();
-
-                        if (trivia.IsWhitespaceTrivia())
-                            return trivia;
-                    }
-                }
-            }
-
-            return EmptyWhitespace();
-        }
-
-        internal static SyntaxTriviaList GetIncreasedIndentation(this SyntaxNode node, CancellationToken cancellationToken = default)
-        {
-            SyntaxTrivia trivia = GetIndentation(node, cancellationToken);
-
-            return IncreaseIndentation(trivia);
         }
 
         internal static bool ContainsUnbalancedIfElseDirectives(this SyntaxNode node)
@@ -3968,6 +4094,19 @@ namespace Roslynator.CSharp
             }
 
             return null;
+        }
+
+        //TODO: make public
+        internal static XmlElementSyntax UpdateName(this XmlElementSyntax element, string newName)
+        {
+            XmlElementStartTagSyntax startTag = element.StartTag;
+            XmlElementEndTagSyntax endTag = element.EndTag;
+
+            SyntaxToken localName = Identifier(newName);
+
+            return element
+                .WithStartTag(startTag.WithName(startTag.Name.WithLocalName(localName.WithTriviaFrom(startTag.Name))))
+                .WithEndTag(endTag.WithName(endTag.Name.WithLocalName(localName.WithTriviaFrom(endTag.Name))));
         }
         #endregion XmlElementSyntax
 

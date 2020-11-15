@@ -104,6 +104,10 @@ class Foo
 
         if ([|x != null && x.Equals(x)|]) { }
 
+        if ([|x != default(Foo) && x.Equals(x)|]) { }
+
+        if ([|x != default && x.Equals(x)|]) { }
+
         if ([|null != x && x.Equals(x)|]) { }
 
         if ([|x != null && (x.Equals(x)|])) { }
@@ -151,6 +155,10 @@ class Foo
 
         if (x?.Equals(x) == true) { }
 
+        if (x?.Equals(x) == true) { }
+
+        if (x?.Equals(x) == true) { }
+
         if ((x?.Equals(x) == true)) { }
 
         if (x?.Equals(x) == true && f) { }
@@ -193,6 +201,10 @@ class Foo
 
         if ([|x == null || x.Equals(x)|]) { }
 
+        if ([|x == default(Foo) || x.Equals(x)|]) { }
+
+        if ([|x == default || x.Equals(x)|]) { }
+
         if ([|x == null || (x.Equals(x)|])) { }
 
         if ([|x == null || !x.Equals(x)|]) { }
@@ -206,6 +218,10 @@ class Foo
     void M()
     {
         Foo x = null;
+
+        if (x?.Equals(x) != false) { }
+
+        if (x?.Equals(x) != false) { }
 
         if (x?.Equals(x) != false) { }
 
@@ -666,6 +682,30 @@ class C
 if (dic != null && dic.TryGetValue(0, out value)) { }
 
         if (dic != null && dic.TryGetValue(0, out string value2)) { }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.UseConditionalAccess)]
+        public async Task TestNoDiagnostic_LogicalAnd_OutParameter2()
+        {
+            await VerifyNoDiagnosticAsync(@"
+using System.Collections.Generic;
+
+class C
+{
+    Dictionary<string, string> _dic;
+
+    bool TryGetValue(string key, out string value)
+    {
+        if (this._dic != null && this._dic.TryGetValue(key, out value))
+        {
+            return true;
+        }
+
+        value = null;
+        return false;
     }
 }
 ");

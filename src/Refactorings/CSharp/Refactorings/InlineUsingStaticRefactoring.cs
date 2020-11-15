@@ -32,12 +32,14 @@ namespace Roslynator.CSharp.Refactorings
 
             TypeSyntax type = classSymbol.ToTypeSyntax();
 
-            SyntaxNode newNode = parent.ReplaceNodes(names, (node, _) =>
-            {
-                return SimpleMemberAccessExpression(type, node.WithoutTrivia())
-                    .WithTriviaFrom(node)
-                    .WithSimplifierAnnotation();
-            });
+            SyntaxNode newNode = parent.ReplaceNodes(
+                names,
+                (node, _) =>
+                {
+                    return SimpleMemberAccessExpression(type, node.WithoutTrivia())
+                        .WithTriviaFrom(node)
+                        .WithSimplifierAnnotation();
+                });
 
             newNode = RemoveUsingDirective(newNode, index);
 
@@ -60,7 +62,7 @@ namespace Roslynator.CSharp.Refactorings
                     ISymbol symbol = semanticModel.GetSymbol(name, cancellationToken);
 
                     if (symbol.IsKind(SymbolKind.Event, SymbolKind.Field, SymbolKind.Method, SymbolKind.Property)
-                        && symbol.ContainingType?.Equals(classSymbol) == true)
+                        && SymbolEqualityComparer.Default.Equals(symbol.ContainingType, classSymbol))
                     {
                         names.Add(name);
                     }

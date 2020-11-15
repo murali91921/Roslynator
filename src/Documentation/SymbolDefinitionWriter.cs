@@ -268,7 +268,7 @@ namespace Roslynator.Documentation
             {
                 if (Layout == SymbolDefinitionListLayout.TypeHierarchy)
                 {
-                    WriteTypeHierarchy(assemblies.SelectMany(a => a.GetTypes(Filter.IsMatch)), cancellationToken);
+                    WriteTypeHierarchy(assemblies.SelectMany(a => a.GetTypes(f => Filter.IsMatch(f))), cancellationToken);
                 }
                 else
                 {
@@ -303,7 +303,7 @@ namespace Roslynator.Documentation
                         {
                             if (Layout == SymbolDefinitionListLayout.TypeHierarchy)
                             {
-                                WriteTypeHierarchy(assembly.GetTypes(Filter.IsMatch), cancellationToken);
+                                WriteTypeHierarchy(assembly.GetTypes(f => Filter.IsMatch(f)), cancellationToken);
                             }
                             else
                             {
@@ -716,7 +716,8 @@ namespace Roslynator.Documentation
             using (IEnumerator<AttributeData> en = symbol
                 .GetAttributes()
                 .Where(f => Filter.IsMatch(symbol, f))
-                .OrderBy(f => f.AttributeClass, Comparer.TypeComparer).GetEnumerator())
+                .OrderBy(f => f.AttributeClass, Comparer.TypeComparer)
+                .GetEnumerator())
             {
                 if (en.MoveNext())
                 {
@@ -750,8 +751,8 @@ namespace Roslynator.Documentation
             if (!Format.Includes(SymbolDefinitionPartFilter.AttributeArguments))
                 return;
 
-            bool hasConstructorArgument = false;
-            bool hasNamedArgument = false;
+            var hasConstructorArgument = false;
+            var hasNamedArgument = false;
 
             WriteConstructorArguments();
             WriteNamedArguments();
@@ -941,7 +942,7 @@ namespace Roslynator.Documentation
 
             if (startIndex >= 0)
             {
-                Debug.Assert(symbol == s, parts.ToDisplayString());
+                Debug.Assert(SymbolEqualityComparer.Default.Equals(symbol, s), parts.ToDisplayString());
 
                 WriteParts(symbol, parts, 0, startIndex);
 

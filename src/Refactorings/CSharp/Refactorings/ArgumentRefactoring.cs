@@ -28,15 +28,12 @@ namespace Roslynator.CSharp.Refactorings
                     if (typeSymbol?.IsErrorType() == false)
                     {
                         IEnumerable<ITypeSymbol> newTypes = DetermineParameterTypeHelper.DetermineParameterTypes(argument, semanticModel, context.CancellationToken)
-                            .Where(f => !typeSymbol.Equals(f));
+                            .Where(f => !SymbolEqualityComparer.Default.Equals(typeSymbol, f));
 
                         ModifyExpressionRefactoring.ComputeRefactoring(context, expression, newTypes, semanticModel);
                     }
                 }
             }
-
-            if (context.IsRefactoringEnabled(RefactoringIdentifiers.ReplaceMethodGroupWithLambda))
-                await ReplaceMethodGroupWithLambdaRefactoring.ComputeRefactoringAsync(context, argument).ConfigureAwait(false);
         }
     }
 }

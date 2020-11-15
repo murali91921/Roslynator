@@ -29,9 +29,9 @@ namespace Roslynator.CSharp.Refactorings
                 case SyntaxKind.EnumDeclaration:
                     {
                         if (context.IsAnyRefactoringEnabled(
-                                RefactoringIdentifiers.RemoveMember,
-                                RefactoringIdentifiers.DuplicateMember,
-                                RefactoringIdentifiers.CommentOutMember)
+                            RefactoringIdentifiers.RemoveMember,
+                            RefactoringIdentifiers.DuplicateMember,
+                            RefactoringIdentifiers.CommentOutMember)
                             && BraceContainsSpan(member, context.Span))
                         {
                             if (member.IsParentKind(
@@ -70,8 +70,8 @@ namespace Roslynator.CSharp.Refactorings
                 RemoveAllMemberDeclarationsRefactoring.ComputeRefactoring(context, member);
 
             if (context.IsAnyRefactoringEnabled(
-                    RefactoringIdentifiers.SwapMemberDeclarations,
-                    RefactoringIdentifiers.RemoveMemberDeclarations)
+                RefactoringIdentifiers.SwapMemberDeclarations,
+                RefactoringIdentifiers.RemoveMemberDeclarations)
                 && !member.Span.IntersectsWith(context.Span))
             {
                 MemberDeclarationsRefactoring.ComputeRefactoring(context, member);
@@ -192,27 +192,27 @@ namespace Roslynator.CSharp.Refactorings
 
         private static void ComputeRefactorings(RefactoringContext context, OperatorDeclarationSyntax operatorDeclaration)
         {
-            if (context.IsRefactoringEnabled(RefactoringIdentifiers.UseExpressionBodiedMember)
+            if (context.IsRefactoringEnabled(RefactoringIdentifiers.ConvertBlockBodyToExpressionBody)
                 && context.SupportsCSharp6
-                && UseExpressionBodiedMemberRefactoring.CanRefactor(operatorDeclaration, context.Span))
+                && ConvertBlockBodyToExpressionBodyRefactoring.CanRefactor(operatorDeclaration, context.Span))
             {
                 context.RegisterRefactoring(
-                    UseExpressionBodiedMemberRefactoring.Title,
-                    cancellationToken => UseExpressionBodiedMemberRefactoring.RefactorAsync(context.Document, operatorDeclaration, cancellationToken),
-                    RefactoringIdentifiers.UseExpressionBodiedMember);
+                    ConvertBlockBodyToExpressionBodyRefactoring.Title,
+                    cancellationToken => ConvertBlockBodyToExpressionBodyRefactoring.RefactorAsync(context.Document, operatorDeclaration, cancellationToken),
+                    RefactoringIdentifiers.ConvertBlockBodyToExpressionBody);
             }
         }
 
         private static void ComputeRefactorings(RefactoringContext context, ConversionOperatorDeclarationSyntax operatorDeclaration)
         {
-            if (context.IsRefactoringEnabled(RefactoringIdentifiers.UseExpressionBodiedMember)
+            if (context.IsRefactoringEnabled(RefactoringIdentifiers.ConvertBlockBodyToExpressionBody)
                 && context.SupportsCSharp6
-                && UseExpressionBodiedMemberRefactoring.CanRefactor(operatorDeclaration, context.Span))
+                && ConvertBlockBodyToExpressionBodyRefactoring.CanRefactor(operatorDeclaration, context.Span))
             {
                 context.RegisterRefactoring(
-                    UseExpressionBodiedMemberRefactoring.Title,
-                    cancellationToken => UseExpressionBodiedMemberRefactoring.RefactorAsync(context.Document, operatorDeclaration, cancellationToken),
-                    RefactoringIdentifiers.UseExpressionBodiedMember);
+                    ConvertBlockBodyToExpressionBodyRefactoring.Title,
+                    cancellationToken => ConvertBlockBodyToExpressionBodyRefactoring.RefactorAsync(context.Document, operatorDeclaration, cancellationToken),
+                    RefactoringIdentifiers.ConvertBlockBodyToExpressionBody);
             }
         }
 

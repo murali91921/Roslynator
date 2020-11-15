@@ -26,9 +26,8 @@ namespace Roslynator.CSharp.CodeFixes
             get
             {
                 return ImmutableArray.Create(
-                    DiagnosticIdentifiers.FormatDeclarationBraces,
                     DiagnosticIdentifiers.RemoveRedundantOverridingMember,
-                    DiagnosticIdentifiers.AddAccessibilityModifiers,
+                    DiagnosticIdentifiers.AddAccessibilityModifiersOrViceVersa,
                     DiagnosticIdentifiers.RemoveRedundantSealedModifier,
                     DiagnosticIdentifiers.AvoidSemicolonAtEndOfDeclaration,
                     DiagnosticIdentifiers.OrderModifiers,
@@ -51,16 +50,6 @@ namespace Roslynator.CSharp.CodeFixes
             {
                 switch (diagnostic.Id)
                 {
-                    case DiagnosticIdentifiers.FormatDeclarationBraces:
-                        {
-                            CodeAction codeAction = CodeAction.Create(
-                                "Format braces",
-                                cancellationToken => FormatDeclarationBracesRefactoring.RefactorAsync(context.Document, memberDeclaration, cancellationToken),
-                                GetEquivalenceKey(diagnostic));
-
-                            context.RegisterCodeFix(codeAction, diagnostic);
-                            break;
-                        }
                     case DiagnosticIdentifiers.RemoveRedundantOverridingMember:
                         {
                             CodeAction codeAction = CodeActionFactory.RemoveMemberDeclaration(context.Document, memberDeclaration, equivalenceKey: GetEquivalenceKey(diagnostic));
@@ -68,18 +57,39 @@ namespace Roslynator.CSharp.CodeFixes
                             context.RegisterCodeFix(codeAction, diagnostic);
                             break;
                         }
-                    case DiagnosticIdentifiers.AddAccessibilityModifiers:
+                    case DiagnosticIdentifiers.AddAccessibilityModifiersOrViceVersa:
                         {
-                            var accessibility = (Accessibility)Enum.Parse(
-                                typeof(Accessibility),
-                                diagnostic.Properties[nameof(Accessibility)]);
+                            if (diagnostic.Properties.TryGetValue(nameof(Accessibility), out string accessibilityText))
+                            {
+                                var accessibility = (Accessibility)Enum.Parse(typeof(Accessibility), accessibilityText);
 
-                            CodeAction codeAction = CodeAction.Create(
-                                "Add accessibility modifiers",
-                                cancellationToken => AddDefaultAccessModifierRefactoring.RefactorAsync(context.Document, memberDeclaration, accessibility, cancellationToken),
-                                GetEquivalenceKey(diagnostic));
+                                CodeAction codeAction = CodeAction.Create(
+                                    "Add accessibility modifiers",
+                                    ct =>
+                                    {
+                                        MemberDeclarationSyntax newNode = SyntaxAccessibility.WithExplicitAccessibility(memberDeclaration, accessibility);
 
-                            context.RegisterCodeFix(codeAction, diagnostic);
+                                        return context.Document.ReplaceNodeAsync(memberDeclaration, newNode, ct);
+                                    },
+                                    GetEquivalenceKey(diagnostic));
+
+                                context.RegisterCodeFix(codeAction, diagnostic);
+                            }
+                            else
+                            {
+                                CodeAction codeAction = CodeAction.Create(
+                                    "Remove accessibility modifiers",
+                                    ct =>
+                                    {
+                                        MemberDeclarationSyntax newNode = SyntaxAccessibility.WithoutExplicitAccessibility(memberDeclaration);
+
+                                        return context.Document.ReplaceNodeAsync(memberDeclaration, newNode, ct);
+                                    },
+                                    GetEquivalenceKey(diagnostic));
+
+                                context.RegisterCodeFix(codeAction, diagnostic);
+                            }
+
                             break;
                         }
                     case DiagnosticIdentifiers.RemoveRedundantSealedModifier:

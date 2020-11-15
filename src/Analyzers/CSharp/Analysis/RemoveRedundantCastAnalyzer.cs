@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
@@ -23,12 +22,9 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeCastExpression, SyntaxKind.CastExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeCastExpression(f), SyntaxKind.CastExpression);
         }
 
         private static void AnalyzeCastExpression(SyntaxNodeAnalysisContext context)
@@ -104,7 +100,8 @@ namespace Roslynator.CSharp.Analysis
                     return;
             }
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.RemoveRedundantCast,
                 Location.Create(castExpression.SyntaxTree, castExpression.ParenthesesSpan()));
         }
@@ -122,7 +119,7 @@ namespace Roslynator.CSharp.Analysis
                     {
                         foreach (IPropertySymbol propertySymbol in ((IPropertySymbol)implementation).ExplicitInterfaceImplementations)
                         {
-                            if (propertySymbol.Equals(symbol))
+                            if (SymbolEqualityComparer.Default.Equals(propertySymbol.OriginalDefinition, symbol.OriginalDefinition))
                                 return false;
                         }
 
@@ -132,7 +129,7 @@ namespace Roslynator.CSharp.Analysis
                     {
                         foreach (IMethodSymbol methodSymbol in ((IMethodSymbol)implementation).ExplicitInterfaceImplementations)
                         {
-                            if (methodSymbol.Equals(symbol))
+                            if (SymbolEqualityComparer.Default.Equals(methodSymbol.OriginalDefinition, symbol.OriginalDefinition))
                                 return false;
                         }
 
@@ -164,7 +161,7 @@ namespace Roslynator.CSharp.Analysis
 
                 while (containingType != null)
                 {
-                    if (containingType.Equals(expressionTypeSymbol))
+                    if (SymbolEqualityComparer.Default.Equals(containingType, expressionTypeSymbol))
                         return true;
 
                     containingType = containingType.ContainingType;
@@ -176,12 +173,12 @@ namespace Roslynator.CSharp.Analysis
             {
                 INamedTypeSymbol containingType = semanticModel.GetEnclosingNamedType(position, cancellationToken);
 
-                if (containingType?.ContainingAssembly?.Equals(expressionTypeSymbol.ContainingAssembly) == true)
+                if (SymbolEqualityComparer.Default.Equals(containingType?.ContainingAssembly, expressionTypeSymbol.ContainingAssembly))
                     return true;
 
                 while (containingType != null)
                 {
-                    if (containingType.Equals(expressionTypeSymbol))
+                    if (SymbolEqualityComparer.Default.Equals(containingType, expressionTypeSymbol))
                         return true;
 
                     containingType = containingType.ContainingType;
@@ -232,13 +229,14 @@ namespace Roslynator.CSharp.Analysis
             if (memberAccessExpressionType?.OriginalDefinition.IsIEnumerableOfT() != true)
                 return;
 
-            if (!typeArgument.Equals(memberAccessExpressionType.TypeArguments[0]))
+            if (!SymbolEqualityComparer.IncludeNullability.Equals(typeArgument, memberAccessExpressionType.TypeArguments[0]))
                 return;
 
             if (invocationExpression.ContainsDirectives(TextSpan.FromBounds(invocationInfo.Expression.Span.End, invocationExpression.Span.End)))
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.RemoveRedundantCast,
                 Location.Create(invocationExpression.SyntaxTree, TextSpan.FromBounds(invocationInfo.Name.SpanStart, invocationInfo.ArgumentList.Span.End)));
         }

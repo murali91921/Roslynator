@@ -15,10 +15,10 @@ namespace Roslynator.CSharp.Refactorings
     internal static class ChangeMemberTypeRefactoring
     {
         public static void ComputeCodeFix(
-             CodeFixContext context,
-             Diagnostic diagnostic,
-             ExpressionSyntax expression,
-             SemanticModel semanticModel)
+            CodeFixContext context,
+            Diagnostic diagnostic,
+            ExpressionSyntax expression,
+            SemanticModel semanticModel)
         {
             TypeInfo typeInfo = semanticModel.GetTypeInfo(expression, context.CancellationToken);
 
@@ -57,9 +57,9 @@ namespace Roslynator.CSharp.Refactorings
 
             string additionalKey = null;
 
-            bool isAsyncMethod = false;
-            bool insertAwait = false;
-            bool isYield = false;
+            var isAsyncMethod = false;
+            var insertAwait = false;
+            var isYield = false;
 
             if (symbol.IsAsyncMethod())
             {
@@ -74,7 +74,7 @@ namespace Roslynator.CSharp.Refactorings
                 {
                     newTypeSymbol = taskOfT.Construct(expressionTypeSymbol);
                 }
-                else if (expressionTypeSymbol.OriginalDefinition.Equals(taskOfT))
+                else if (SymbolEqualityComparer.Default.Equals(expressionTypeSymbol, taskOfT))
                 {
                     insertAwait = true;
                     additionalKey = "InsertAwait";
@@ -124,9 +124,9 @@ namespace Roslynator.CSharp.Refactorings
         {
             Document document = context.Document;
 
-            string typeName = SymbolDisplay.ToMinimalDisplayString(newTypeSymbol, semanticModel, type.SpanStart, SymbolDisplayFormats.Default);
+            string displayName = SymbolDisplay.ToMinimalDisplayString(newTypeSymbol, semanticModel, type.SpanStart, SymbolDisplayFormats.DisplayName);
 
-            string title = $"Change {GetText(node)} type to '{typeName}'";
+            string title = $"Change {GetText(node)} type to '{displayName}'";
 
             if (insertAwait)
                 title += " and insert 'await'";
@@ -137,25 +137,30 @@ namespace Roslynator.CSharp.Refactorings
                 {
                     SyntaxNode newNode = null;
 
-                    TypeSyntax newType = ParseTypeName(typeName).WithTriviaFrom(type);
+                    TypeSyntax newType = newTypeSymbol
+                        .ToTypeSyntax()
+                        .WithSimplifierAnnotation()
+                        .WithTriviaFrom(type);
 
                     if (insertAwait)
                     {
                         var nodes = new SyntaxNode[] { type, expression };
 
-                        newNode = node.ReplaceNodes(nodes, (f, _) =>
-                        {
-                            if (f == type)
+                        newNode = node.ReplaceNodes(
+                            nodes,
+                            (f, _) =>
                             {
-                                return newType;
-                            }
-                            else
-                            {
-                                return AwaitExpression(
-                                    Token(expression.GetLeadingTrivia(), SyntaxKind.AwaitKeyword, TriviaList(Space)),
-                                    expression.WithoutLeadingTrivia());
-                            }
-                        });
+                                if (f == type)
+                                {
+                                    return newType;
+                                }
+                                else
+                                {
+                                    return AwaitExpression(
+                                        Token(expression.GetLeadingTrivia(), SyntaxKind.AwaitKeyword, TriviaList(Space)),
+                                        expression.WithoutLeadingTrivia());
+                                }
+                            });
 
                         return document.ReplaceNodeAsync(node, newNode, cancellationToken);
                     }

@@ -24,9 +24,6 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
             context.RegisterCompilationStartAction(startContext =>
@@ -34,7 +31,7 @@ namespace Roslynator.CSharp.Analysis
                 if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.RemoveBracesFromIfElse))
                     return;
 
-                startContext.RegisterSyntaxNodeAction(AnalyzeIfStatement, SyntaxKind.IfStatement);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeIfStatement(f), SyntaxKind.IfStatement);
             });
         }
 

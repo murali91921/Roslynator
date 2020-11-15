@@ -112,7 +112,7 @@ namespace Roslynator.CSharp.Refactorings
                     {
                         typeSymbol = symbol.Type;
                     }
-                    else if (!typeSymbol.Equals(symbol.Type))
+                    else if (!SymbolEqualityComparer.Default.Equals(typeSymbol, symbol.Type))
                     {
                         return result;
                     }
@@ -199,7 +199,8 @@ namespace Roslynator.CSharp.Refactorings
             return await document.ReplaceNodeAsync(
                 whileStatement,
                 SyntaxRefactorings.ConvertWhileStatementToForStatement(whileStatement),
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken)
+                .ConfigureAwait(false);
         }
 
         private static Task<Document> RefactorAsync(

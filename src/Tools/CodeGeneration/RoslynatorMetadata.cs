@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Roslynator.Metadata;
 
 namespace Roslynator.CodeGeneration
@@ -23,6 +24,8 @@ namespace Roslynator.CodeGeneration
         private ImmutableArray<RefactoringMetadata> _refactorings;
         private ImmutableArray<CodeFixMetadata> _codeFixes;
         private ImmutableArray<CompilerDiagnosticMetadata> _compilerDiagnostics;
+
+        private static readonly Regex _analyzersFileNameRegex = new Regex(@"\A(\w+\.)?Analyzers(?!\.Template)(\.\w+)?\z");
 
         public ImmutableArray<AnalyzerMetadata> Analyzers
         {
@@ -92,11 +95,13 @@ namespace Roslynator.CodeGeneration
 
         private static ImmutableArray<AnalyzerMetadata> LoadAnalyzers(string directoryPath)
         {
-            IEnumerable<string> analyzers = Directory.EnumerateFiles(directoryPath, "*Analyzers.xml", SearchOption.TopDirectoryOnly)
-                .Concat(Directory.EnumerateFiles(directoryPath, "Analyzers.*.xml", SearchOption.TopDirectoryOnly)
-                    .Where(filePath => !filePath.EndsWith("Analyzers.Template.xml")));
+            IEnumerable<string> filePaths = Directory.EnumerateFiles(directoryPath, "*.xml", SearchOption.TopDirectoryOnly)
+                .Where(f => _analyzersFileNameRegex.IsMatch(Path.GetFileNameWithoutExtension(f)));
 
-            return analyzers.SelectMany(MetadataFile.ReadAnalyzers).ToImmutableArray();
+            foreach (string filePath in filePaths)
+                MetadataFile.CleanAnalyzers(filePath);
+
+            return filePaths.SelectMany(f => MetadataFile.ReadAnalyzers(f)).ToImmutableArray();
         }
 
         private static ImmutableArray<RefactoringMetadata> LoadRefactorings(string directoryPath)

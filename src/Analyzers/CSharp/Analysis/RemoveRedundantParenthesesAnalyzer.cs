@@ -25,9 +25,6 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
             context.RegisterCompilationStartAction(startContext =>
@@ -35,7 +32,7 @@ namespace Roslynator.CSharp.Analysis
                 if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.RemoveRedundantParentheses))
                     return;
 
-                startContext.RegisterSyntaxNodeAction(AnalyzeParenthesizedExpression, SyntaxKind.ParenthesizedExpression);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeParenthesizedExpression(f), SyntaxKind.ParenthesizedExpression);
             });
         }
 
@@ -197,10 +194,11 @@ namespace Roslynator.CSharp.Analysis
 
             void ReportDiagnostic()
             {
-                DiagnosticHelpers.ReportDiagnostic(context,
-                   DiagnosticDescriptors.RemoveRedundantParentheses,
-                   openParen.GetLocation(),
-                   additionalLocations: ImmutableArray.Create(closeParen.GetLocation()));
+                DiagnosticHelpers.ReportDiagnostic(
+                    context,
+                    DiagnosticDescriptors.RemoveRedundantParentheses,
+                    openParen.GetLocation(),
+                    additionalLocations: ImmutableArray.Create(closeParen.GetLocation()));
 
                 DiagnosticHelpers.ReportToken(context, DiagnosticDescriptors.RemoveRedundantParenthesesFadeOut, openParen);
                 DiagnosticHelpers.ReportToken(context, DiagnosticDescriptors.RemoveRedundantParenthesesFadeOut, closeParen);

@@ -17,8 +17,8 @@ namespace Roslynator.CSharp.Refactorings
         public static void ComputeRefactorings(RefactoringContext context, MemberDeclarationSyntax member)
         {
             if (context.IsAnyRefactoringEnabled(
-                    RefactoringIdentifiers.SplitAttributes,
-                    RefactoringIdentifiers.MergeAttributes)
+                RefactoringIdentifiers.SplitAttributes,
+                RefactoringIdentifiers.MergeAttributes)
                 && !member.IsKind(SyntaxKind.NamespaceDeclaration)
                 && SyntaxListSelection<AttributeListSyntax>.TryCreate(member.GetAttributeLists(), context.Span, out SyntaxListSelection<AttributeListSyntax> selectedAttributeLists))
             {
@@ -57,7 +57,7 @@ namespace Roslynator.CSharp.Refactorings
             for (int i = 0; i < index; i++)
                 newLists.Add(lists[i]);
 
-            newLists.AddRange(attributeLists.SelectMany(SyntaxRefactorings.SplitAttributeList).Select(f => f.WithFormatterAnnotation()));
+            newLists.AddRange(attributeLists.SelectMany(f => SyntaxRefactorings.SplitAttributeList(f)).Select(f => f.WithFormatterAnnotation()));
 
             for (int i = index + attributeLists.Length; i < lists.Count; i++)
                 newLists.Add(lists[i]);

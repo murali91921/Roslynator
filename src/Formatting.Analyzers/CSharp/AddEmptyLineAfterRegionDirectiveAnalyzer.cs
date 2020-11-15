@@ -21,7 +21,7 @@ namespace Roslynator.Formatting.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeRegionDirectiveTrivia, SyntaxKind.RegionDirectiveTrivia);
+            context.RegisterSyntaxNodeAction(f => AnalyzeRegionDirectiveTrivia(f), SyntaxKind.RegionDirectiveTrivia);
         }
 
         private static void AnalyzeRegionDirectiveTrivia(SyntaxNodeAnalysisContext context)
@@ -31,7 +31,8 @@ namespace Roslynator.Formatting.CSharp
             if (IsFollowedWithEmptyLineOrEndRegionDirective())
                 return;
 
-            context.ReportDiagnostic(
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.AddEmptyLineAfterRegionDirective,
                 Location.Create(regionDirective.SyntaxTree, regionDirective.EndOfDirectiveToken.Span));
 

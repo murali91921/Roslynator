@@ -58,7 +58,7 @@ namespace Roslynator.CSharp.Refactorings.InlineDefinition
 
                 INamedTypeSymbol enclosingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
 
-                if (methodSymbol.ContainingType?.Equals(enclosingType) == true)
+                if (SymbolEqualityComparer.Default.Equals(methodSymbol.ContainingType, enclosingType))
                 {
                     ExpressionSyntax expression = node.Expression;
 
@@ -119,7 +119,7 @@ namespace Roslynator.CSharp.Refactorings.InlineDefinition
                 {
                     var parameterInfo = new ParameterInfo(parameterSymbol, argument.Expression);
 
-                    (parameterInfos ?? (parameterInfos = new List<ParameterInfo>())).Add(parameterInfo);
+                    (parameterInfos ??= new List<ParameterInfo>()).Add(parameterInfo);
                 }
                 else
                 {
@@ -130,13 +130,13 @@ namespace Roslynator.CSharp.Refactorings.InlineDefinition
             foreach (IParameterSymbol parameterSymbol in parameters)
             {
                 if (parameterInfos == null
-                    || parameterInfos.FindIndex(f => f.ParameterSymbol.Equals(parameterSymbol)) == -1)
+                    || parameterInfos.FindIndex(f => SymbolEqualityComparer.Default.Equals(f.ParameterSymbol, parameterSymbol)) == -1)
                 {
                     if (parameterSymbol.HasExplicitDefaultValue)
                     {
                         var parameterInfo = new ParameterInfo(parameterSymbol, null);
 
-                        (parameterInfos ?? (parameterInfos = new List<ParameterInfo>())).Add(parameterInfo);
+                        (parameterInfos ??= new List<ParameterInfo>()).Add(parameterInfo);
                     }
                     else
                     {
@@ -161,7 +161,7 @@ namespace Roslynator.CSharp.Refactorings.InlineDefinition
 
                 var parameterInfo = new ParameterInfo(symbol.ReducedFrom.Parameters[0], expression.TrimTrivia(), isThis: true);
 
-                (parameterInfos ?? (parameterInfos = new List<ParameterInfo>())).Add(parameterInfo);
+                (parameterInfos ??= new List<ParameterInfo>()).Add(parameterInfo);
             }
 
             return (parameterInfos != null)

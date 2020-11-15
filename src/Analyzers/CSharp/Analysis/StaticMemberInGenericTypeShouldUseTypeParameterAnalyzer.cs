@@ -19,12 +19,9 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSymbolAction(AnalyzeNamedType, SymbolKind.NamedType);
+            context.RegisterSymbolAction(f => AnalyzeNamedType(f), SymbolKind.NamedType);
         }
 
         private static void AnalyzeNamedType(SymbolAnalysisContext context)
@@ -143,7 +140,7 @@ namespace Roslynator.CSharp.Analysis
                     {
                         foreach (ITypeParameterSymbol typeParameter in typeParameters)
                         {
-                            if (typeParameter.Equals(typeSymbol))
+                            if (SymbolEqualityComparer.Default.Equals(typeParameter, typeSymbol))
                                 return true;
                         }
 
@@ -176,7 +173,7 @@ namespace Roslynator.CSharp.Analysis
                 {
                     foreach (ITypeParameterSymbol typeParameter in typeParameters)
                     {
-                        if (typeParameter.Equals(typeArgument))
+                        if (SymbolEqualityComparer.Default.Equals(typeParameter, typeArgument))
                             return true;
                     }
                 }
@@ -206,9 +203,10 @@ namespace Roslynator.CSharp.Analysis
             if (identifier.Kind() == SyntaxKind.None)
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
-               DiagnosticDescriptors.StaticMemberInGenericTypeShouldUseTypeParameter,
-               identifier);
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
+                DiagnosticDescriptors.StaticMemberInGenericTypeShouldUseTypeParameter,
+                identifier);
         }
     }
 }

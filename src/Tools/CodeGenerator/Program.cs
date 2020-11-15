@@ -4,9 +4,12 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslynator.CodeGeneration.CSharp;
 using Roslynator.Metadata;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
 
 namespace Roslynator.CodeGeneration
 {
@@ -17,7 +20,7 @@ namespace Roslynator.CodeGeneration
             if (args == null || args.Length == 0)
             {
 #if DEBUG
-                args = new string[] { @"..\..\..\..\.." };
+                args = new[] { @"..\..\..\..\.." };
 #else
                 args = new string[] { Environment.CurrentDirectory };
 #endif
@@ -84,6 +87,37 @@ namespace Roslynator.CodeGeneration
                 @"CSharp\CSharp\SyntaxWalkers\CSharpSyntaxNodeWalker.cs",
                 CSharpSyntaxNodeWalkerGenerator.Generate());
 
+            string ruleSetXml = File.ReadAllText(Path.Combine(rootPath, @"Tools\CodeGeneration\DefaultRuleSet.xml"));
+
+            WriteCompilationUnit(
+                @"VisualStudio.Common\RuleSetHelpers.Generated.cs",
+                RuleSetGenerator.Generate(ruleSetXml));
+
+            File.WriteAllText(
+                Path.Combine(rootPath, @"VisualStudioCode\package\src\configurationFiles.generated.ts"),
+                @"export const configurationFileContent = {
+	ruleset: `"
+                    + ruleSetXml
+                    + @"`,
+	config: `<?xml version=""1.0"" encoding=""utf-8""?>
+<Roslynator>
+  <Settings>
+    <General>
+      <!-- <PrefixFieldIdentifierWithUnderscore>true</PrefixFieldIdentifierWithUnderscore> -->
+    </General>
+    <Refactorings>
+      <!-- <Refactoring Id=""RRxxxx"" IsEnabled=""false"" /> -->
+    </Refactorings>
+    <CodeFixes>
+      <!-- <CodeFix Id=""CSxxxx.RCFxxxx"" IsEnabled=""false"" /> -->
+      <!-- <CodeFix Id=""CSxxxx"" IsEnabled=""false"" /> -->
+      <!-- <CodeFix Id=""RCFxxxx"" IsEnabled=""false"" /> -->
+    </CodeFixes>
+  </Settings>
+</Roslynator>`
+};",
+                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+
             Console.WriteLine($"number of analyzers: {analyzers.Count(f => !f.IsObsolete)}");
             Console.WriteLine($"number of code analysis analyzers: {codeAnalysisAnalyzers.Count(f => !f.IsObsolete)}");
             Console.WriteLine($"number of formatting analyzers: {formattingAnalyzers.Count(f => !f.IsObsolete)}");
@@ -91,25 +125,55 @@ namespace Roslynator.CodeGeneration
             Console.WriteLine($"number of code fixes: {codeFixes.Length}");
             Console.WriteLine($"number of fixable compiler diagnostics: {codeFixes.SelectMany(f => f.FixableDiagnosticIds).Distinct().Count()}");
 
-            void WriteDiagnostics(string dirPath, ImmutableArray<AnalyzerMetadata> analyzers2, string @namespace)
+            void WriteDiagnostics(
+                string dirPath,
+                ImmutableArray<AnalyzerMetadata> analyzers,
+                string @namespace,
+                string descriptorsClassName = "DiagnosticDescriptors",
+                string identifiersClassName = "DiagnosticIdentifiers")
             {
                 WriteCompilationUnit(
-                    Path.Combine(dirPath, "DiagnosticDescriptors.Generated.cs"),
-                    DiagnosticDescriptorsGenerator.Generate(analyzers2, obsolete: false, comparer: comparer, @namespace: @namespace),
+                    Path.Combine(dirPath, $"{descriptorsClassName}.Generated.cs"),
+                    DiagnosticDescriptorsGenerator.Generate(analyzers, obsolete: false, comparer: comparer, @namespace: @namespace, className: descriptorsClassName, identifiersClassName: identifiersClassName),
                     normalizeWhitespace: false);
 
                 WriteCompilationUnit(
-                    Path.Combine(dirPath, "DiagnosticDescriptors.Deprecated.Generated.cs"),
-                    DiagnosticDescriptorsGenerator.Generate(analyzers2, obsolete: true, comparer: comparer, @namespace: @namespace),
+                    Path.Combine(dirPath, $"{descriptorsClassName}.Deprecated.Generated.cs"),
+                    DiagnosticDescriptorsGenerator.Generate(analyzers, obsolete: true, comparer: comparer, @namespace: @namespace, className: descriptorsClassName, identifiersClassName: identifiersClassName),
                     normalizeWhitespace: false);
 
                 WriteCompilationUnit(
-                    Path.Combine(dirPath, "DiagnosticIdentifiers.Generated.cs"),
-                    DiagnosticIdentifiersGenerator.Generate(analyzers2, obsolete: false, comparer: comparer, @namespace: @namespace));
+                    Path.Combine(dirPath, $"{identifiersClassName}.Generated.cs"),
+                    DiagnosticIdentifiersGenerator.Generate(analyzers, obsolete: false, comparer: comparer, @namespace: @namespace, className: identifiersClassName));
 
                 WriteCompilationUnit(
-                    Path.Combine(dirPath, "DiagnosticIdentifiers.Deprecated.Generated.cs"),
-                    DiagnosticIdentifiersGenerator.Generate(analyzers2, obsolete: true, comparer: comparer, @namespace: @namespace));
+                    Path.Combine(dirPath, $"{identifiersClassName}.Deprecated.Generated.cs"),
+                    DiagnosticIdentifiersGenerator.Generate(analyzers, obsolete: true, comparer: comparer, @namespace: @namespace, className: identifiersClassName));
+
+                IEnumerable<AnalyzerMetadata> optionAnalyzers = analyzers.SelectMany(f => f.OptionAnalyzers);
+
+                if (optionAnalyzers.Any())
+                {
+                    WriteCompilationUnit(
+                        Path.Combine(dirPath, "AnalyzerOptions.Generated.cs"),
+                        DiagnosticDescriptorsGenerator.Generate(optionAnalyzers, obsolete: false, comparer: comparer, @namespace: @namespace, className: "AnalyzerOptions", identifiersClassName: "AnalyzerOptionIdentifiers"),
+                        normalizeWhitespace: false,
+                        fileMustExist: false);
+
+                    WriteCompilationUnit(
+                        Path.Combine(dirPath, "AnalyzerOptionIdentifiers.Generated.cs"),
+                        DiagnosticIdentifiersGenerator.Generate(optionAnalyzers, obsolete: false, comparer: comparer, @namespace: @namespace, className: "AnalyzerOptionIdentifiers"),
+                        fileMustExist: false);
+                }
+
+                IEnumerable<string> analyzerOptionIdentifiers = analyzers
+                    .SelectMany(f => f.OptionAnalyzers)
+                    .Select(f => f.Identifier);
+
+                WriteCompilationUnit(
+                    Path.Combine(dirPath, "AnalyzerOptionsAnalyzer.Generated.cs"),
+                    AnalyzerOptionsAnalyzerGenerator.Generate(analyzerOptionIdentifiers, @namespace: @namespace),
+                    fileMustExist: false);
             }
 
             void WriteCompilationUnit(

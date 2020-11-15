@@ -42,9 +42,10 @@ namespace Roslynator.Documentation.Json
 
         protected override SymbolDisplayAdditionalOptions GetAdditionalOptions()
         {
-            return base.GetAdditionalOptions() & ~(SymbolDisplayAdditionalOptions.IncludeAccessorAttributes
-                | SymbolDisplayAdditionalOptions.IncludeParameterAttributes
-                | SymbolDisplayAdditionalOptions.IncludeTrailingSemicolon);
+            return base.GetAdditionalOptions()
+                & ~(SymbolDisplayAdditionalOptions.IncludeAccessorAttributes
+                    | SymbolDisplayAdditionalOptions.IncludeParameterAttributes
+                    | SymbolDisplayAdditionalOptions.IncludeTrailingSemicolon);
         }
 
         public override void WriteStartDocument()
@@ -319,7 +320,7 @@ namespace Roslynator.Documentation.Json
 
         private void WriteParameters(ImmutableArray<IParameterSymbol> parameters)
         {
-            bool isOpen = false;
+            var isOpen = false;
 
             foreach (IParameterSymbol parameter in parameters)
             {
@@ -344,7 +345,7 @@ namespace Roslynator.Documentation.Json
 
         private void WriteAccessors(IMethodSymbol accessor1, IMethodSymbol accessor2)
         {
-            bool isOpen = false;
+            var isOpen = false;
 
             if (ShouldWriteAccessor(accessor1))
             {

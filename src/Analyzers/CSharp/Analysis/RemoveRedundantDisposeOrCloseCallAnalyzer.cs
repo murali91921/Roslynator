@@ -20,12 +20,9 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeUsingStatement, SyntaxKind.UsingStatement);
+            context.RegisterSyntaxNodeAction(f => AnalyzeUsingStatement(f), SyntaxKind.UsingStatement);
         }
 
         private static void AnalyzeUsingStatement(SyntaxNodeAnalysisContext context)
@@ -83,7 +80,7 @@ namespace Roslynator.CSharp.Analysis
                     {
                         ISymbol symbol = context.SemanticModel.GetDeclaredSymbol(declarator, context.CancellationToken);
 
-                        if (symbol?.Equals(context.SemanticModel.GetSymbol(identifierName, context.CancellationToken)) == true)
+                        if (SymbolEqualityComparer.Default.Equals(symbol, context.SemanticModel.GetSymbol(identifierName, context.CancellationToken)))
                             ReportDiagnostic(context, info.Statement, methodName);
                     }
                 }
@@ -92,7 +89,8 @@ namespace Roslynator.CSharp.Analysis
 
         private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, ExpressionStatementSyntax expressionStatement, string methodName)
         {
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.RemoveRedundantDisposeOrCloseCall,
                 expressionStatement,
                 methodName);

@@ -24,15 +24,11 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeMethodDeclaration, SyntaxKind.MethodDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzePropertyDeclaration, SyntaxKind.PropertyDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeIndexerDeclaration, SyntaxKind.IndexerDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeMethodDeclaration(f), SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzePropertyDeclaration(f), SyntaxKind.PropertyDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeIndexerDeclaration(f), SyntaxKind.IndexerDeclaration);
         }
 
         private static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
@@ -82,7 +78,7 @@ namespace Roslynator.CSharp.Analysis
 
             ISymbol symbol = semanticModel.GetSymbol(invocationInfo.Name, cancellationToken);
 
-            if (!overriddenMethod.Equals(symbol))
+            if (!SymbolEqualityComparer.Default.Equals(overriddenMethod, symbol))
                 return;
 
             if (!CheckParameters(methodDeclaration.ParameterList, invocationInfo.ArgumentList, semanticModel, cancellationToken))
@@ -91,7 +87,8 @@ namespace Roslynator.CSharp.Analysis
             if (!CheckDefaultValues(methodSymbol.Parameters, overriddenMethod.Parameters))
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.RemoveRedundantOverridingMember,
                 methodDeclaration,
                 CSharpFacts.GetTitle(methodDeclaration));
@@ -99,7 +96,7 @@ namespace Roslynator.CSharp.Analysis
 
         private static bool CheckModifiers(SyntaxTokenList modifiers)
         {
-            bool isOverride = false;
+            var isOverride = false;
 
             foreach (SyntaxToken modifier in modifiers)
             {
@@ -135,9 +132,9 @@ namespace Roslynator.CSharp.Analysis
 
             for (int i = 0; i < parameters.Count; i++)
             {
-                if (semanticModel
-                    .GetDeclaredSymbol(parameters[i], cancellationToken)?
-                    .Equals(GetParameterSymbol(arguments[i].Expression, semanticModel, cancellationToken)) != true)
+                if (!SymbolEqualityComparer.Default.Equals(
+                    semanticModel.GetDeclaredSymbol(parameters[i], cancellationToken),
+                    GetParameterSymbol(arguments[i].Expression, semanticModel, cancellationToken)))
                 {
                     return false;
                 }
@@ -270,7 +267,8 @@ namespace Roslynator.CSharp.Analysis
                     return;
             }
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.RemoveRedundantOverridingMember,
                 propertyDeclaration,
                 CSharpFacts.GetTitle(propertyDeclaration));
@@ -310,7 +308,7 @@ namespace Roslynator.CSharp.Analysis
 
                         ISymbol symbol = semanticModel.GetSymbol(simpleName, cancellationToken);
 
-                        return overriddenProperty.Equals(symbol);
+                        return SymbolEqualityComparer.Default.Equals(overriddenProperty, symbol);
                     }
                 case SyntaxKind.SetAccessorDeclaration:
                     {
@@ -354,7 +352,7 @@ namespace Roslynator.CSharp.Analysis
 
                         ISymbol symbol = semanticModel.GetSymbol(simpleName, cancellationToken);
 
-                        return overriddenProperty.Equals(symbol);
+                        return SymbolEqualityComparer.Default.Equals(overriddenProperty, symbol);
                     }
                 case SyntaxKind.UnknownAccessorDeclaration:
                     {
@@ -401,7 +399,8 @@ namespace Roslynator.CSharp.Analysis
                     return;
             }
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.RemoveRedundantOverridingMember,
                 indexerDeclaration,
                 CSharpFacts.GetTitle(indexerDeclaration));
@@ -440,7 +439,7 @@ namespace Roslynator.CSharp.Analysis
 
                         ISymbol symbol = semanticModel.GetSymbol(elementAccess, cancellationToken);
 
-                        return overriddenProperty.Equals(symbol)
+                        return SymbolEqualityComparer.Default.Equals(overriddenProperty, symbol)
                             && CheckParameters(indexerDeclaration.ParameterList, elementAccess.ArgumentList, semanticModel, cancellationToken)
                             && CheckDefaultValues(propertySymbol.Parameters, overriddenProperty.Parameters);
                     }
@@ -484,7 +483,7 @@ namespace Roslynator.CSharp.Analysis
 
                         ISymbol symbol = semanticModel.GetSymbol(elementAccess, cancellationToken);
 
-                        return overriddenProperty.Equals(symbol)
+                        return SymbolEqualityComparer.Default.Equals(overriddenProperty, symbol)
                             && CheckParameters(indexerDeclaration.ParameterList, elementAccess.ArgumentList, semanticModel, cancellationToken)
                             && CheckDefaultValues(propertySymbol.Parameters, overriddenProperty.Parameters);
                     }

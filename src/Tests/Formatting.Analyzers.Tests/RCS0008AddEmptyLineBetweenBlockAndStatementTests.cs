@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Roslynator.Formatting.CSharp.Tests
 {
-    public class AddEmptyLineBetweenBlockAndStatementTests : AbstractCSharpFixVerifier
+    public class RCS0008AddEmptyLineBetweenBlockAndStatementTests : AbstractCSharpFixVerifier
     {
         public override DiagnosticDescriptor Descriptor { get; } = DiagnosticDescriptors.AddEmptyLineBetweenBlockAndStatement;
 
@@ -384,6 +384,45 @@ class C
     void M()
     {
         if (true)
+        {
+        }
+
+        M();
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.AddEmptyLineBetweenBlockAndStatement)]
+        public async Task Test_ElseIf()
+        {
+            await VerifyDiagnosticAndFixAsync(@"
+class C
+{
+    void M()
+    {
+        bool x = false;
+
+        if (x)
+        {
+        }
+        else if (x)
+        {
+        }[||]
+        M();
+    }
+}
+", @"
+class C
+{
+    void M()
+    {
+        bool x = false;
+
+        if (x)
+        {
+        }
+        else if (x)
         {
         }
 

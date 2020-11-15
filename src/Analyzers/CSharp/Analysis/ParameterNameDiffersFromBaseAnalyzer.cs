@@ -20,14 +20,10 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
-            context.RegisterSymbolAction(AnalyzeMethodSymbol, SymbolKind.Method);
-            context.RegisterSymbolAction(AnalyzePropertySymbol, SymbolKind.Property);
+            context.RegisterSymbolAction(f => AnalyzeMethodSymbol(f), SymbolKind.Method);
+            context.RegisterSymbolAction(f => AnalyzePropertySymbol(f), SymbolKind.Property);
         }
 
         private static void AnalyzeMethodSymbol(SymbolAnalysisContext context)
@@ -80,7 +76,8 @@ namespace Roslynator.CSharp.Analysis
                         && !string.Equals(name, parameters2[i].Name, StringComparison.Ordinal)
                         && (parameters[i].GetSyntaxOrDefault(context.CancellationToken) is ParameterSyntax parameterSyntax))
                     {
-                        DiagnosticHelpers.ReportDiagnostic(context,
+                        DiagnosticHelpers.ReportDiagnostic(
+                            context,
                             DiagnosticDescriptors.ParameterNameDiffersFromBase,
                             parameterSyntax.Identifier,
                             name,

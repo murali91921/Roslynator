@@ -22,14 +22,10 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeMethodDeclaration, SyntaxKind.MethodDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeGetAccessorDeclaration, SyntaxKind.GetAccessorDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeMethodDeclaration(f), SyntaxKind.MethodDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeGetAccessorDeclaration(f), SyntaxKind.GetAccessorDeclaration);
         }
 
         private static void AnalyzeMethodDeclaration(SyntaxNodeAnalysisContext context)
@@ -128,7 +124,8 @@ namespace Roslynator.CSharp.Analysis
             if (!ExpressionEquals(expression, returnExpression))
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.SimplifyLazyInitialization,
                 Location.Create(node.SyntaxTree, TextSpan.FromBounds(ifStatement.SpanStart, returnStatement.Span.End)));
         }

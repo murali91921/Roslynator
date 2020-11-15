@@ -62,13 +62,13 @@ namespace Roslynator.CSharp.Refactorings.AddExceptionToDocumentationComment
         }
 
         private static ThrowInfo GetUndocumentedExceptionInfo(
-        SyntaxNode node,
-        ExpressionSyntax expression,
-        MemberDeclarationSyntax declaration,
-        ISymbol declarationSymbol,
-        INamedTypeSymbol exceptionSymbol,
-        SemanticModel semanticModel,
-        CancellationToken cancellationToken)
+            SyntaxNode node,
+            ExpressionSyntax expression,
+            MemberDeclarationSyntax declaration,
+            ISymbol declarationSymbol,
+            INamedTypeSymbol exceptionSymbol,
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
         {
             if (expression == null)
                 return null;
@@ -96,9 +96,9 @@ namespace Roslynator.CSharp.Refactorings.AddExceptionToDocumentationComment
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            bool containsException = false;
-            bool containsIncludeOrExclude = false;
-            bool isFirst = true;
+            var containsException = false;
+            var containsIncludeOrExclude = false;
+            var isFirst = true;
 
             foreach (XmlNodeSyntax node in comment.Content)
             {
@@ -178,13 +178,13 @@ namespace Roslynator.CSharp.Refactorings.AddExceptionToDocumentationComment
                     if (cref != null
                         && (semanticModel.GetSymbol(cref, cancellationToken) is INamedTypeSymbol symbol))
                     {
-                        if (exceptionSymbol.Equals(symbol))
+                        if (SymbolEqualityComparer.Default.Equals(exceptionSymbol, symbol))
                             return true;
 
                         // http://github.com/dotnet/roslyn/issues/22923
                         if (exceptionSymbol.IsGenericType
                             && symbol.IsGenericType
-                            && exceptionSymbol.ConstructedFrom.Equals(symbol.ConstructedFrom))
+                            && SymbolEqualityComparer.Default.Equals(exceptionSymbol.ConstructedFrom, symbol.ConstructedFrom))
                         {
                             return true;
                         }
@@ -245,7 +245,8 @@ namespace Roslynator.CSharp.Refactorings.AddExceptionToDocumentationComment
                 memberDeclaration,
                 declarationSymbol,
                 semanticModel,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken)
+                .ConfigureAwait(false);
         }
 
         public static async Task<Document> RefactorAsync(
@@ -266,10 +267,11 @@ namespace Roslynator.CSharp.Refactorings.AddExceptionToDocumentationComment
                 memberDeclaration,
                 analysis.DeclarationSymbol,
                 semanticModel,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken)
+                .ConfigureAwait(false);
         }
 
-        private static async Task<Document> RefactorAsync(
+        private static Task<Document> RefactorAsync(
             Document document,
             SyntaxTrivia trivia,
             ThrowInfo throwInfo,
@@ -278,15 +280,13 @@ namespace Roslynator.CSharp.Refactorings.AddExceptionToDocumentationComment
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
             var throwInfos = new List<ThrowInfo>() { throwInfo };
 
             INamedTypeSymbol exceptionSymbol = semanticModel.GetTypeByMetadataName("System.Exception");
 
             foreach (ThrowInfo info in GetOtherUndocumentedExceptions(memberDeclaration, declarationSymbol, node => node != throwInfo.Node, exceptionSymbol, semanticModel, cancellationToken))
             {
-                if (!throwInfos.Any(f => f.ExceptionSymbol == info.ExceptionSymbol))
+                if (!throwInfos.Any(f => SymbolEqualityComparer.Default.Equals(f.ExceptionSymbol, info.ExceptionSymbol)))
                     throwInfos.Add(info);
             }
 
@@ -303,13 +303,10 @@ namespace Roslynator.CSharp.Refactorings.AddExceptionToDocumentationComment
                 AppendExceptionDocumentation(trivia, info.ExceptionSymbol, parameterSymbol, semanticModel, ref sb);
             }
 
-            string newText = StringBuilderCache.GetStringAndFree(sb);
-
-            var textChange = new TextChange(new TextSpan(trivia.FullSpan.End, 0), newText);
-
-            SourceText newSourceText = sourceText.WithChanges(textChange);
-
-            return document.WithText(newSourceText);
+            return document.WithTextChangeAsync(
+                new TextSpan(trivia.FullSpan.End, 0),
+                StringBuilderCache.GetStringAndFree(sb),
+                cancellationToken);
         }
 
         private static string GetIndent(SyntaxTriviaList leadingTrivia)

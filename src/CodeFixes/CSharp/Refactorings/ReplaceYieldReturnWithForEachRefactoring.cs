@@ -14,10 +14,10 @@ namespace Roslynator.CSharp.Refactorings
     internal static class ReplaceYieldReturnWithForEachRefactoring
     {
         public static void ComputeCodeFix(
-             CodeFixContext context,
-             Diagnostic diagnostic,
-             ExpressionSyntax expression,
-             SemanticModel semanticModel)
+            CodeFixContext context,
+            Diagnostic diagnostic,
+            ExpressionSyntax expression,
+            SemanticModel semanticModel)
         {
             TypeInfo typeInfo = semanticModel.GetTypeInfo(expression, context.CancellationToken);
 
@@ -28,13 +28,13 @@ namespace Roslynator.CSharp.Refactorings
 
             ITypeSymbol convertedType = typeInfo.ConvertedType;
 
-            if (type == convertedType)
+            if (SymbolEqualityComparer.Default.Equals(type, convertedType))
                 return;
 
             if (namedTypeSymbol.ConstructedFrom.SpecialType != SpecialType.System_Collections_Generic_IEnumerable_T)
                 return;
 
-            if (!namedTypeSymbol.TypeArguments[0].Equals(convertedType))
+            if (!SymbolEqualityComparer.Default.Equals(namedTypeSymbol.TypeArguments[0], convertedType))
                 return;
 
             CodeAction codeAction = CodeAction.Create(

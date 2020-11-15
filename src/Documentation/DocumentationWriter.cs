@@ -793,7 +793,7 @@ namespace Roslynator.Documentation
                         WriteStartBulletItem();
                         WriteTypeLink(en.Current.AttributeClass, includeContainingNamespace: Options.IncludeContainingNamespace(IncludeContainingNamespaceFilter.Attribute));
 
-                        if (symbol != en.Current.Target)
+                        if (!SymbolEqualityComparer.Default.Equals(symbol, en.Current.Target))
                         {
                             WriteInheritedFrom(en.Current.Target.OriginalDefinition, TypeSymbolDisplayFormats.Name_ContainingTypes_TypeParameters);
                         }
@@ -914,7 +914,7 @@ namespace Roslynator.Documentation
             {
                 if (en.MoveNext())
                 {
-                    bool hasCombinedValue = false;
+                    var hasCombinedValue = false;
 
                     EnumSymbolInfo enumInfo = default;
 
@@ -1181,7 +1181,7 @@ namespace Roslynator.Documentation
 
             var baseTypes = new List<INamedTypeSymbol>();
             int count = 0;
-            bool isMaxReached = false;
+            var isMaxReached = false;
 
             WriteStartBulletList();
             WriteClassHierarchy(ImmutableHashSet<INamedTypeSymbol>.Empty);
@@ -1350,7 +1350,7 @@ namespace Roslynator.Documentation
                         WriteObsolete(symbol);
 
                         bool isInherited = containingType != null
-                            && symbol.ContainingType != containingType;
+                            && !SymbolEqualityComparer.Default.Equals(symbol.ContainingType, containingType);
 
                         if (symbol.Kind == SymbolKind.Parameter)
                         {
@@ -1795,7 +1795,7 @@ namespace Roslynator.Documentation
                         WriteContainingNamespacePrefix(symbol);
                     }
 
-                    bool includeTypeParameters = false;
+                    var includeTypeParameters = false;
 
                     if (Peek(i).IsPunctuation("<")
                         && symbol.IsDefinition

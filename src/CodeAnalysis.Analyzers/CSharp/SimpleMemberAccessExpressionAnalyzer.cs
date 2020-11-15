@@ -29,7 +29,7 @@ namespace Roslynator.CodeAnalysis.CSharp
         {
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeSimpleMemberAccessExpression, SyntaxKind.SimpleMemberAccessExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeSimpleMemberAccessExpression(f), SyntaxKind.SimpleMemberAccessExpression);
         }
 
         private static void AnalyzeSimpleMemberAccessExpression(SyntaxNodeAnalysisContext context)
@@ -77,7 +77,7 @@ namespace Roslynator.CodeAnalysis.CSharp
                                     if (!symbol2.ContainingType.HasMetadataName(RoslynMetadataNames.Microsoft_CodeAnalysis_SyntaxNode))
                                         break;
 
-                                    context.ReportDiagnostic(DiagnosticDescriptors.UsePropertySyntaxNodeSpanStart, memberAccessExpression);
+                                    DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UsePropertySyntaxNodeSpanStart, memberAccessExpression);
                                     break;
                                 }
                             case "Count":
@@ -131,7 +131,7 @@ namespace Roslynator.CodeAnalysis.CSharp
                     ? TextSpan.FromBounds(name.SpanStart, numericLiteralExpression.Span.End)
                     : TextSpan.FromBounds(numericLiteralExpression.SpanStart, name.Span.End);
 
-                context.ReportDiagnostic(DiagnosticDescriptors.CallAnyInsteadOfAccessingCount, Location.Create(memberAccessExpression.SyntaxTree, span));
+                DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.CallAnyInsteadOfAccessingCount, Location.Create(memberAccessExpression.SyntaxTree, span));
             }
         }
     }

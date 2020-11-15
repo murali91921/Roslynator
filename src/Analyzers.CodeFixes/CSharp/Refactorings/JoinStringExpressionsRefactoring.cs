@@ -27,7 +27,7 @@ namespace Roslynator.CSharp.Refactorings
             ExpressionSyntax firstExpression = expressions[0];
 
             bool isVerbatim;
-            bool isInterpolated = false;
+            var isInterpolated = false;
 
             if (firstExpression is InterpolatedStringExpressionSyntax interpolatedString)
             {
@@ -68,9 +68,9 @@ namespace Roslynator.CSharp.Refactorings
 
             StringBuilderCache.Free(sb);
 
-            var textChange = new TextChange(TextSpan.FromBounds(firstExpression.SpanStart, expressions.Last().Span.End), newText);
+            TextSpan changedSpan = TextSpan.FromBounds(firstExpression.SpanStart, expressions.Last().Span.End);
 
-            return document.WithTextChangeAsync(textChange, cancellationToken);
+            return document.WithTextChangeAsync(changedSpan, newText, cancellationToken);
         }
     }
 }

@@ -16,7 +16,7 @@ namespace Roslynator.CodeGeneration.CSharp
 {
     public partial class CSharpSyntaxWalkerGenerator
     {
-        private static readonly SymbolDisplayFormat _parameterSymbolDisplayFormat = SymbolDisplayFormats.Default.WithParameterOptions(
+        private static readonly SymbolDisplayFormat _parameterSymbolDisplayFormat = SymbolDisplayFormats.DisplayName_WithoutNullableReferenceTypeModifier.WithParameterOptions(
             SymbolDisplayParameterOptions.IncludeDefaultValue
                 | SymbolDisplayParameterOptions.IncludeExtensionThis
                 | SymbolDisplayParameterOptions.IncludeName
@@ -133,7 +133,7 @@ namespace Roslynator.CodeGeneration.CSharp
             ITypeSymbol propertyType = context.PropertyType;
             string propertyName = context.PropertyName;
 
-            if (propertyType.OriginalDefinition.Equals(SyntaxListSymbol))
+            if (SymbolEqualityComparer.Default.Equals(propertyType.OriginalDefinition, SyntaxListSymbol))
             {
                 if (UseCustomVisitMethod)
                 {
@@ -144,7 +144,7 @@ namespace Roslynator.CodeGeneration.CSharp
                     context.AddStatement(VisitStatement("VisitList", parameterName, propertyName));
                 }
             }
-            else if (propertyType.OriginalDefinition.Equals(SeparatedSyntaxListSymbol))
+            else if (SymbolEqualityComparer.Default.Equals(propertyType.OriginalDefinition, SeparatedSyntaxListSymbol))
             {
                 if (UseCustomVisitMethod)
                 {
@@ -155,14 +155,14 @@ namespace Roslynator.CodeGeneration.CSharp
                     context.AddStatement(VisitStatement("VisitSeparatedList", parameterName, propertyName));
                 }
             }
-            else if (propertyType.Equals(SyntaxTokenListSymbol))
+            else if (SymbolEqualityComparer.Default.Equals(propertyType, SyntaxTokenListSymbol))
             {
                 if (Depth >= SyntaxWalkerDepth.Token)
                 {
                     context.AddStatement(VisitStatement("VisitTokenList", parameterName, propertyName));
                 }
             }
-            else if (propertyType.Equals(SyntaxTokenSymbol))
+            else if (SymbolEqualityComparer.Default.Equals(propertyType, SyntaxTokenSymbol))
             {
                 if (Depth >= SyntaxWalkerDepth.Token)
                 {
@@ -415,7 +415,7 @@ namespace Roslynator.CodeGeneration.CSharp
             }
             else
             {
-                methodName = (listPropertySymbol.Type.OriginalDefinition.Equals(SyntaxListSymbol)) ? "VisitList" : "VisitSeparatedList";
+                methodName = (SymbolEqualityComparer.Default.Equals(listPropertySymbol.Type.OriginalDefinition, SyntaxListSymbol)) ? "VisitList" : "VisitSeparatedList";
 
                 statement = VisitStatement(methodName, variableName, listPropertySymbol.Name);
             }
@@ -577,7 +577,7 @@ namespace Roslynator.CodeGeneration.CSharp
                 ParameterList(Parameter(IdentifierName(name), "node")),
                 Block(
                     SwitchStatement(
-                        SimpleMemberInvocationExpression(IdentifierName("node"), IdentifierName("Kind")).Parenthesize(),
+                        SimpleMemberInvocationExpression(IdentifierName("node"), IdentifierName("Kind")),
                         CreateSections().ToSyntaxList())));
 
             IEnumerable<SwitchSectionSyntax> CreateSections()
@@ -593,32 +593,32 @@ namespace Roslynator.CodeGeneration.CSharp
                     yield return SwitchSection(
                         labels,
                         List(new StatementSyntax[]
-                        {
-                            ExpressionStatement(
-                                InvocationExpression(
-                                    IdentifierName("Visit" + name2.Remove(name2.Length - 6)),
-                                    ArgumentList(Argument(CastExpression(IdentifierName(name2), IdentifierName("node")))))),
-                            BreakStatement()
-                        }));
+                            {
+                                ExpressionStatement(
+                                    InvocationExpression(
+                                        IdentifierName("Visit" + name2.Remove(name2.Length - 6)),
+                                        ArgumentList(Argument(CastExpression(IdentifierName(name2), IdentifierName("node")))))),
+                                BreakStatement()
+                            }));
                 }
 
                 yield return DefaultSwitchSection(
                     List(new StatementSyntax[]
-                    {
-                        ExpressionStatement(
-                            SimpleMemberInvocationExpression(
-                                IdentifierName("Debug"),
-                                IdentifierName("Fail"),
-                                ArgumentList(
-                                    Argument(
-                                        ParseExpression(@"$""Unrecognized kind '{node.Kind()}'."""))))),
-                        ExpressionStatement(
-                            SimpleMemberInvocationExpression(
-                                BaseExpression(),
-                                IdentifierName("Visit"),
-                                ArgumentList(Argument(IdentifierName("node"))))),
-                        BreakStatement()
-                    }));
+                        {
+                            ExpressionStatement(
+                                SimpleMemberInvocationExpression(
+                                    IdentifierName("Debug"),
+                                    IdentifierName("Fail"),
+                                    ArgumentList(
+                                        Argument(
+                                            ParseExpression(@"$""Unrecognized kind '{node.Kind()}'."""))))),
+                            ExpressionStatement(
+                                SimpleMemberInvocationExpression(
+                                    BaseExpression(),
+                                    IdentifierName("Visit"),
+                                    ArgumentList(Argument(IdentifierName("node"))))),
+                            BreakStatement()
+                        }));
             }
         }
     }

@@ -66,7 +66,7 @@ namespace Roslynator.CSharp.Syntax
                     return true;
 
                 if (content.SingleOrDefault(shouldThrow: false) is XmlTextSyntax xmlText)
-                    return xmlText.TextTokens.All(IsWhitespaceOrNewLine);
+                    return xmlText.TextTokens.All(f => IsWhitespaceOrNewLine(f));
 
                 return false;
 
@@ -136,9 +136,15 @@ namespace Roslynator.CSharp.Syntax
             return default;
         }
 
-        internal bool IsLocalName(string localName, StringComparison comparison = StringComparison.Ordinal)
+        internal bool HasLocalName(string localName, StringComparison comparison = StringComparison.OrdinalIgnoreCase)
         {
             return string.Equals(LocalName, localName, comparison);
+        }
+
+        internal bool HasLocalName(string localName1, string localName2, StringComparison comparison = StringComparison.OrdinalIgnoreCase)
+        {
+            return HasLocalName(localName1, comparison)
+                || HasLocalName(localName2, comparison);
         }
     }
 }

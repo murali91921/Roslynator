@@ -21,14 +21,10 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeQualifiedName, SyntaxKind.QualifiedName);
-            context.RegisterSyntaxNodeAction(AnalyzeGenericName, SyntaxKind.GenericName);
+            context.RegisterSyntaxNodeAction(f => AnalyzeQualifiedName(f), SyntaxKind.QualifiedName);
+            context.RegisterSyntaxNodeAction(f => AnalyzeGenericName(f), SyntaxKind.GenericName);
         }
 
         private static void AnalyzeGenericName(SyntaxNodeAnalysisContext context)

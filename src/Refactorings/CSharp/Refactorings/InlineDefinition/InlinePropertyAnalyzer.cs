@@ -54,7 +54,7 @@ namespace Roslynator.CSharp.Refactorings.InlineDefinition
 
             INamedTypeSymbol enclosingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
 
-            if (propertySymbol.ContainingType?.Equals(enclosingType) != true)
+            if (!SymbolEqualityComparer.Default.Equals(propertySymbol.ContainingType, enclosingType))
                 return null;
 
             if (!node.IsParentKind(SyntaxKind.MemberBindingExpression))
@@ -79,12 +79,13 @@ namespace Roslynator.CSharp.Refactorings.InlineDefinition
 
             if (syntaxReference != null)
             {
-                return (PropertyDeclarationSyntax)await syntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                SyntaxNode node = await syntaxReference.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+
+                if (node is PropertyDeclarationSyntax propertyDeclaration)
+                    return propertyDeclaration;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
         protected override ImmutableArray<ParameterInfo> GetParameterInfos(IdentifierNameSyntax node, IPropertySymbol symbol)

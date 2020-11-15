@@ -22,14 +22,10 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeBaseArgumentList, SyntaxKind.ArgumentList);
-            context.RegisterSyntaxNodeAction(AnalyzeBaseArgumentList, SyntaxKind.BracketedArgumentList);
+            context.RegisterSyntaxNodeAction(f => AnalyzeBaseArgumentList(f), SyntaxKind.ArgumentList);
+            context.RegisterSyntaxNodeAction(f => AnalyzeBaseArgumentList(f), SyntaxKind.BracketedArgumentList);
         }
 
         private static void AnalyzeBaseArgumentList(SyntaxNodeAnalysisContext context)
@@ -51,7 +47,8 @@ namespace Roslynator.CSharp.Analysis
             if (argumentList.ContainsDirectives(span))
                 return;
 
-            DiagnosticHelpers.ReportDiagnostic(context,
+            DiagnosticHelpers.ReportDiagnostic(
+                context,
                 DiagnosticDescriptors.OrderNamedArguments,
                 Location.Create(argumentList.SyntaxTree, span));
         }

@@ -23,17 +23,13 @@ namespace Roslynator.CSharp.Analysis.UnusedMember
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeTypeDeclaration, SyntaxKind.ClassDeclaration);
-            context.RegisterSyntaxNodeAction(AnalyzeTypeDeclaration, SyntaxKind.StructDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeTypeDeclaration(f), SyntaxKind.ClassDeclaration);
+            context.RegisterSyntaxNodeAction(f => AnalyzeTypeDeclaration(f), SyntaxKind.StructDeclaration);
         }
 
-        [SuppressMessage("Simplification", "RCS1180:Inline lazy initialization.", Justification = "<Pending>")]
+        [SuppressMessage("Simplification", "RCS1180:Inline lazy initialization.")]
         private static void AnalyzeTypeDeclaration(SyntaxNodeAnalysisContext context)
         {
             var typeDeclaration = (TypeDeclarationSyntax)context.Node;

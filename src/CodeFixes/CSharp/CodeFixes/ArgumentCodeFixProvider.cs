@@ -73,16 +73,16 @@ namespace Roslynator.CSharp.CodeFixes
                             }
 
                             CodeAction codeAction = CodeAction.Create(
-                           $"Add '{SyntaxFacts.GetText(refOrOutKeyword.Kind())}' modifier",
-                           cancellationToken =>
-                           {
-                               ArgumentSyntax newArgument = argument
-                                   .WithRefOrOutKeyword(refOrOutKeyword)
-                                   .WithFormatterAnnotation();
+                                $"Add '{SyntaxFacts.GetText(refOrOutKeyword.Kind())}' modifier",
+                                cancellationToken =>
+                                {
+                                    ArgumentSyntax newArgument = argument
+                                        .WithRefOrOutKeyword(refOrOutKeyword)
+                                        .WithFormatterAnnotation();
 
-                               return context.Document.ReplaceNodeAsync(argument, newArgument, cancellationToken);
-                           },
-                           GetEquivalenceKey(diagnostic));
+                                    return context.Document.ReplaceNodeAsync(argument, newArgument, cancellationToken);
+                                },
+                                GetEquivalenceKey(diagnostic));
 
                             context.RegisterCodeFix(codeAction, diagnostic);
                             break;
@@ -189,7 +189,7 @@ namespace Roslynator.CSharp.CodeFixes
                                     {
                                         foreach (ITypeSymbol typeSymbol2 in DetermineParameterTypeHelper.DetermineParameterTypes(argument, semanticModel, context.CancellationToken))
                                         {
-                                            if (!typeSymbol.Equals(typeSymbol2)
+                                            if (!SymbolEqualityComparer.Default.Equals(typeSymbol, typeSymbol2)
                                                 && typeSymbol2 is IArrayTypeSymbol arrayType
                                                 && semanticModel.IsImplicitConversion(expression, arrayType.ElementType))
                                             {

@@ -19,14 +19,10 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
-            context.EnableConcurrentExecution();
 
-            context.RegisterSyntaxNodeAction(AnalyzeEqualsExpression, SyntaxKind.EqualsExpression);
-            context.RegisterSyntaxNodeAction(AnalyzeNotEqualsExpression, SyntaxKind.NotEqualsExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeEqualsExpression(f), SyntaxKind.EqualsExpression);
+            context.RegisterSyntaxNodeAction(f => AnalyzeNotEqualsExpression(f), SyntaxKind.NotEqualsExpression);
         }
 
         private static void AnalyzeEqualsExpression(SyntaxNodeAnalysisContext context)
@@ -51,7 +47,8 @@ namespace Roslynator.CSharp.Analysis
                     && IsStructButNotNullableOfT(context.SemanticModel.GetTypeSymbol(left, context.CancellationToken))
                     && !binaryExpression.SpanContainsDirectives())
                 {
-                    DiagnosticHelpers.ReportDiagnostic(context,
+                    DiagnosticHelpers.ReportDiagnostic(
+                        context,
                         DiagnosticDescriptors.ValueTypeObjectIsNeverEqualToNull,
                         binaryExpression);
                 }

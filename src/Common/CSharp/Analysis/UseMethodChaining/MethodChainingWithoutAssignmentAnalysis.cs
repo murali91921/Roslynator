@@ -27,17 +27,19 @@ namespace Roslynator.CSharp.Analysis.UseMethodChaining
             if (!invocationInfo.Success)
                 return false;
 
-            if (!(WalkDownMethodChain(invocationInfo).Expression is IdentifierNameSyntax identifierName))
+            SimpleMemberInvocationExpressionInfo topInvocationInfo = WalkDownMethodChain(invocationInfo);
+
+            if (!(topInvocationInfo.Expression is IdentifierNameSyntax identifierName))
                 return false;
 
             if (name != identifierName.Identifier.ValueText)
                 return false;
 
-            IMethodSymbol methodSymbol = semanticModel.GetMethodSymbol(invocationInfo.InvocationExpression, cancellationToken);
+            IMethodSymbol methodSymbol = semanticModel.GetMethodSymbol(topInvocationInfo.InvocationExpression, cancellationToken);
 
             return methodSymbol?.IsStatic == false
-                && methodSymbol.ContainingType?.Equals(typeSymbol) == true
-                && methodSymbol.ReturnType.Equals(typeSymbol);
+                && SymbolEqualityComparer.Default.Equals(methodSymbol.ContainingType, typeSymbol)
+                && SymbolEqualityComparer.Default.Equals(methodSymbol.ReturnType, typeSymbol);
         }
     }
 }

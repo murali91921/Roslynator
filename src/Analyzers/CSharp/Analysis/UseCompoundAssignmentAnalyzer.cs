@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -25,9 +24,6 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
             context.RegisterCompilationStartAction(startContext =>
@@ -35,7 +31,10 @@ namespace Roslynator.CSharp.Analysis
                 if (startContext.IsAnalyzerSuppressed(DiagnosticDescriptors.UseCompoundAssignment))
                     return;
 
-                startContext.RegisterSyntaxNodeAction(AnalyzeSimpleAssignment, SyntaxKind.SimpleAssignmentExpression);
+                startContext.RegisterSyntaxNodeAction(f => AnalyzeSimpleAssignment(f), SyntaxKind.SimpleAssignmentExpression);
+
+                if (((CSharpCompilation)startContext.Compilation).LanguageVersion >= LanguageVersion.CSharp8)
+                    startContext.RegisterSyntaxNodeAction(f => AnalyzeCoalesceExpression(f), SyntaxKind.CoalesceExpression);
             });
         }
 
@@ -48,8 +47,15 @@ namespace Roslynator.CSharp.Analysis
             if (!assignmentInfo.Success)
                 return;
 
-            if (assignmentExpression.IsParentKind(SyntaxKind.ObjectInitializerExpression))
+            //TODO: SyntaxKind.WithInitializerExpression
+            if (assignmentExpression.Parent is InitializerExpressionSyntax
+                && !assignmentExpression.IsParentKind(
+                    SyntaxKind.CollectionInitializerExpression,
+                    SyntaxKind.ArrayInitializerExpression,
+                    SyntaxKind.ComplexElementInitializerExpression))
+            {
                 return;
+            }
 
             ExpressionSyntax right = assignmentInfo.Right;
 
@@ -99,6 +105,42 @@ namespace Roslynator.CSharp.Analysis
             SyntaxKind compoundAssignmentOperatorKind = CSharpFacts.GetCompoundAssignmentOperatorKind(compoundAssignmentKind);
 
             return SyntaxFacts.GetText(compoundAssignmentOperatorKind);
+        }
+
+        private static void AnalyzeCoalesceExpression(SyntaxNodeAnalysisContext context)
+        {
+            var coalesceExpression = (BinaryExpressionSyntax)context.Node;
+
+            BinaryExpressionInfo binaryExpressionInfo = SyntaxInfo.BinaryExpressionInfo(coalesceExpression, walkDownParentheses: false);
+
+            if (!binaryExpressionInfo.Success)
+                return;
+
+            ExpressionSyntax right = binaryExpressionInfo.Right;
+
+            if (!right.IsKind(SyntaxKind.ParenthesizedExpression))
+                return;
+
+            var parenthesizedExpression = (ParenthesizedExpressionSyntax)right;
+
+            ExpressionSyntax expression = parenthesizedExpression.Expression;
+
+            if (!expression.IsKind(SyntaxKind.SimpleAssignmentExpression))
+                return;
+
+            SimpleAssignmentExpressionInfo assignmentInfo = SyntaxInfo.SimpleAssignmentExpressionInfo((AssignmentExpressionSyntax)expression);
+
+            if (!assignmentInfo.Success)
+                return;
+
+            if (!CSharpFactory.AreEquivalent(binaryExpressionInfo.Left, assignmentInfo.Left))
+                return;
+
+            DiagnosticHelpers.ReportDiagnostic(context, DiagnosticDescriptors.UseCompoundAssignment, coalesceExpression);
+
+            DiagnosticHelpers.ReportToken(context, DiagnosticDescriptors.UseCompoundAssignmentFadeOut, parenthesizedExpression.OpenParenToken);
+            DiagnosticHelpers.ReportNode(context, DiagnosticDescriptors.UseCompoundAssignmentFadeOut, assignmentInfo.Left);
+            DiagnosticHelpers.ReportToken(context, DiagnosticDescriptors.UseCompoundAssignmentFadeOut, parenthesizedExpression.CloseParenToken);
         }
     }
 }

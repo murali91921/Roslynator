@@ -19,12 +19,9 @@ namespace Roslynator.CSharp.Analysis
 
         public override void Initialize(AnalysisContext context)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             base.Initialize(context);
 
-            context.RegisterSyntaxNodeAction(AnalyzeCompilationUnit, SyntaxKind.CompilationUnit);
+            context.RegisterSyntaxNodeAction(f => AnalyzeCompilationUnit(f), SyntaxKind.CompilationUnit);
         }
 
         private static void AnalyzeCompilationUnit(SyntaxNodeAnalysisContext context)
@@ -40,7 +37,7 @@ namespace Roslynator.CSharp.Analysis
                 return;
 
             MemberDeclarationSyntax firstTypeDeclaration = null;
-            bool isFirstReported = false;
+            var isFirstReported = false;
 
             Analyze(compilationUnitMembers);
 

@@ -90,7 +90,7 @@
     </Syntaxes>
     <Span>selected class name</Span>
   </Refactoring>
-  <Refactoring Id="RR0015" Identifier="CallConfigureAwait" Title="Call 'ConfigureAwait(false)'">
+  <Refactoring Id="RR0015" Identifier="CallConfigureAwait" Title="Call 'ConfigureAwait(false)'" IsObsolete="true">
     <Syntaxes>
       <Syntax>awaitable method invocation</Syntax>
     </Syntaxes>
@@ -275,7 +275,7 @@
       <Syntax>event field declaration</Syntax>
     </Syntaxes>
   </Refactoring>
-  <Refactoring Id="RR0037" Identifier="ExpandExpressionBody" Title="Expand expression body">
+  <Refactoring Id="RR0037" Identifier="ConvertExpressionBodyToBlockBody" Title="Convert expression-body to block body">
     <Syntaxes>
       <Syntax>expression body</Syntax>
     </Syntaxes>
@@ -285,9 +285,9 @@
       <Syntax>initializer</Syntax>
     </Syntaxes>
   </Refactoring>
-  <Refactoring Id="RR0039" Identifier="ExpandLambdaExpressionBody" Title="Expand lambda expression body">
+  <Refactoring Id="RR0039" Identifier="ConvertLambdaExpressionBodyToBlockBody" Title="Convert lambda expression body to block body">
     <Syntaxes>
-      <Syntax>lambda expression</Syntax>
+      <Syntax>lambda expression's expression body</Syntax>
     </Syntaxes>
     <Span>body</Span>
   </Refactoring>
@@ -377,59 +377,164 @@ if (y)
       <Image>FormatAccessorBracesOnSingleLine</Image>
     </Images>
   </Refactoring>
-  <Refactoring Id="RR0048" Identifier="FormatArgumentList" Title="Format argument list">
+  <Refactoring Id="RR0048" Identifier="WrapArguments" Title="Wrap arguments">
     <Syntaxes>
       <Syntax>argument list</Syntax>
     </Syntaxes>
-    <Images>
-      <Image>FormatEachArgumentOnSeparateLine</Image>
-      <Image>FormatAllArgumentsOnSingleLine</Image>
-    </Images>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[M(x, y, z);]]></Before>
+        <After>
+          <![CDATA[M(
+    x,
+    y,
+    z);]]></After>
+      </Sample>
+      <Sample>
+        <Before>
+          <![CDATA[void M(
+    x,
+    y,
+    z);]]>
+        </Before>
+        <After>
+          <![CDATA[void M(x, y, z);]]>
+        </After>
+      </Sample>
+    </Samples>
   </Refactoring>
-  <Refactoring Id="RR0049" Identifier="FormatBinaryExpression" Title="Format binary expression">
+  <Refactoring Id="RR0049" Identifier="WrapBinaryExpression" Title="Wrap binary expression">
     <Syntaxes>
       <Syntax>logical and/or expression</Syntax>
       <Syntax>bitwise and/or expression</Syntax>
     </Syntaxes>
-    <Images>
-      <Image>FormatBinaryExpression</Image>
-    </Images>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[if (x && y && z)
+{
+}]]></Before>
+        <After><![CDATA[if (x
+    && y
+    && z)
+{
+}]]></After>
+      </Sample>
+      <Sample>
+        <Before>
+          <![CDATA[if (x
+    && y
+    && z)
+{
+}]]>
+        </Before>
+        <After>
+          <![CDATA[if (x && y && z)
+{
+}]]>
+        </After>
+      </Sample>
+    </Samples>
   </Refactoring>
-  <Refactoring Id="RR0050" Identifier="FormatConditionalExpression" Title="Format conditional expression">
+  <Refactoring Id="RR0050" Identifier="WrapConditionalExpression" Title="Wrap conditional expression">
     <Syntaxes>
       <Syntax>conditional expression</Syntax>
     </Syntaxes>
-    <Images>
-      <Image>FormatConditionalExpressionOnMultipleLines</Image>
-      <Image>FormatConditionalExpressionOnSingleLine</Image>
-    </Images>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[x ? y : z]]></Before>
+        <After><![CDATA[x
+    ? y
+    : z]]></After>
+      </Sample>
+    </Samples>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[x
+    ? y
+    : z]]></Before>
+        <After><![CDATA[x ? y : z]]></After>
+      </Sample>
+    </Samples>
   </Refactoring>
-  <Refactoring Id="RR0051" Identifier="FormatExpressionChain" Title="Format expression chain">
+  <Refactoring Id="RR0051" Identifier="WrapCallChain" Title="Wrap call chain">
     <Syntaxes>
-      <Syntax>expression chain</Syntax>
+      <Syntax>call chain</Syntax>
     </Syntaxes>
-    <Images>
-      <Image>FormatExpressionChainOnMultipleLines</Image>
-      <Image>FormatExpressionChainOnSingleLine</Image>
-    </Images>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[x.M().N().O()]]></Before>
+        <After><![CDATA[x
+    .M()
+    .N()
+    .O()]]></After>
+      </Sample>
+      <Sample>
+        <Before><![CDATA[x
+    .M()
+    .N()
+    .O()]]></Before>
+        <After><![CDATA[x.M().N().O()]]></After>
+      </Sample>
+    </Samples>
   </Refactoring>
-  <Refactoring Id="RR0052" Identifier="FormatInitializer" Title="Format initializer">
+  <Refactoring Id="RR0052" Identifier="WrapInitializerExpressions" Title="Wrap initializer expressions">
     <Syntaxes>
       <Syntax>initializer</Syntax>
     </Syntaxes>
-    <Images>
-      <Image>FormatInitializerOnMultipleLines</Image>
-      <Image>FormatInitializerOnSingleLine</Image>
-    </Images>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[var x = new string[] { "a", "b", "c" }]]></Before>
+        <After><![CDATA[var x = new string[]
+{
+    "a",
+    "b",
+    "c"
+}]]></After>
+      </Sample>
+      <Sample>
+        <Before><![CDATA[var x = new string[]
+{
+    "a",
+    "b",
+    "c"
+}]]></Before>
+        <After><![CDATA[var x = new string[] { "a", "b", "c" }]]></After>
+      </Sample>
+    </Samples>
   </Refactoring>
-  <Refactoring Id="RR0053" Identifier="FormatParameterList" Title="Format parameter list">
+  <Refactoring Id="RR0053" Identifier="WrapParameters" Title="Wrap parameters">
     <Syntaxes>
       <Syntax>parameter list</Syntax>
     </Syntaxes>
-    <Images>
-      <Image>FormatEachParameterOnSeparateLine</Image>
-      <Image>FormatAllParametersOnSingleLine</Image>
-    </Images>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[void M(object x, object y, object z)
+{
+}]]></Before>
+        <After>
+          <![CDATA[void M(
+    object x,
+    object y,
+    object z)
+{
+}]]></After>
+      </Sample>
+      <Sample>
+        <Before>
+          <![CDATA[void M(
+    object x,
+    object y,
+    object z)
+{
+}]]>
+        </Before>
+        <After>
+          <![CDATA[void M(object x, object y, object z)
+{
+}]]>
+        </After>
+      </Sample>
+    </Samples>
   </Refactoring>
   <Refactoring Id="RR0054" Identifier="GenerateBaseConstructors" Title="Generate base constructors">
     <Syntaxes>
@@ -576,30 +681,24 @@ if (y)
       <Syntax>selected attribute lists</Syntax>
     </Syntaxes>
   </Refactoring>
-  <Refactoring Id="RR0075" Identifier="MergeIfStatements" Title="Merge if statements">
+  <Refactoring Id="RR0075" Identifier="MergeIfStatements" Title="Merge 'if' statements">
     <Syntaxes>
-      <Syntax>selected if statements</Syntax>
+      <Syntax>selected 'if' statements</Syntax>
     </Syntaxes>
     <Samples>
       <Sample>
-        <Before><![CDATA[bool condition1 = false;
-bool condition2 = false;
-
-if (condition1)
+        <Before><![CDATA[if (x)
 {
     return false;
 }
 
-if (condition2)
+if (y)
 {
     return false;
 }
 
 return true;]]></Before>
-        <After><![CDATA[bool condition1 = false;
-bool condition2 = false;
-
-if (condition1 || condition2)
+        <After><![CDATA[if (x || y)
 {
     return false;
 }
@@ -885,18 +984,18 @@ return true;]]></After>
     <Span>method name</Span>
     <Samples>
       <Sample>
-        <Before><![CDATA[if (items.Any(predicate)
+        <Before><![CDATA[if (items.Any(predicate))
 {
 }]]></Before>
-        <After><![CDATA[if (items.All(!predicate)
+        <After><![CDATA[if (items.All(!predicate))
 {
 }]]></After>
       </Sample>
       <Sample>
-        <Before><![CDATA[if (items.All(predicate)
+        <Before><![CDATA[if (items.All(predicate))
 {
 }]]></Before>
-        <After><![CDATA[if (items.Any(!predicate)
+        <After><![CDATA[if (items.Any(!predicate))
 {
 }]]></After>
       </Sample>
@@ -1113,7 +1212,7 @@ i--;]]></After>
       <Syntax>Interpolated string without any interpolation</Syntax>
     </Syntaxes>
   </Refactoring>
-  <Refactoring Id="RR0137" Identifier="ReplaceMethodGroupWithLambda" Title="Replace method group with lambda">
+  <Refactoring Id="RR0137" Identifier="ConvertMethodGroupToLambda" Title="Convert method group to lambda">
     <Syntaxes>
       <Syntax>method group</Syntax>
     </Syntaxes>
@@ -1130,7 +1229,7 @@ i--;]]></After>
     </Syntaxes>
     <Span>method header</Span>
   </Refactoring>
-  <Refactoring Id="RR0139" Identifier="ReplaceNullLiteralExpressionWithDefaultExpression" Title="Replace null literal expression with default expression">
+  <Refactoring Id="RR0139" Identifier="ConvertNullLiteralToDefaultExpression" Title="Convert null literal to default expression">
     <Syntaxes>
       <Syntax>argument</Syntax>
     </Syntaxes>
@@ -1223,7 +1322,7 @@ i--;]]></After>
     </Syntaxes>
     <Span>while keyword or selected statement(s)</Span>
   </Refactoring>
-  <Refactoring Id="RR0152" Identifier="ReverseForLoop" Title="Reverse 'for' loop">
+  <Refactoring Id="RR0152" Identifier="ReverseForStatement" Title="Reverse 'for' statement">
     <Syntaxes>
       <Syntax>for statement</Syntax>
     </Syntaxes>
@@ -1234,9 +1333,9 @@ i--;]]></After>
     </Syntaxes>
     <Span>top if keyword or selected if statement</Span>
   </Refactoring>
-  <Refactoring Id="RR0154" Identifier="SimplifyLambdaExpression" Title="Simplify lambda expression">
+  <Refactoring Id="RR0154" Identifier="ConvertLambdaExpressionBodyToExpressionBody" Title="Convert lambda expression body to expression-body">
     <Syntaxes>
-      <Syntax>lambda expression with block with single single-line statement</Syntax>
+      <Syntax>lambda expression with block body with single single-line statement</Syntax>
     </Syntaxes>
     <Span>body</Span>
   </Refactoring>
@@ -1318,7 +1417,7 @@ i--;]]></After>
       <Syntax>single-line comment(s)</Syntax>
     </Syntaxes>
   </Refactoring>
-  <Refactoring Id="RR0164" Identifier="UseBitwiseOperationInsteadOfCallingHasFlag" Title="Use bitwise operation instead of calling 'HasFlag'">
+  <Refactoring Id="RR0164" Identifier="ConvertHasFlagCallToBitwiseOperation" Title="Convert 'HasFlag' call to bitwise operation">
     <Syntaxes>
       <Syntax>Enum.HasFlag method invocation</Syntax>
     </Syntaxes>
@@ -1341,12 +1440,12 @@ i--;]]></After>
     </Syntaxes>
     <Span>method name</Span>
   </Refactoring>
-  <Refactoring Id="RR0168" Identifier="UseEmptyStringLiteralInsteadOfStringEmpty" Title="Use &quot;&quot; instead of string.Empty">
+  <Refactoring Id="RR0168" Identifier="UseEmptyStringLiteralInsteadOfStringEmpty" Title="Use &quot;&quot; instead of string.Empty" IsObsolete="true">
     <Syntaxes>
       <Syntax>string.Empty field</Syntax>
     </Syntaxes>
   </Refactoring>
-  <Refactoring Id="RR0169" Identifier="UseExpressionBodiedMember" Title="Use expression-bodied member">
+  <Refactoring Id="RR0169" Identifier="ConvertBlockBodyToExpressionBody" Title="Convert block body to expression-body">
     <Syntaxes>
       <Syntax>method</Syntax>
       <Syntax>property</Syntax>
@@ -1461,7 +1560,7 @@ i--;]]></After>
       <Syntax>access modifier</Syntax>
     </Syntaxes>
   </Refactoring>
-  <Refactoring Id="RR0187" Identifier="FormatConstraintClauses" Title="Format constraint clauses">
+  <Refactoring Id="RR0187" Identifier="WrapConstraintClauses" Title="Wrap constraint clauses">
     <Syntaxes>
       <Syntax>type parameter constraint clause</Syntax>
     </Syntaxes>
@@ -2234,6 +2333,42 @@ class Foo : IFoo
     {
     }
 }]]></After>
+      </Sample>
+    </Samples>
+  </Refactoring>
+  <Refactoring Id="RR0214" Identifier="ConvertSwitchExpressionToSwitchStatement" Title="Convert 'switch' expression to 'switch' statement">
+    <Syntaxes>
+      <Syntax>switch expression</Syntax>
+    </Syntaxes>
+    <Span>switch keyword</Span>
+    <Samples>
+      <Sample>
+        <Before><![CDATA[return dayOfWeek switch
+{
+    DayOfWeek.Monday => 1,
+    DayOfWeek.Tuesday => 2,
+    DayOfWeek.Wednesday => 3,
+    DayOfWeek.Thursday => 4,
+    DayOfWeek.Friday => 5,
+    _ => throw new Exception(),
+};
+]]></Before>
+        <After><![CDATA[switch (dayOfWeek)
+{
+    case DayOfWeek.Monday:
+        return 1;
+    case DayOfWeek.Tuesday:
+        return 2;
+    case DayOfWeek.Wednesday:
+        return 3;
+    case DayOfWeek.Thursday:
+        return 4;
+    case DayOfWeek.Friday:
+        return 5;
+    default:
+        throw new Exception();
+}
+]]></After>
       </Sample>
     </Samples>
   </Refactoring>
