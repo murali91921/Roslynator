@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Roslynator.Spelling;
 
 namespace Roslynator.Diagnostics
 {
@@ -16,6 +17,7 @@ namespace Roslynator.Diagnostics
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<Diagnostic> compilerDiagnostics,
             ImmutableArray<Diagnostic> diagnostics,
+            ImmutableArray<SpellingError> spellingErrors,
             ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> telemetry)
         {
             ProjectId = projectId;
@@ -23,6 +25,7 @@ namespace Roslynator.Diagnostics
             CompilerDiagnostics = compilerDiagnostics;
             Diagnostics = diagnostics;
             Telemetry = telemetry;
+            SpellingErrors = spellingErrors;
         }
 
         public ProjectId ProjectId { get; }
@@ -33,11 +36,24 @@ namespace Roslynator.Diagnostics
 
         public ImmutableArray<Diagnostic> Diagnostics { get; }
 
+        public ImmutableArray<SpellingError> SpellingErrors { get; }
+
         public ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> Telemetry { get; }
 
         public IEnumerable<Diagnostic> GetAllDiagnostics()
         {
             return CompilerDiagnostics.Concat(Diagnostics);
+        }
+
+        public ProjectAnalysisResult WithSpellingErrors(ImmutableArray<SpellingError> spellingErrors)
+        {
+            return new ProjectAnalysisResult(
+                ProjectId,
+                Analyzers,
+                CompilerDiagnostics,
+                Diagnostics,
+                spellingErrors,
+                Telemetry);
         }
     }
 }

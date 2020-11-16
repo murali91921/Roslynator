@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Roslynator.Host.Mef;
+using Roslynator.Spelling;
 using static Roslynator.Logger;
 
 namespace Roslynator.Diagnostics
@@ -119,14 +120,42 @@ namespace Roslynator.Diagnostics
                 analyzerReferences: _analyzerReferences,
                 options: Options);
 
+            ProjectAnalysisResult result = null;
+
             if (!analyzers.Any())
-            {
                 WriteLine($"  No analyzers found to analyze '{project.Name}'", ConsoleColor.DarkGray, Verbosity.Normal);
 
-                if (Options.IgnoreCompilerDiagnostics)
-                    return default;
+            if (analyzers.Any()
+                || !Options.IgnoreCompilerDiagnostics)
+            {
+                result = await AnalyzeProjectCoreAsync(project, analyzers, cancellationToken).ConfigureAwait(false);
             }
 
+            //TODO: analyze spelling
+            WriteLine($"  Analyze spelling in '{project.Name}'", Verbosity.Normal);
+
+            SpellingAnalysisResult spellingAnalysisResult = await SpellingAnalysis.AnalyzeSpellingAsync(
+                project,
+                SpellingAnalysisOptions.Default,
+                cancellationToken)
+                .ConfigureAwait(false);
+
+            //TODO: log result
+
+            if (result != null)
+            {
+                result = result.WithSpellingErrors(spellingAnalysisResult.Errors);
+            }
+            else
+            {
+                result = new ProjectAnalysisResult(project.Id, default, default, default, spellingAnalysisResult.Errors, default);
+            }
+
+            return result;
+        }
+
+        private async Task<ProjectAnalysisResult> AnalyzeProjectCoreAsync(Project project, ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken = default)
+        {
             LogHelpers.WriteUsedAnalyzers(analyzers, project, Options, ConsoleColor.DarkGray, Verbosity.Diagnostic);
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -186,7 +215,13 @@ namespace Roslynator.Diagnostics
 
             LogHelpers.WriteDiagnostics(diagnostics, baseDirectoryPath: projectDirectoryPath, formatProvider: FormatProvider, indentation: "  ", verbosity: Verbosity.Normal);
 
-            return new ProjectAnalysisResult(project.Id, analyzers, compilerDiagnostics, diagnostics, telemetry);
+            return new ProjectAnalysisResult(
+                project.Id,
+                analyzers,
+                compilerDiagnostics,
+                diagnostics,
+                default(ImmutableArray<SpellingError>),
+                telemetry);
         }
 
         private IEnumerable<Diagnostic> FilterDiagnostics(IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken = default)
