@@ -7,7 +7,7 @@ namespace Roslynator.Spelling
         public static SpellingAnalysisOptions Default { get; } = new SpellingAnalysisOptions();
 
         public SpellingAnalysisOptions(
-            bool includeGeneratedCode = true)
+            bool includeGeneratedCode = false)
         {
             IncludeGeneratedCode = includeGeneratedCode;
         }

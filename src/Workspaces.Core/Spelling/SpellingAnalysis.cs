@@ -18,7 +18,7 @@ namespace Roslynator.Spelling
             ISpellingService service = MefWorkspaceServices.Default.GetService<ISpellingService>(project.Language);
 
             if (service == null)
-                return default;
+                return SpellingAnalysisResult.Empty;
 
             SpellingAnalysisResult result = SpellingAnalysisResult.Empty;
 
@@ -45,12 +45,12 @@ namespace Roslynator.Spelling
             SyntaxTree tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             if (tree == null)
-                return default;
+                return SpellingAnalysisResult.Empty;
 
             if (!options.IncludeGeneratedCode
                 && GeneratedCodeUtility.IsGeneratedCode(tree, f => service.SyntaxFacts.IsComment(f), cancellationToken))
             {
-                return default;
+                return SpellingAnalysisResult.Empty;
             }
 
             SyntaxNode root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);

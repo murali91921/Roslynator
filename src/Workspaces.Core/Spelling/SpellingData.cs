@@ -6,6 +6,8 @@ namespace Roslynator.Spelling
 {
     internal class SpellingData
     {
+        public static SpellingData Empty { get; } = new SpellingData(ImmutableHashSet<string>.Empty);
+
         public SpellingData(ImmutableHashSet<string> dictionary)
         {
             Dictionary = dictionary ?? throw new System.ArgumentNullException(nameof(dictionary));

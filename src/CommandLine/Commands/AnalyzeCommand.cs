@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -19,6 +20,8 @@ namespace Roslynator.CommandLine
 {
     internal class AnalyzeCommand : MSBuildWorkspaceCommand
     {
+        private static readonly Regex _dictionaryFileName = new Regex(@"\Aroslynator\.spelling(\.|\z)", RegexOptions.IgnoreCase);
+
         public AnalyzeCommand(AnalyzeCommandLineOptions options, DiagnosticSeverity severityLevel, in ProjectFilter projectFilter) : base(projectFilter)
         {
             Options = options;
@@ -50,35 +53,27 @@ namespace Roslynator.CommandLine
 
             string path = typeof(AnalyzeCommand).Assembly.Location;
 
-            SpellingData spellingData = null;
+            SpellingData spellingData = SpellingData.Empty;
 
             if (!string.IsNullOrEmpty(path))
             {
                 string directoryPath = Path.GetDirectoryName(path);
 
-                string dictionaryPath = Path.Combine(directoryPath, "roslynator.spelling.dictionary.txt");
-
-                if (File.Exists(dictionaryPath))
+                foreach (string filePath in Directory.EnumerateFiles(directoryPath, "*.dictionary", SearchOption.TopDirectoryOnly))
                 {
-                    ImmutableHashSet<string> spellingDictionary = File.ReadAllLines(dictionaryPath)
-                        .Where(f => !string.IsNullOrWhiteSpace(f))
-                        .Select(f => f.Trim())
-                        .ToImmutableHashSet(StringComparer.CurrentCultureIgnoreCase);
+                    string input = Path.GetFileNameWithoutExtension(filePath);
+                    if (!_dictionaryFileName.IsMatch(input))
+                        continue;
 
-                    spellingData = new SpellingData(spellingDictionary);
-                }
-
-                string dictionaryPath2 = Path.Combine(directoryPath, "roslynator.spelling.dictionary.custom.txt");
-
-                if (File.Exists(dictionaryPath2))
-                {
-                    IEnumerable<string> spellingDictionary2 = File.ReadAllLines(dictionaryPath2)
+                    IEnumerable<string> spellingDictionary = File.ReadAllLines(filePath)
                         .Where(f => !string.IsNullOrWhiteSpace(f))
                         .Select(f => f.Trim());
 
-                    spellingData = (spellingData != null)
-                        ? new SpellingData(ImmutableHashSet.CreateRange(StringComparer.CurrentCultureIgnoreCase, spellingData.Dictionary.Concat(spellingDictionary2)))
-                        : new SpellingData(spellingDictionary2.ToImmutableHashSet(StringComparer.CurrentCultureIgnoreCase));
+                    ImmutableHashSet<string> dictionary = ImmutableHashSet.CreateRange(
+                        StringComparer.CurrentCultureIgnoreCase,
+                        spellingData.Dictionary.Concat(spellingDictionary));
+
+                    spellingData = new SpellingData(dictionary);
                 }
             }
 
