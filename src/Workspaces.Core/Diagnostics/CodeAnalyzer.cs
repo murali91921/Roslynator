@@ -28,6 +28,7 @@ namespace Roslynator.Diagnostics
         public CodeAnalyzer(
             IEnumerable<AnalyzerAssembly> analyzerAssemblies = null,
             IFormatProvider formatProvider = null,
+            SpellingData spellingData = null,
             CodeAnalyzerOptions options = null)
         {
             if (analyzerAssemblies != null)
@@ -35,11 +36,14 @@ namespace Roslynator.Diagnostics
 
             Options = options ?? CodeAnalyzerOptions.Default;
             FormatProvider = formatProvider;
+            SpellingData = spellingData;
         }
 
         public CodeAnalyzerOptions Options { get; }
 
         public IFormatProvider FormatProvider { get; }
+
+        public SpellingData SpellingData { get; }
 
         public async Task<ImmutableArray<ProjectAnalysisResult>> AnalyzeSolutionAsync(
             Solution solution,
@@ -131,24 +135,31 @@ namespace Roslynator.Diagnostics
                 result = await AnalyzeProjectCoreAsync(project, analyzers, cancellationToken).ConfigureAwait(false);
             }
 
-            //TODO: analyze spelling
-            WriteLine($"  Analyze spelling in '{project.Name}'", Verbosity.Normal);
-
-            SpellingAnalysisResult spellingAnalysisResult = await SpellingAnalysis.AnalyzeSpellingAsync(
-                project,
-                SpellingAnalysisOptions.Default,
-                cancellationToken)
-                .ConfigureAwait(false);
-
-            //TODO: log result
-
-            if (result != null)
+            if (SpellingData != null)
             {
-                result = result.WithSpellingErrors(spellingAnalysisResult.Errors);
-            }
-            else
-            {
-                result = new ProjectAnalysisResult(project.Id, default, default, default, spellingAnalysisResult.Errors, default);
+                WriteLine($"  Analyze spelling '{project.Name}'", Verbosity.Normal);
+
+                SpellingAnalysisResult spellingAnalysisResult = await SpellingAnalysis.AnalyzeSpellingAsync(
+                    project,
+                    SpellingData,
+                    SpellingAnalysisOptions.Default,
+                    cancellationToken)
+                    .ConfigureAwait(false);
+
+                LogHelpers.WriteSpellingErrors(
+                    spellingAnalysisResult.Errors,
+                    baseDirectoryPath: Path.GetDirectoryName(project.FilePath),
+                    indentation: "  ",
+                    verbosity: Verbosity.Normal);
+
+                if (result != null)
+                {
+                    result = result.WithSpellingErrors(spellingAnalysisResult.Errors);
+                }
+                else
+                {
+                    result = new ProjectAnalysisResult(project.Id, default, default, default, spellingAnalysisResult.Errors, default);
+                }
             }
 
             return result;

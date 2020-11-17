@@ -2,7 +2,7 @@
   "profiles": {
     "CommandLine": {
       "commandName": "Project",
-      "commandLineArgs": "migrate \"E:\\Projects\\Roslynator\\src\\Migration.Test\" --target-version 3.0 --identifier roslynator.analyzers -d"
+      "commandLineArgs": "analyze \"E:\\Projects\\Roslynator\\src\\Roslynator.sln\" --msbuild-path \"C:\\Program Files\\Microsoft Visual Studio\\2019\\Community\\MSBuild\\Current\\Bin\" --ignore-analyzer-references --ignored-diagnostics CS1591 --severity-level info --culture en --verbosity n --file-log \"roslynator.log\" --file-log-verbosity diag"
     }
   }
 }

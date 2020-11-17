@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -13,9 +14,23 @@ namespace Roslynator.CSharp.Spelling
 {
     internal class CSharpSpellingWalker : CSharpSyntaxWalker
     {
-        private static readonly Regex _splitRegex = new Regex(@"(_+|\d+|(?<=\p{Ll})(?=\p{Lu}))");
+        private static readonly Regex _splitRegex = new Regex(
+            @"
+(
+    _+
+|
+    \d+
+|
+    (?<=\p{Lu})(?=\p{Lu}\p{Ll})
+|
+    (?<=\p{Ll})(?=\p{Lu})
+)
+",
+            RegexOptions.IgnorePatternWhitespace);
 
-        public HashSet<string> Dictionary { get; }
+        private static readonly Regex _identifierToSkipRegex = new Regex(@"\A_*\p{Ll}{2,3}\d*\z");
+
+        public SpellingData SpellingData { get; }
 
         public List<SpellingError> Errors { get; private set; }
 
@@ -23,9 +38,10 @@ namespace Roslynator.CSharp.Spelling
 
         public CancellationToken CancellationToken { get; }
 
-        public CSharpSpellingWalker(HashSet<string> dictionary, SpellingAnalysisOptions options, CancellationToken cancellationToken)
+        public CSharpSpellingWalker(SpellingData spellingData, SpellingAnalysisOptions options, CancellationToken cancellationToken)
+            : base(SyntaxWalkerDepth.Trivia)
         {
-            Dictionary = dictionary;
+            SpellingData = spellingData;
             Options = options;
             CancellationToken = cancellationToken;
         }
@@ -42,13 +58,40 @@ namespace Roslynator.CSharp.Spelling
 
         private void CheckValue(string text, SyntaxTree syntaxTree, TextSpan textSpan)
         {
-            foreach (string  value in _splitRegex.Split(text))
+            foreach (string value in _splitRegex.Split(text))
             {
-                if (string.IsNullOrWhiteSpace(value))
+                if (value.Length <= 1)
                     continue;
 
-                if (!Dictionary.Contains(value))
+                if (value.All(f => char.IsDigit(f)))
+                    continue;
+
+                if (value.All(f => char.IsUpper(f)))
+                    continue;
+
+                if (value[0] == 'T'
+                    && char.IsUpper(value[1]))
                 {
+                }
+
+                switch (value)
+                {
+                    case "Nul":
+                    case "Sln":
+                        {
+                            break;
+                        }
+                }
+
+                if (!SpellingData.Dictionary.Contains(value))
+                {
+                    if (value.Length == 2
+                        || value.Length == 3)
+                    {
+                    }
+
+                    System.Diagnostics.Debug.WriteLine(value);
+
                     (Errors ??= new List<SpellingError>()).Add(
                         new SpellingError(value, Location.Create(syntaxTree, textSpan)));
                 }
@@ -61,6 +104,10 @@ namespace Roslynator.CSharp.Spelling
             {
                 case SyntaxKind.SingleLineCommentTrivia:
                 case SyntaxKind.MultiLineCommentTrivia:
+                    {
+                        //TODO: analyze comment
+                        break;
+                    }
                 case SyntaxKind.SingleLineDocumentationCommentTrivia:
                 case SyntaxKind.MultiLineDocumentationCommentTrivia:
                 case SyntaxKind.RegionDirectiveTrivia:
@@ -101,6 +148,15 @@ namespace Roslynator.CSharp.Spelling
 
         public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)
         {
+            if (node.IsParentKind(SyntaxKind.VariableDeclaration)
+                && node.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.UsingStatement, SyntaxKind.FieldDeclaration))
+            {
+                string s = node.Identifier.ValueText;
+
+                if (ShouldBeSkipped(s))
+                    return;
+            }
+
             CheckIdentifier(node.Identifier);
             base.VisitVariableDeclarator(node);
         }
@@ -113,6 +169,11 @@ namespace Roslynator.CSharp.Spelling
 
         public override void VisitCatchDeclaration(CatchDeclarationSyntax node)
         {
+            string s = node.Identifier.ValueText;
+
+            if (ShouldBeSkipped(s))
+                return;
+
             CheckIdentifier(node.Identifier);
             base.VisitCatchDeclaration(node);
         }
@@ -158,8 +219,19 @@ namespace Roslynator.CSharp.Spelling
 
         public override void VisitTypeParameter(TypeParameterSyntax node)
         {
-            //TODO: trim leading T
-            CheckIdentifier(node.Identifier);
+            string s = node.Identifier.ValueText;
+
+            if (s.Length > 1)
+            {
+                if (s[0] == 'T'
+                    && char.IsUpper(s[1]))
+                {
+                    s = s.Substring(1);
+                }
+
+                CheckValue(s, node.SyntaxTree, node.Span);
+            }
+
             base.VisitTypeParameter(node);
         }
 
@@ -177,7 +249,19 @@ namespace Roslynator.CSharp.Spelling
 
         public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
         {
-            CheckIdentifier(node.Identifier);
+            string s = node.Identifier.ValueText;
+
+            if (s.Length > 1)
+            {
+                if (s[0] == 'I'
+                    && char.IsUpper(s[1]))
+                {
+                    s = s.Substring(1);
+                }
+
+                CheckValue(s, node.SyntaxTree, node.Span);
+            }
+
             base.VisitInterfaceDeclaration(node);
         }
 
@@ -219,13 +303,23 @@ namespace Roslynator.CSharp.Spelling
 
         public override void VisitParameter(ParameterSyntax node)
         {
-            CheckIdentifier(node.Identifier);
+            string s = node.Identifier.ValueText;
+
+            if (ShouldBeSkipped(s))
+                return;
+
+            CheckValue(s, node.SyntaxTree, node.Span);
             base.VisitParameter(node);
         }
 
         public override void VisitXmlText(XmlTextSyntax node)
         {
             //TODO: VisitXmlText
+        }
+
+        private bool ShouldBeSkipped(string s)
+        {
+            return _identifierToSkipRegex.IsMatch(s);
         }
     }
 }

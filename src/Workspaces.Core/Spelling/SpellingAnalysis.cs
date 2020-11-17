@@ -11,6 +11,7 @@ namespace Roslynator.Spelling
     {
         public static async Task<SpellingAnalysisResult> AnalyzeSpellingAsync(
             Project project,
+            SpellingData spellingData,
             SpellingAnalysisOptions options = null,
             CancellationToken cancellationToken = default)
         {
@@ -19,16 +20,16 @@ namespace Roslynator.Spelling
             if (service == null)
                 return default;
 
-            SpellingAnalysisResult result = default;
+            SpellingAnalysisResult result = SpellingAnalysisResult.Empty;
 
             foreach (Document document in project.Documents)
             {
                 if (!document.SupportsSyntaxTree)
                     continue;
 
-                SpellingAnalysisResult documentMetrics = await AnalyzeSpellingAsync(service, document, options, cancellationToken).ConfigureAwait(false);
+                SpellingAnalysisResult result2 = await AnalyzeSpellingAsync(service, document, spellingData, options, cancellationToken).ConfigureAwait(false);
 
-                result = result.Add(documentMetrics);
+                result = result.Add(result2);
             }
 
             return result;
@@ -37,6 +38,7 @@ namespace Roslynator.Spelling
         public static async Task<SpellingAnalysisResult> AnalyzeSpellingAsync(
             this ISpellingService service,
             Document document,
+            SpellingData spellingData,
             SpellingAnalysisOptions options = null,
             CancellationToken cancellationToken = default)
         {
@@ -53,7 +55,7 @@ namespace Roslynator.Spelling
 
             SyntaxNode root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            return service.AnalyzeSpelling(root, options, cancellationToken);
+            return service.AnalyzeSpelling(root, spellingData, options, cancellationToken);
         }
     }
 }

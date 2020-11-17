@@ -4,6 +4,7 @@ using System;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Roslynator.Spelling;
 using Roslynator.Text;
 
 namespace Roslynator
@@ -70,6 +71,49 @@ namespace Roslynator
                     return "error";
                 default:
                     throw new InvalidOperationException();
+            }
+        }
+
+        public static string FormatSpellingError(
+            SpellingError spellingError,
+            string baseDirectoryPath = null)
+        {
+            StringBuilder sb = StringBuilderCache.GetInstance();
+
+            AppendLocation(spellingError.Location, baseDirectoryPath, sb);
+
+            sb.Append("Spelling error: '");
+            sb.Append(spellingError.Text);
+            sb.Append("'");
+
+            return StringBuilderCache.GetStringAndFree(sb);
+        }
+
+        private static void AppendLocation(Location location, string baseDirectoryPath, StringBuilder sb)
+        {
+            switch (location.Kind)
+            {
+                case LocationKind.SourceFile:
+                case LocationKind.XmlFile:
+                case LocationKind.ExternalFile:
+                    {
+                        FileLinePositionSpan span = location.GetMappedLineSpan();
+
+                        if (span.IsValid)
+                        {
+                            sb.Append(PathUtilities.TrimStart(span.Path, baseDirectoryPath));
+
+                            LinePosition linePosition = span.Span.Start;
+
+                            sb.Append('(');
+                            sb.Append(linePosition.Line + 1);
+                            sb.Append(',');
+                            sb.Append(linePosition.Character + 1);
+                            sb.Append("): ");
+                        }
+
+                        break;
+                    }
             }
         }
     }

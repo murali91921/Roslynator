@@ -10,6 +10,10 @@ namespace Roslynator.Spelling
     {
         ISyntaxFactsService SyntaxFacts { get; }
 
-        SpellingAnalysisResult AnalyzeSpelling(SyntaxNode node, SpellingAnalysisOptions options, CancellationToken cancellationToken);
+        SpellingAnalysisResult AnalyzeSpelling(
+            SyntaxNode node,
+            SpellingData spellingData,
+            SpellingAnalysisOptions options,
+            CancellationToken cancellationToken);
     }
 }

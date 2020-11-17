@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslynator.CodeFixes;
+using Roslynator.Spelling;
 using static Roslynator.Logger;
 
 namespace Roslynator
@@ -60,6 +61,43 @@ namespace Roslynator
                     {
                         Write(indentation, verbosity);
                         WriteLine($"and {remainingCount} more diagnostics", verbosity);
+                    }
+                }
+            }
+        }
+
+        public static void WriteSpellingErrors(
+            ImmutableArray<SpellingError> spellingErrors,
+            string baseDirectoryPath = null,
+            string indentation = null,
+            int maxCount = int.MaxValue,
+            Verbosity verbosity = Verbosity.None)
+        {
+            if (!spellingErrors.Any())
+                return;
+
+            if (!ShouldWrite(verbosity))
+                return;
+
+            int count = 0;
+
+            foreach (SpellingError spellingError in spellingErrors.OrderBy(f => f, SpellingErrorComparer.FilePathThenSpanStart))
+            {
+                string text = DiagnosticFormatter.FormatSpellingError(spellingError, baseDirectoryPath);
+
+                Write(indentation, verbosity);
+                WriteLine(text, verbosity);
+
+                count++;
+
+                if (count > maxCount)
+                {
+                    int remainingCount = spellingErrors.Length - count;
+
+                    if (remainingCount > 0)
+                    {
+                        Write(indentation, verbosity);
+                        WriteLine($"and {remainingCount} more spelling errors", verbosity);
                     }
                 }
             }

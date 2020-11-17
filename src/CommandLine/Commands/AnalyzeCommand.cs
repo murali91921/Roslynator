@@ -5,12 +5,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Roslynator.CommandLine.Xml;
 using Roslynator.Diagnostics;
+using Roslynator.Spelling;
 using static Roslynator.Logger;
 
 namespace Roslynator.CommandLine
@@ -46,9 +48,44 @@ namespace Roslynator.CommandLine
 
             CultureInfo culture = (Options.Culture != null) ? CultureInfo.GetCultureInfo(Options.Culture) : null;
 
+            string path = typeof(AnalyzeCommand).Assembly.Location;
+
+            SpellingData spellingData = null;
+
+            if (!string.IsNullOrEmpty(path))
+            {
+                string directoryPath = Path.GetDirectoryName(path);
+
+                string dictionaryPath = Path.Combine(directoryPath, "roslynator.spelling.dictionary.txt");
+
+                if (File.Exists(dictionaryPath))
+                {
+                    ImmutableHashSet<string> spellingDictionary = File.ReadAllLines(dictionaryPath)
+                        .Where(f => !string.IsNullOrWhiteSpace(f))
+                        .Select(f => f.Trim())
+                        .ToImmutableHashSet(StringComparer.CurrentCultureIgnoreCase);
+
+                    spellingData = new SpellingData(spellingDictionary);
+                }
+
+                string dictionaryPath2 = Path.Combine(directoryPath, "roslynator.spelling.dictionary.custom.txt");
+
+                if (File.Exists(dictionaryPath2))
+                {
+                    IEnumerable<string> spellingDictionary2 = File.ReadAllLines(dictionaryPath2)
+                        .Where(f => !string.IsNullOrWhiteSpace(f))
+                        .Select(f => f.Trim());
+
+                    spellingData = (spellingData != null)
+                        ? new SpellingData(ImmutableHashSet.CreateRange(StringComparer.CurrentCultureIgnoreCase, spellingData.Dictionary.Concat(spellingDictionary2)))
+                        : new SpellingData(spellingDictionary2.ToImmutableHashSet(StringComparer.CurrentCultureIgnoreCase));
+                }
+            }
+
             var codeAnalyzer = new CodeAnalyzer(
                 analyzerAssemblies: analyzerAssemblies,
                 formatProvider: culture,
+                spellingData: spellingData,
                 options: codeAnalyzerOptions);
 
             if (projectOrSolution.IsProject)
