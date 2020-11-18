@@ -667,7 +667,7 @@ namespace Roslynator.CodeFixes
                 SpellingAnalysisResult spellingAnalysisResult = await SpellingAnalysis.AnalyzeSpellingAsync(
                     project,
                     SpellingData,
-                    new SpellingAnalysisOptions(stopOnFirstIdentifier: true),
+                    SpellingAnalysisOptions.Default,
                     cancellationToken)
                     .ConfigureAwait(false);
 
@@ -697,7 +697,7 @@ namespace Roslynator.CodeFixes
                         {
                             Console.Write("    Enter fixed value: ");
 
-                            fix = Console.ReadLine().Trim();
+                            fix = Console.ReadLine()?.Trim();
                         }
 
                         if (!string.IsNullOrEmpty(fix))
@@ -742,7 +742,7 @@ namespace Roslynator.CodeFixes
                     {
                         Console.Write("    Enter fixed value: ");
 
-                        fix = Console.ReadLine().Trim();
+                        fix = Console.ReadLine()?.Trim();
                     }
 
                     if (!string.IsNullOrEmpty(fix))

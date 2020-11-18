@@ -6,15 +6,10 @@ namespace Roslynator.Spelling
     {
         public static SpellingAnalysisOptions Default { get; } = new SpellingAnalysisOptions();
 
-        public SpellingAnalysisOptions(
-            bool stopOnFirstIdentifier = false,
-            bool includeGeneratedCode = false)
+        public SpellingAnalysisOptions(bool includeGeneratedCode = false)
         {
-            StopOnFirstIdentifier = stopOnFirstIdentifier;
             IncludeGeneratedCode = includeGeneratedCode;
         }
-
-        public bool StopOnFirstIdentifier { get; }
 
         public bool IncludeGeneratedCode { get; }
     }

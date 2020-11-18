@@ -58,24 +58,31 @@ namespace Roslynator.CSharp.Spelling
             CheckValue(trivia.ToString(), trivia.SyntaxTree, trivia.Span, default);
         }
 
-        private void CheckValue(string text, SyntaxTree syntaxTree, TextSpan textSpan, SyntaxToken identifier)
+        private void CheckValue(string value, SyntaxTree syntaxTree, TextSpan textSpan, SyntaxToken identifier)
         {
-            if (identifier.Parent != null
-                && SpellingData.IgnoreList.Contains(text))
+            CheckValue(value, null, syntaxTree, textSpan, identifier);
+        }
+
+        private void CheckValue(string value, string originalValue, SyntaxTree syntaxTree, TextSpan textSpan, SyntaxToken identifier)
+        {
+            if (identifier.Parent != null)
             {
-                return;
+                if (value.Length <= 2)
+                    return;
+
+                if (SpellingData.IgnoreList.Contains(originalValue ?? value))
+                    return;
             }
 
-            foreach (SplitItem splitItem in SplitItemCollection.Create(_splitRegex, text))
+            foreach (SplitItem splitItem in SplitItemCollection.Create(_splitRegex, value))
             {
                 if (CheckValue(
                     splitItem,
                     syntaxTree,
                     textSpan,
                     identifier,
-                    isSimpleIdentifier: _simpleIdentifierToSkipRegex.IsMatch(text))
-                    && identifier.Parent != null
-                    && Options.StopOnFirstIdentifier)
+                    isSimpleIdentifier: _simpleIdentifierToSkipRegex.IsMatch(value))
+                    && identifier.Parent != null)
                 {
                     break;
                 }
@@ -270,17 +277,19 @@ namespace Roslynator.CSharp.Spelling
         public override void VisitTypeParameter(TypeParameterSyntax node)
         {
             SyntaxToken identifier = node.Identifier;
-            string s = identifier.ValueText;
 
-            if (s.Length > 1)
+            string origValue = identifier.ValueText;
+            string value = origValue;
+
+            if (value.Length > 1)
             {
-                if (s[0] == 'T'
-                    && char.IsUpper(s[1]))
+                if (value[0] == 'T'
+                    && char.IsUpper(value[1]))
                 {
-                    s = s.Substring(1);
+                    value = value.Substring(1);
                 }
 
-                CheckValue(s, identifier.SyntaxTree, identifier.Span, identifier);
+                CheckValue(value, origValue, identifier.SyntaxTree, identifier.Span, identifier);
             }
 
             base.VisitTypeParameter(node);
@@ -301,17 +310,19 @@ namespace Roslynator.CSharp.Spelling
         public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
         {
             SyntaxToken identifier = node.Identifier;
-            string s = identifier.ValueText;
 
-            if (s.Length > 1)
+            string origValue = identifier.ValueText;
+            string value = origValue;
+
+            if (value.Length > 1)
             {
-                if (s[0] == 'I'
-                    && char.IsUpper(s[1]))
+                if (value[0] == 'I'
+                    && char.IsUpper(value[1]))
                 {
-                    s = s.Substring(1);
+                    value = value.Substring(1);
                 }
 
-                CheckValue(s, identifier.SyntaxTree, identifier.Span, identifier);
+                CheckValue(value, origValue, identifier.SyntaxTree, identifier.Span, identifier);
             }
 
             base.VisitInterfaceDeclaration(node);
