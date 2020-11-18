@@ -83,10 +83,7 @@ namespace Roslynator
 
             foreach (SpellingError spellingError in spellingErrors.OrderBy(f => f, SpellingErrorComparer.FilePathThenSpanStart))
             {
-                string text = DiagnosticFormatter.FormatSpellingError(spellingError, baseDirectoryPath);
-
-                Write(indentation, verbosity);
-                WriteLine(text, verbosity);
+                WriteSpellingError(spellingError, baseDirectoryPath, indentation, verbosity);
 
                 count++;
 
@@ -101,6 +98,19 @@ namespace Roslynator
                     }
                 }
             }
+        }
+
+        public static void WriteSpellingError(
+            SpellingError spellingError,
+            string baseDirectoryPath,
+            string indentation,
+            Verbosity verbosity)
+        {
+            Write(indentation, verbosity);
+
+            string text = DiagnosticFormatter.FormatSpellingError(spellingError, baseDirectoryPath);
+
+            WriteLine(text, verbosity);
         }
 
         public static void WriteAnalyzerExceptionDiagnostics(ImmutableArray<Diagnostic> diagnostics)

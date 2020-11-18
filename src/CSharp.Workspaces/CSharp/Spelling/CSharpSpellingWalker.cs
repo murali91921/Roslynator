@@ -60,6 +60,12 @@ namespace Roslynator.CSharp.Spelling
 
         private void CheckValue(string text, SyntaxTree syntaxTree, TextSpan textSpan, SyntaxToken identifier)
         {
+            if (identifier.Parent != null
+                && SpellingData.IgnoreList.Contains(text))
+            {
+                return;
+            }
+
             foreach (SplitItem splitItem in SplitItemCollection.Create(_splitRegex, text))
             {
                 if (CheckValue(
@@ -68,7 +74,8 @@ namespace Roslynator.CSharp.Spelling
                     textSpan,
                     identifier,
                     isSimpleIdentifier: _simpleIdentifierToSkipRegex.IsMatch(text))
-                    && identifier.Parent != null)
+                    && identifier.Parent != null
+                    && Options.StopOnFirstIdentifier)
                 {
                     break;
                 }
@@ -91,6 +98,9 @@ namespace Roslynator.CSharp.Spelling
                 return false;
 
             if (value.All(f => char.IsUpper(f)))
+                return false;
+
+            if (SpellingData.IgnoreList.Contains(value))
                 return false;
 
             if (SpellingData.Dictionary.Contains(value))
