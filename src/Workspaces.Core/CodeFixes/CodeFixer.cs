@@ -338,7 +338,7 @@ namespace Roslynator.CodeFixes
             Project project,
             CancellationToken cancellationToken)
         {
-            ImmutableArray<Diagnostic>.Builder fixedDiagostics = ImmutableArray.CreateBuilder<Diagnostic>();
+            ImmutableArray<Diagnostic>.Builder fixedDiagnostics = ImmutableArray.CreateBuilder<Diagnostic>();
 
             ImmutableArray<Diagnostic> diagnostics = ImmutableArray<Diagnostic>.Empty;
             ImmutableArray<Diagnostic> previousDiagnostics = ImmutableArray<Diagnostic>.Empty;
@@ -403,7 +403,7 @@ namespace Roslynator.CodeFixes
                     break;
                 }
 
-                fixedDiagostics.AddRange(previousDiagnosticsToFix.Except(diagnostics, DiagnosticDeepEqualityComparer.Instance));
+                fixedDiagnostics.AddRange(previousDiagnosticsToFix.Except(diagnostics, DiagnosticDeepEqualityComparer.Instance));
 
                 previousDiagnostics = diagnostics;
 
@@ -420,9 +420,9 @@ namespace Roslynator.CodeFixes
                 project = CurrentSolution.GetProject(project.Id);
             }
 
-            fixedDiagostics.AddRange(previousDiagnosticsToFix.Except(diagnostics, DiagnosticDeepEqualityComparer.Instance));
+            fixedDiagnostics.AddRange(previousDiagnosticsToFix.Except(diagnostics, DiagnosticDeepEqualityComparer.Instance));
 
-            return new DiagnosticFixResult(fixKind, fixedDiagostics.ToImmutableArray());
+            return new DiagnosticFixResult(fixKind, fixedDiagnostics.ToImmutableArray());
         }
 
         private async Task<DiagnosticFixKind> FixDiagnosticsAsync(

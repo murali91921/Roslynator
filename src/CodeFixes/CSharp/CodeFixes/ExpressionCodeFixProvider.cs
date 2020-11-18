@@ -243,7 +243,7 @@ namespace Roslynator.CSharp.CodeFixes
 
                             SemanticModel semanticModel = await context.GetSemanticModelAsync().ConfigureAwait(false);
 
-                            if (expression.Parent is ArrowExpressionClauseSyntax arrowExpresssionClause)
+                            if (expression.Parent is ArrowExpressionClauseSyntax arrowExpressionClause)
                             {
                                 if (!Settings.IsEnabled(diagnostic.Id, CodeFixIdentifiers.ChangeMemberTypeAccordingToReturnExpression))
                                     break;

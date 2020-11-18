@@ -467,7 +467,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
 
                     textChanges.Add(new TextSpan(token.SpanStart, 0), newText);
 
-                    SetIndendation(token, prevIndex);
+                    SetIndentation2(token, prevIndex);
                     prevIndex = (trivia.IsEndOfLineTrivia()) ? trivia.SpanStart : token.SpanStart;
                     return true;
                 }
@@ -488,7 +488,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                             if (trivia.IsEndOfLineTrivia())
                             {
                                 textChanges.Add((leading.IsEmptyOrWhitespace()) ? leading.Span : last.Span, indentation);
-                                SetIndendation(token, prevIndex);
+                                SetIndentation2(token, prevIndex);
                                 prevIndex = trivia.SpanStart;
                                 return true;
                             }
@@ -502,7 +502,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                     if (trivia.IsEndOfLineTrivia())
                     {
                         textChanges.Add((leading.IsEmptyOrWhitespace()) ? leading.Span : last.Span, indentation);
-                        SetIndendation(token, prevIndex);
+                        SetIndentation2(token, prevIndex);
                         prevIndex = trivia.SpanStart;
                         return true;
                     }
@@ -512,7 +512,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 return true;
             }
 
-            void SetIndendation(SyntaxToken token, int endIndex)
+            void SetIndentation2(SyntaxToken token, int endIndex)
             {
                 ImmutableArray<IndentationInfo> indentations = FindIndentations(expression, TextSpan.FromBounds(token.SpanStart, endIndex)).ToImmutableArray();
 
@@ -656,7 +656,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                         : new TextSpan(nodeOrToken.SpanStart, 0);
 
                     textChanges.Add(span, newText);
-                    SetIndendation(nodeOrToken, prevIndex);
+                    SetIndentation2(nodeOrToken, prevIndex);
                     prevIndex = start;
                     return true;
                 }
@@ -677,7 +677,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                             if (trivia.IsEndOfLineTrivia())
                             {
                                 AddTextChange((leading.IsEmptyOrWhitespace()) ? leading.Span : last.Span);
-                                SetIndendation(nodeOrToken, prevIndex);
+                                SetIndentation2(nodeOrToken, prevIndex);
                                 prevIndex = trivia.SpanStart;
                                 return true;
                             }
@@ -691,7 +691,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                     if (trivia.IsEndOfLineTrivia())
                     {
                         AddTextChange((leading.IsEmptyOrWhitespace()) ? leading.Span : last.Span);
-                        SetIndendation(nodeOrToken, prevIndex);
+                        SetIndentation2(nodeOrToken, prevIndex);
                         prevIndex = trivia.SpanStart;
                         return true;
                     }
@@ -703,7 +703,7 @@ namespace Roslynator.Formatting.CodeFixes.CSharp
                 void AddTextChange(TextSpan span) => textChanges.Add(span, indentation);
             }
 
-            void SetIndendation(SyntaxNodeOrToken nodeOrToken, int endIndex)
+            void SetIndentation2(SyntaxNodeOrToken nodeOrToken, int endIndex)
             {
                 ImmutableArray<IndentationInfo> indentations = FindIndentations(binaryExpression, TextSpan.FromBounds(nodeOrToken.SpanStart, endIndex)).ToImmutableArray();
 

@@ -424,7 +424,7 @@ namespace N
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.AddParagraphToDocumentationComment)]
-        public async Task Test_EndsWithhParaElement()
+        public async Task Test_EndsWithParaElement()
         {
             await VerifyDiagnosticAndFixAsync(@"
 namespace N
@@ -455,7 +455,7 @@ namespace N
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.AddParagraphToDocumentationComment)]
-        public async Task Test_EndsWithhParaElement2()
+        public async Task Test_EndsWithParaElement2()
         {
             await VerifyDiagnosticAndFixAsync(@"
 namespace N
