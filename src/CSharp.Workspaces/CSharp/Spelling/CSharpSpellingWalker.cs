@@ -125,20 +125,15 @@ namespace Roslynator.CSharp.Spelling
                     return false;
                 }
             }
-
-            if (value.Length == 2
-                || value.Length == 3)
-            {
-            }
-
+#if DEBUG
             switch (value)
             {
-                case "sloučit":
+                case "":
                     {
                         break;
                     }
             }
-
+#endif
             Debug.WriteLine(value);
 
             SpellingError spellingError;
@@ -150,6 +145,8 @@ namespace Roslynator.CSharp.Spelling
             {
                 spellingError = new SpellingError(value, Location.Create(syntaxTree, new TextSpan(textSpan.Start + splitItem.Index, splitItem.Length)));
             }
+
+            Debug.Assert(identifier.Parent == null || identifier.ValueText.Length > 2, identifier.ValueText);
 
             (Errors ??= new List<SpellingError>()).Add(spellingError);
 

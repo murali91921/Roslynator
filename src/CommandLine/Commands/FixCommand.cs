@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis;
 using Roslynator.CodeFixes;
 using Roslynator.Spelling;
 using static Roslynator.Logger;
+using System.Collections.Immutable;
 
 namespace Roslynator.CommandLine
 {
@@ -75,13 +76,15 @@ namespace Roslynator.CommandLine
             IFormatProvider formatProvider = null,
             CancellationToken cancellationToken = default)
         {
+            CodeFixer codeFixer;
+
             if (projectOrSolution.IsProject)
             {
                 Project project = projectOrSolution.AsProject();
 
                 Solution solution = project.Solution;
 
-                CodeFixer codeFixer = GetCodeFixer(solution);
+                codeFixer = GetCodeFixer(solution);
 
                 WriteLine($"Fix '{project.Name}'", ConsoleColor.Cyan, Verbosity.Minimal);
 
@@ -99,9 +102,34 @@ namespace Roslynator.CommandLine
             {
                 Solution solution = projectOrSolution.AsSolution();
 
-                CodeFixer codeFixer = GetCodeFixer(solution);
+                codeFixer = GetCodeFixer(solution);
 
                 await codeFixer.FixSolutionAsync(f => projectFilter.IsMatch(f), cancellationToken);
+            }
+
+            ImmutableHashSet<string> ignoreList = codeFixer.SpellingData.IgnoreList;
+
+            if (ignoreList.Count > 0)
+            {
+                const string filePath = "roslynator.spelling.ignore.dictionary";
+
+                IEnumerable<string> oldIgnoreList = Enumerable.Empty<string>();
+
+                if (File.Exists(filePath))
+                {
+                    oldIgnoreList = File.ReadLines(filePath)
+                        .Where(f => !string.IsNullOrWhiteSpace(f))
+                        .Select(f => f.Trim())
+                        .ToArray();
+                }
+
+                File.WriteAllText(
+                    filePath + ".new",
+                    string.Join(
+                        Environment.NewLine,
+                        ignoreList
+                            .Except(oldIgnoreList, StringComparer.CurrentCulture)
+                            .OrderBy(f => f, StringComparer.CurrentCulture)));
             }
 
             return CommandResult.Success;
