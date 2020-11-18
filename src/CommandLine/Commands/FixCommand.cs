@@ -4,11 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Roslynator.CodeFixes;
+using Roslynator.Spelling;
 using static Roslynator.Logger;
 
 namespace Roslynator.CommandLine
@@ -106,10 +108,18 @@ namespace Roslynator.CommandLine
 
             CodeFixer GetCodeFixer(Solution solution)
             {
+                SpellingData spellingData = SpellingData.Empty;
+
+                string assemblyPath = typeof(FixCommand).Assembly.Location;
+
+                if (!string.IsNullOrEmpty(assemblyPath))
+                    spellingData = SpellingData.LoadFromDirectory(Path.GetDirectoryName(assemblyPath));
+
                 return new CodeFixer(
                     solution,
                     analyzerAssemblies: analyzerAssemblies,
                     formatProvider: formatProvider,
+                    spellingData: spellingData,
                     options: codeFixerOptions);
             }
         }

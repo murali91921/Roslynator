@@ -3,11 +3,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -20,8 +18,6 @@ namespace Roslynator.CommandLine
 {
     internal class AnalyzeCommand : MSBuildWorkspaceCommand
     {
-        private static readonly Regex _dictionaryFileName = new Regex(@"\Aroslynator\.spelling(\.|\z)", RegexOptions.IgnoreCase);
-
         public AnalyzeCommand(AnalyzeCommandLineOptions options, DiagnosticSeverity severityLevel, in ProjectFilter projectFilter) : base(projectFilter)
         {
             Options = options;
@@ -51,31 +47,12 @@ namespace Roslynator.CommandLine
 
             CultureInfo culture = (Options.Culture != null) ? CultureInfo.GetCultureInfo(Options.Culture) : null;
 
-            string path = typeof(AnalyzeCommand).Assembly.Location;
-
             SpellingData spellingData = SpellingData.Empty;
 
-            if (!string.IsNullOrEmpty(path))
-            {
-                string directoryPath = Path.GetDirectoryName(path);
+            string assemblyPath = typeof(AnalyzeCommand).Assembly.Location;
 
-                foreach (string filePath in Directory.EnumerateFiles(directoryPath, "*.dictionary", SearchOption.TopDirectoryOnly))
-                {
-                    string input = Path.GetFileNameWithoutExtension(filePath);
-                    if (!_dictionaryFileName.IsMatch(input))
-                        continue;
-
-                    IEnumerable<string> spellingDictionary = File.ReadAllLines(filePath)
-                        .Where(f => !string.IsNullOrWhiteSpace(f))
-                        .Select(f => f.Trim());
-
-                    ImmutableHashSet<string> dictionary = ImmutableHashSet.CreateRange(
-                        StringComparer.CurrentCultureIgnoreCase,
-                        spellingData.Dictionary.Concat(spellingDictionary));
-
-                    spellingData = new SpellingData(dictionary);
-                }
-            }
+            if (!string.IsNullOrEmpty(assemblyPath))
+                spellingData = SpellingData.LoadFromDirectory(Path.GetDirectoryName(assemblyPath));
 
             var codeAnalyzer = new CodeAnalyzer(
                 analyzerAssemblies: analyzerAssemblies,

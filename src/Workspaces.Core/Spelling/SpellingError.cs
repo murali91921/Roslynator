@@ -6,14 +6,17 @@ namespace Roslynator.Spelling
 {
     internal readonly struct SpellingError
     {
-        public SpellingError(string text, Location location)
+        public SpellingError(string text, Location location, SyntaxToken identifier = default)
         {
             Text = text;
             Location = location;
+            Identifier = identifier;
         }
 
         public string Text { get; }
 
         public Location Location { get; }
+
+        public SyntaxToken Identifier { get; }
     }
 }

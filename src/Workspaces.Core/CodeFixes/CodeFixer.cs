@@ -12,8 +12,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using Roslynator.Formatting;
 using Roslynator.Host.Mef;
+using Roslynator.Spelling;
 using static Roslynator.CodeFixes.CodeFixerHelpers;
 using static Roslynator.Logger;
 
@@ -29,6 +31,7 @@ namespace Roslynator.CodeFixes
             Solution solution,
             IEnumerable<AnalyzerAssembly> analyzerAssemblies = null,
             IFormatProvider formatProvider = null,
+            SpellingData spellingData = null,
             CodeFixerOptions options = null)
         {
             Workspace = solution.Workspace;
@@ -37,14 +40,17 @@ namespace Roslynator.CodeFixes
                 _analyzerAssemblies.AddRange(analyzerAssemblies);
 
             FormatProvider = formatProvider;
+            SpellingData = spellingData;
             Options = options ?? CodeFixerOptions.Default;
         }
 
         public Workspace Workspace { get; }
 
-        public CodeFixerOptions Options { get; }
-
         public IFormatProvider FormatProvider { get; }
+
+        public SpellingData SpellingData { get; private set; }
+
+        public CodeFixerOptions Options { get; }
 
         private Solution CurrentSolution => Workspace.CurrentSolution;
 
@@ -156,6 +162,11 @@ namespace Roslynator.CodeFixes
 
             if (Options.Format)
                 formattedDocuments = await FormatProjectAsync(CurrentSolution.GetProject(project.Id), cancellationToken).ConfigureAwait(false);
+
+            if (SpellingData != null)
+            {
+                await FixSpellingAsync(project, cancellationToken).ConfigureAwait(false);
+            }
 
             return new ProjectFixResult(
                 kind: fixResult.Kind,
@@ -645,6 +656,123 @@ namespace Roslynator.CodeFixes
             }
 
             return formattedDocuments;
+        }
+
+        private async Task FixSpellingAsync(Project project, CancellationToken cancellationToken)
+        {
+            WriteLine($"  Fix spelling in '{project.Name}'", Verbosity.Normal);
+
+            while (true)
+            {
+                SpellingAnalysisResult spellingAnalysisResult = await SpellingAnalysis.AnalyzeSpellingAsync(
+                    project,
+                    SpellingData,
+                    new SpellingAnalysisOptions(stopOnFirstIdentifier: true),
+                    cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (!spellingAnalysisResult.Errors.Any())
+                    return;
+
+                var applyChanges = false;
+
+                project = CurrentSolution.GetProject(project.Id);
+
+                foreach (IGrouping<SyntaxTree, SpellingError> grouping in spellingAnalysisResult.Errors
+                    .Where(f => f.Identifier.Parent == null)
+                    .GroupBy(f => f.Location.SourceTree))
+                {
+                    Document document = project.GetDocument(grouping.Key);
+
+                    List<TextChange> textChanges = null;
+
+                    foreach (SpellingError spellingError in grouping.OrderBy(f => f.Location.SourceSpan.Start))
+                    {
+                        if (SpellingData.IgnoreList.Contains(spellingError.Text))
+                            continue;
+
+                        if (!SpellingData.Fixes.TryGetValue(spellingError.Text, out string fix))
+                        {
+                            Console.Write($"    Spelling error: '{spellingError.Text}', enter fixed value: ");
+
+                            fix = Console.ReadLine().Trim();
+
+                            if (!string.IsNullOrEmpty(fix))
+                            {
+                                (textChanges ??= new List<TextChange>()).Add(new TextChange(spellingError.Location.SourceSpan, fix));
+
+                                SpellingData = SpellingData.AddFix(spellingError.Text, fix);
+                            }
+                            else
+                            {
+                                SpellingData = SpellingData.AddIgnoredValue(spellingError.Text);
+                            }
+                        }
+                    }
+
+                    if (textChanges != null)
+                    {
+                        document = await document.WithTextChangesAsync(textChanges, cancellationToken).ConfigureAwait(false);
+                        project = document.Project;
+
+                        applyChanges = true;
+                    }
+                }
+
+                if (applyChanges
+                    && !Workspace.TryApplyChanges(project.Solution))
+                {
+                    Debug.Fail($"Cannot apply changes to solution '{project.Solution.FilePath}'");
+                    WriteLine($"Cannot apply changes to solution '{project.Solution.FilePath}'", ConsoleColor.Yellow, Verbosity.Diagnostic);
+                    return;
+                }
+
+                foreach (SpellingError spellingError in spellingAnalysisResult.Errors
+                    .Where(f => f.Identifier.Parent != null))
+                {
+                    if (SpellingData.IgnoreList.Contains(spellingError.Text))
+                        continue;
+
+                    if (!SpellingData.Fixes.TryGetValue(spellingError.Text, out string fix))
+                    {
+                        Console.Write($"    Spelling error: '{spellingError.Text}', enter fixed value: ");
+
+                        fix = Console.ReadLine().Trim();
+
+                        if (!string.IsNullOrEmpty(fix))
+                        {
+                            project = CurrentSolution.GetProject(project.Id);
+
+                            Document document = project.GetDocument(spellingError.Location.SourceTree);
+
+                            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                            ISymbol symbol = semanticModel.GetDeclaredSymbol(spellingError.Identifier.Parent, cancellationToken);
+
+                            Solution newSolution = await Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(
+                                CurrentSolution,
+                                symbol,
+                                fix,
+                                default(Microsoft.CodeAnalysis.Options.OptionSet),
+                                cancellationToken)
+                                .ConfigureAwait(false);
+
+                            if (!Workspace.TryApplyChanges(newSolution))
+                            {
+                                Debug.Fail($"Cannot apply changes to solution '{newSolution.FilePath}'");
+                                WriteLine($"Cannot apply changes to solution '{newSolution.FilePath}'", ConsoleColor.Yellow, Verbosity.Diagnostic);
+                                return;
+                            }
+
+                            SpellingData = SpellingData.AddFix(spellingError.Text, fix);
+                        }
+                        else
+                        {
+                            SpellingData = SpellingData.AddIgnoredValue(spellingError.Text);
+                        }
+                    }
+                }
+            }
         }
     }
 }

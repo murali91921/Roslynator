@@ -64,7 +64,13 @@
   <ItemGroup>
     <None Include="..\..\images\icon.png" Pack="true" PackagePath="\" Visible="false" />
     <None Remove="_._" />
-    <None Update="roslynator.spelling.dictionary.txt">
+    <None Update="roslynator.spelling.dictionary">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="roslynator.spelling.custom.dictionary">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="roslynator.spelling.errors.dictionary">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -34,16 +34,16 @@ namespace Roslynator.Diagnostics
             if (analyzerAssemblies != null)
                 _analyzerAssemblies.AddRange(analyzerAssemblies);
 
-            Options = options ?? CodeAnalyzerOptions.Default;
             FormatProvider = formatProvider;
             SpellingData = spellingData;
+            Options = options ?? CodeAnalyzerOptions.Default;
         }
-
-        public CodeAnalyzerOptions Options { get; }
 
         public IFormatProvider FormatProvider { get; }
 
         public SpellingData SpellingData { get; }
+
+        public CodeAnalyzerOptions Options { get; }
 
         public async Task<ImmutableArray<ProjectAnalysisResult>> AnalyzeSolutionAsync(
             Solution solution,
@@ -137,7 +137,7 @@ namespace Roslynator.Diagnostics
 
             if (SpellingData != null)
             {
-                WriteLine($"  Analyze spelling '{project.Name}'", Verbosity.Normal);
+                WriteLine($"  Analyze spelling in '{project.Name}'", Verbosity.Normal);
 
                 SpellingAnalysisResult spellingAnalysisResult = await SpellingAnalysis.AnalyzeSpellingAsync(
                     project,

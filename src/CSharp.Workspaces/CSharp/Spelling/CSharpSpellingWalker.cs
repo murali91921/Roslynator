@@ -8,7 +8,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using Roslynator.RegularExpressions;
 using Roslynator.Spelling;
+using System.Diagnostics;
 
 namespace Roslynator.CSharp.Spelling
 {
@@ -48,57 +50,62 @@ namespace Roslynator.CSharp.Spelling
 
         private void CheckIdentifier(SyntaxToken identifier)
         {
-            CheckValue(identifier.ValueText, identifier.SyntaxTree, identifier.Span, identifier.Parent);
+            CheckValue(identifier.ValueText, identifier.SyntaxTree, identifier.Span, identifier);
         }
 
         private void CheckTrivia(SyntaxTrivia trivia)
         {
-            CheckValue(trivia.ToString(), trivia.SyntaxTree, trivia.Span, null);
+            CheckValue(trivia.ToString(), trivia.SyntaxTree, trivia.Span, default);
         }
 
-        private void CheckValue(string text, SyntaxTree syntaxTree, TextSpan textSpan, SyntaxNode node)
+        private void CheckValue(string text, SyntaxTree syntaxTree, TextSpan textSpan, SyntaxToken identifier)
         {
-            Match match = _simpleIdentifierToSkipRegex.Match(text);
-
-            if (match.Success)
+            foreach (SplitItem splitItem in SplitItemCollection.Create(_splitRegex, text))
             {
-                CheckValue(match.Value, syntaxTree, textSpan, node, true);
-            }
-            else
-            {
-                foreach (string value in _splitRegex.Split(text))
-                    CheckValue(value, syntaxTree, textSpan, node, false);
+                if (CheckValue(
+                    splitItem,
+                    syntaxTree,
+                    textSpan,
+                    identifier,
+                    isSimpleIdentifier: _simpleIdentifierToSkipRegex.IsMatch(text))
+                    && identifier.Parent != null)
+                {
+                    break;
+                }
             }
         }
 
-        private void CheckValue(
-            string value,
+        private bool CheckValue(
+            SplitItem splitItem,
             SyntaxTree syntaxTree,
             TextSpan textSpan,
-            SyntaxNode node,
+            SyntaxToken identifier,
             bool isSimpleIdentifier)
         {
+            string value = splitItem.Value;
+
             if (value.Length <= 1)
-                return;
+                return false;
 
             if (value.All(f => char.IsDigit(f)))
-                return;
+                return false;
 
             if (value.All(f => char.IsUpper(f)))
-                return;
+                return false;
 
             if (SpellingData.Dictionary.Contains(value))
-                return;
+                return false;
 
             if (isSimpleIdentifier
-                && IsLocalOrParameterOrField(node))
+                && identifier.Parent != null
+                && IsLocalOrParameterOrField(identifier.Parent))
             {
                 Match match = _typeParameterLowercaseRegex.Match(value);
 
                 if (match.Success
                     && SpellingData.Dictionary.Contains(match.Value))
                 {
-                    return;
+                    return false;
                 }
             }
 
@@ -115,10 +122,21 @@ namespace Roslynator.CSharp.Spelling
                     }
             }
 
-            System.Diagnostics.Debug.WriteLine(value);
+            Debug.WriteLine(value);
 
-            (Errors ??= new List<SpellingError>()).Add(
-                new SpellingError(value, Location.Create(syntaxTree, textSpan)));
+            SpellingError spellingError;
+            if (identifier.Parent != null)
+            {
+                spellingError = new SpellingError(identifier.ValueText, identifier.GetLocation(), identifier);
+            }
+            else
+            {
+                spellingError = new SpellingError(value, Location.Create(syntaxTree, new TextSpan(textSpan.Start + splitItem.Index, splitItem.Length)));
+            }
+
+            (Errors ??= new List<SpellingError>()).Add(spellingError);
+
+            return true;
         }
 
         public override void VisitTrivia(SyntaxTrivia trivia)
@@ -252,7 +270,7 @@ namespace Roslynator.CSharp.Spelling
                     s = s.Substring(1);
                 }
 
-                CheckValue(s, identifier.SyntaxTree, identifier.Span, identifier.Parent);
+                CheckValue(s, identifier.SyntaxTree, identifier.Span, identifier);
             }
 
             base.VisitTypeParameter(node);
@@ -283,7 +301,7 @@ namespace Roslynator.CSharp.Spelling
                     s = s.Substring(1);
                 }
 
-                CheckValue(s, identifier.SyntaxTree, identifier.Span, identifier.Parent);
+                CheckValue(s, identifier.SyntaxTree, identifier.Span, identifier);
             }
 
             base.VisitInterfaceDeclaration(node);
@@ -332,7 +350,7 @@ namespace Roslynator.CSharp.Spelling
             if (ShouldBeSkipped(s))
                 return;
 
-            CheckValue(s, node.SyntaxTree, node.Span, node.Parent);
+            CheckValue(s, node.SyntaxTree, node.Span, node.Identifier);
             base.VisitParameter(node);
         }
 
@@ -341,7 +359,7 @@ namespace Roslynator.CSharp.Spelling
             foreach (SyntaxToken token in node.TextTokens)
             {
                 if (token.IsKind(SyntaxKind.XmlTextLiteralToken))
-                    CheckValue(token.ValueText, node.SyntaxTree, token.Span, null);
+                    CheckValue(token.ValueText, node.SyntaxTree, token.Span, default);
             }
         }
 
