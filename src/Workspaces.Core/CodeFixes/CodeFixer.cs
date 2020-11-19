@@ -667,7 +667,7 @@ namespace Roslynator.CodeFixes
                 SpellingAnalysisResult spellingAnalysisResult = await SpellingAnalysis.AnalyzeSpellingAsync(
                     project,
                     SpellingData,
-                    SpellingAnalysisOptions.Default,
+                    new SpellingAnalysisOptions(includeLocal: false),
                     cancellationToken)
                     .ConfigureAwait(false);
 
@@ -690,25 +690,26 @@ namespace Roslynator.CodeFixes
                     {
                         LogHelpers.WriteSpellingError(spellingError, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
 
-                        if (SpellingData.IgnoreList.Contains(spellingError.Text))
+                        if (SpellingData.IgnoreList.Contains(spellingError.Value))
                             continue;
 
-                        if (!SpellingData.Fixes.TryGetValue(spellingError.Text, out string fix))
+                        if (!SpellingData.Fixes.TryGetValue(spellingError.Value, out string fix))
                         {
                             Console.Write("    Enter fixed value: ");
 
                             fix = Console.ReadLine()?.Trim();
                         }
 
-                        if (!string.IsNullOrEmpty(fix))
+                        if (!string.IsNullOrEmpty(fix)
+                            && !string.Equals(fix, spellingError.Value, StringComparison.Ordinal))
                         {
                             (textChanges ??= new List<TextChange>()).Add(new TextChange(spellingError.Location.SourceSpan, fix));
 
-                            SpellingData = SpellingData.AddFix(spellingError.Text, fix);
+                            SpellingData = SpellingData.AddFix(spellingError.Value, fix);
                         }
                         else
                         {
-                            SpellingData = SpellingData.AddIgnoredValue(spellingError.Text);
+                            SpellingData = SpellingData.AddIgnoredValue(spellingError.Value);
                         }
                     }
 
@@ -735,17 +736,31 @@ namespace Roslynator.CodeFixes
                 {
                     LogHelpers.WriteSpellingError(spellingError, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
 
-                    if (SpellingData.IgnoreList.Contains(spellingError.Text))
+                    if (SpellingData.IgnoreList.Contains(spellingError.Value))
                         continue;
 
-                    if (!SpellingData.Fixes.TryGetValue(spellingError.Text, out string fix))
-                    {
-                        Console.Write("    Enter fixed value: ");
+                    string identifierText = spellingError.Identifier.ValueText;
 
-                        fix = Console.ReadLine()?.Trim();
+                    if (!SpellingData.Fixes.TryGetValue(identifierText, out string fix))
+                    {
+                        if (SpellingData.Fixes.TryGetValue(spellingError.Value, out fix))
+                        {
+                            string fix2 = identifierText
+                                .Remove(spellingError.Index, spellingError.Value.Length)
+                                .Insert(spellingError.Index, fix);
+
+                            fix = fix2;
+                        }
+                        else
+                        {
+                            Console.Write("    Enter fixed value: ");
+
+                            fix = Console.ReadLine()?.Trim();
+                        }
                     }
 
-                    if (!string.IsNullOrEmpty(fix))
+                    if (!string.IsNullOrEmpty(fix)
+                        && !string.Equals(fix, identifierText, StringComparison.Ordinal))
                     {
                         project = CurrentSolution.GetProject(project.Id);
 
@@ -770,11 +785,23 @@ namespace Roslynator.CodeFixes
                             return;
                         }
 
-                        SpellingData = SpellingData.AddFix(spellingError.Text, fix);
+                        //TODO: check length
+                        string x = fix
+                            .Remove(spellingError.Index, spellingError.Value.Length)
+                            .Insert(spellingError.Index, spellingError.Value);
+
+                        if (string.Equals(identifierText, x, StringComparison.Ordinal))
+                        {
+                            SpellingData = SpellingData.AddFix(spellingError.Value, fix);
+                        }
+                        else
+                        {
+                            SpellingData = SpellingData.AddFix(identifierText, fix);
+                        }
                     }
                     else
                     {
-                        SpellingData = SpellingData.AddIgnoredValue(spellingError.Text);
+                        SpellingData = SpellingData.AddIgnoredValue(identifierText);
                     }
                 }
 

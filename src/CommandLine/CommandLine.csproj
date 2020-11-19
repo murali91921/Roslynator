@@ -73,6 +73,9 @@
     <None Update="roslynator.spelling.custom.dictionary">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="roslynator.spelling.custom2.dictionary">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

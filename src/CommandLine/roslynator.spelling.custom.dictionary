@@ -1,3 +1,22 @@
+cli
+typescript
+auth
+db
+bin
+jquery
+sid
+auth
+jarray
+iframe
+onclick
+keydown
+keyup
+millis
+builtin
+csrf
+perf
+lparam
+wparam
 agg
 alloc
 api
@@ -11,7 +30,6 @@ attr
 azure
 bom
 bson
-cf
 chars
 cmd
 cnt
@@ -36,7 +54,6 @@ dlls
 doctype
 dothtml
 dotnet
-dotvmm
 dotvvm
 dvd
 elif
@@ -140,6 +157,7 @@ var
 vbproj
 vsixmanifest
 wpf
+www
 xaml
 xml
 xmldoc

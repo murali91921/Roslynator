@@ -17,7 +17,7 @@ namespace Roslynator.CSharp.Spelling
     internal class CSharpSpellingWalker : CSharpSyntaxWalker
     {
         //TODO: parse NaN
-        private static readonly Regex _splitRegex = new Regex(
+        private static readonly Regex _splitIdentifierRegex = new Regex(
             @"
     \P{L}+
 |
@@ -26,6 +26,19 @@ namespace Roslynator.CSharp.Spelling
     (?<=\p{Ll})(?=\p{Lu})
 ",
             RegexOptions.IgnorePatternWhitespace);
+
+        private static readonly Regex _wordInComment = new Regex(
+            @"
+\b
+\p{L}{2,}
+(
+    (?='s\b)
+|
+    ('(d|ll|m|re|t|ve)\b)
+|
+    \b
+)",
+            RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
         private static readonly Regex _identifierToSkipRegex = new Regex(@"\A_*\p{Ll}{1,3}\d*\z");
 
@@ -54,6 +67,24 @@ namespace Roslynator.CSharp.Spelling
             CheckValue(identifier.ValueText, identifier.SyntaxTree, identifier.Span, identifier);
         }
 
+        private void CheckCommentValue(string value, SyntaxTree syntaxTree, TextSpan textSpan)
+        {
+            Match match = _wordInComment.Match(value);
+
+            while (match.Success)
+            {
+                CheckValue(
+                    match.Value,
+                    match.Index,
+                    syntaxTree,
+                    textSpan,
+                    default(SyntaxToken),
+                    isSimpleIdentifier: false);
+
+                match = match.NextMatch();
+            }
+        }
+
         private void CheckValue(string value, SyntaxTree syntaxTree, TextSpan textSpan, SyntaxToken identifier = default)
         {
             CheckValue(value, null, syntaxTree, textSpan, identifier);
@@ -70,10 +101,11 @@ namespace Roslynator.CSharp.Spelling
                     return;
             }
 
-            foreach (SplitItem splitItem in SplitItemCollection.Create(_splitRegex, value))
+            foreach (SplitItem splitItem in SplitItemCollection.Create(_splitIdentifierRegex, value))
             {
                 if (CheckValue(
-                    splitItem,
+                    splitItem.Value,
+                    splitItem.Index,
                     syntaxTree,
                     textSpan,
                     identifier,
@@ -86,14 +118,13 @@ namespace Roslynator.CSharp.Spelling
         }
 
         private bool CheckValue(
-            SplitItem splitItem,
+            string value,
+            int index,
             SyntaxTree syntaxTree,
             TextSpan textSpan,
             SyntaxToken identifier,
             bool isSimpleIdentifier)
         {
-            string value = splitItem.Value;
-
             if (value.Length <= 1)
                 return false;
 
@@ -126,11 +157,11 @@ namespace Roslynator.CSharp.Spelling
             SpellingError spellingError;
             if (identifier.Parent != null)
             {
-                spellingError = new SpellingError(identifier.ValueText, identifier.GetLocation(), identifier);
+                spellingError = new SpellingError(value, identifier.GetLocation(), identifier, index - identifier.SpanStart);
             }
             else
             {
-                spellingError = new SpellingError(value, Location.Create(syntaxTree, new TextSpan(textSpan.Start + splitItem.Index, splitItem.Length)));
+                spellingError = new SpellingError(value, Location.Create(syntaxTree, new TextSpan(textSpan.Start + index, value.Length)));
             }
 
             Debug.Assert(identifier.Parent == null || identifier.ValueText.Length > 2, identifier.ValueText);
@@ -147,6 +178,7 @@ namespace Roslynator.CSharp.Spelling
                 case SyntaxKind.SingleLineCommentTrivia:
                 case SyntaxKind.MultiLineCommentTrivia:
                     {
+                        CheckCommentValue(trivia.ToString(), trivia.SyntaxTree, trivia.Span);
                         break;
                     }
                 case SyntaxKind.SingleLineDocumentationCommentTrivia:
@@ -414,7 +446,7 @@ namespace Roslynator.CSharp.Spelling
             foreach (SyntaxToken token in node.TextTokens)
             {
                 if (token.IsKind(SyntaxKind.XmlTextLiteralToken))
-                    CheckValue(token.ValueText, node.SyntaxTree, token.Span);
+                    CheckCommentValue(token.ValueText, node.SyntaxTree, token.Span);
             }
         }
 
