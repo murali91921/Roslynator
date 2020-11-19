@@ -27,6 +27,14 @@ namespace Roslynator.CSharp.Spelling
 ",
             RegexOptions.IgnorePatternWhitespace);
 
+        private static readonly Regex _splitCommentWordRegex = new Regex(
+            @"
+    (?<=\p{Lu})(?=\p{Lu}\p{Ll})
+|
+    (?<=\p{Ll})(?=\p{Lu})
+",
+            RegexOptions.IgnorePatternWhitespace);
+
         private static readonly Regex _wordInComment = new Regex(
             @"
 \b
@@ -73,13 +81,22 @@ namespace Roslynator.CSharp.Spelling
 
             while (match.Success)
             {
-                CheckValue(
-                    match.Value,
-                    match.Index,
-                    syntaxTree,
-                    textSpan,
-                    default(SyntaxToken),
-                    isSimpleIdentifier: false);
+                SplitItemCollection splitItems = SplitItemCollection.Create(_splitCommentWordRegex, match.Value);
+
+                if (splitItems.Count > 1)
+                {
+                }
+
+                foreach (SplitItem splitItem in splitItems)
+                {
+                    CheckValue(
+                        splitItem.Value,
+                        splitItem.Index + match.Index,
+                        syntaxTree,
+                        textSpan,
+                        default(SyntaxToken),
+                        isSimpleIdentifier: false);
+                }
 
                 match = match.NextMatch();
             }
@@ -92,6 +109,8 @@ namespace Roslynator.CSharp.Spelling
 
         private void CheckValue(string value, string originalValue, SyntaxTree syntaxTree, TextSpan textSpan, SyntaxToken identifier)
         {
+            Debug.Assert(identifier.Parent != null, value);
+
             if (identifier.Parent != null)
             {
                 if (value.Length <= 2)
@@ -103,6 +122,8 @@ namespace Roslynator.CSharp.Spelling
 
             foreach (SplitItem splitItem in SplitItemCollection.Create(_splitIdentifierRegex, value))
             {
+                Debug.Assert(splitItem.Value.All(f => char.IsLetter(f)), splitItem.Value);
+
                 if (CheckValue(
                     splitItem.Value,
                     splitItem.Index,
@@ -127,8 +148,6 @@ namespace Roslynator.CSharp.Spelling
         {
             if (value.Length <= 1)
                 return false;
-
-            Debug.Assert(value.All(f => char.IsLetter(f)), value);
 
             if (value.All(f => char.IsUpper(f)))
                 return false;
@@ -191,7 +210,7 @@ namespace Roslynator.CSharp.Spelling
                     }
                 case SyntaxKind.PreprocessingMessageTrivia:
                     {
-                        CheckValue(trivia.ToString(), trivia.SyntaxTree, trivia.Span);
+                        CheckCommentValue(trivia.ToString(), trivia.SyntaxTree, trivia.Span);
                         break;
                     }
             }
@@ -211,7 +230,8 @@ namespace Roslynator.CSharp.Spelling
 
         public override void VisitTupleElement(TupleElementSyntax node)
         {
-            CheckIdentifier(node.Identifier);
+            if (node.Identifier.Parent != null)
+                CheckIdentifier(node.Identifier);
         }
 
         public override void VisitArgument(ArgumentSyntax node)
