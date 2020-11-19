@@ -16,6 +16,7 @@ namespace Roslynator.CSharp.Spelling
 {
     internal class CSharpSpellingWalker : CSharpSyntaxWalker
     {
+        //TODO: parse NaN
         private static readonly Regex _splitRegex = new Regex(
             @"
     \P{L}+
@@ -34,11 +35,11 @@ namespace Roslynator.CSharp.Spelling
 
         public SpellingData SpellingData { get; }
 
-        public List<SpellingError> Errors { get; private set; }
-
         public SpellingAnalysisOptions Options { get; }
 
         public CancellationToken CancellationToken { get; }
+
+        public List<SpellingError> Errors { get; private set; }
 
         public CSharpSpellingWalker(SpellingData spellingData, SpellingAnalysisOptions options, CancellationToken cancellationToken)
             : base(SyntaxWalkerDepth.StructuredTrivia)
@@ -53,12 +54,7 @@ namespace Roslynator.CSharp.Spelling
             CheckValue(identifier.ValueText, identifier.SyntaxTree, identifier.Span, identifier);
         }
 
-        private void CheckTrivia(SyntaxTrivia trivia)
-        {
-            CheckValue(trivia.ToString(), trivia.SyntaxTree, trivia.Span, default);
-        }
-
-        private void CheckValue(string value, SyntaxTree syntaxTree, TextSpan textSpan, SyntaxToken identifier)
+        private void CheckValue(string value, SyntaxTree syntaxTree, TextSpan textSpan, SyntaxToken identifier = default)
         {
             CheckValue(value, null, syntaxTree, textSpan, identifier);
         }
@@ -101,8 +97,7 @@ namespace Roslynator.CSharp.Spelling
             if (value.Length <= 1)
                 return false;
 
-            if (value.All(f => char.IsDigit(f)))
-                return false;
+            Debug.Assert(value.All(f => char.IsLetter(f)), value);
 
             if (value.All(f => char.IsUpper(f)))
                 return false;
@@ -125,15 +120,7 @@ namespace Roslynator.CSharp.Spelling
                     return false;
                 }
             }
-#if DEBUG
-            switch (value)
-            {
-                case "":
-                    {
-                        break;
-                    }
-            }
-#endif
+
             Debug.WriteLine(value);
 
             SpellingError spellingError;
@@ -172,10 +159,22 @@ namespace Roslynator.CSharp.Spelling
                     }
                 case SyntaxKind.PreprocessingMessageTrivia:
                     {
-                        CheckTrivia(trivia);
+                        CheckValue(trivia.ToString(), trivia.SyntaxTree, trivia.Span);
                         break;
                     }
             }
+        }
+
+        public override void VisitTupleType(TupleTypeSyntax node)
+        {
+            if (!Options.IncludeLocal
+                && node.IsParentKind(SyntaxKind.VariableDeclaration)
+                && node.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.UsingStatement))
+            {
+                return;
+            }
+
+            base.VisitTupleType(node);
         }
 
         public override void VisitTupleElement(TupleElementSyntax node)
@@ -191,7 +190,8 @@ namespace Roslynator.CSharp.Spelling
 
         public override void VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
         {
-            CheckIdentifier(node.NameEquals.Name.Identifier);
+            if (node.NameEquals != null)
+                CheckIdentifier(node.NameEquals.Name.Identifier);
         }
 
         public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
@@ -202,33 +202,71 @@ namespace Roslynator.CSharp.Spelling
 
         public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)
         {
-            if (node.IsParentKind(SyntaxKind.VariableDeclaration)
-                && node.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.UsingStatement, SyntaxKind.FieldDeclaration))
-            {
-                string s = node.Identifier.ValueText;
+            if (ShouldAnalyze(node))
+                CheckIdentifier(node.Identifier);
 
-                if (ShouldBeSkipped(s))
-                    return;
-            }
-
-            CheckIdentifier(node.Identifier);
             base.VisitVariableDeclarator(node);
+
+            bool ShouldAnalyze(VariableDeclaratorSyntax node)
+            {
+                Debug.Assert(node.IsParentKind(SyntaxKind.VariableDeclaration), node.Parent.Kind().ToString());
+
+                if (node.IsParentKind(SyntaxKind.VariableDeclaration))
+                {
+                    Debug.Assert(
+                        node.Parent.IsParentKind(
+                            SyntaxKind.LocalDeclarationStatement,
+                            SyntaxKind.UsingStatement,
+                            SyntaxKind.ForStatement,
+                            SyntaxKind.FieldDeclaration,
+                            SyntaxKind.EventFieldDeclaration),
+                        node.Parent.Parent.Kind().ToString());
+
+                    switch (node.Parent.Parent.Kind())
+                    {
+                        case SyntaxKind.LocalDeclarationStatement:
+                        case SyntaxKind.UsingStatement:
+                        case SyntaxKind.ForStatement:
+                            {
+                                if (!Options.IncludeLocal)
+                                    return false;
+
+                                if (ShouldBeSkipped(node.Identifier.ValueText))
+                                    return false;
+
+                                break;
+                            }
+                        case SyntaxKind.FieldDeclaration:
+                        case SyntaxKind.EventFieldDeclaration:
+                            {
+                                if (ShouldBeSkipped(node.Identifier.ValueText))
+                                    return false;
+
+                                break;
+                            }
+                    }
+                }
+
+                return true;
+            }
         }
 
         public override void VisitSingleVariableDesignation(SingleVariableDesignationSyntax node)
         {
-            CheckIdentifier(node.Identifier);
+            if (Options.IncludeLocal)
+                CheckIdentifier(node.Identifier);
+
             base.VisitSingleVariableDesignation(node);
         }
 
         public override void VisitCatchDeclaration(CatchDeclarationSyntax node)
         {
-            string s = node.Identifier.ValueText;
+            if (Options.IncludeLocal
+                && !ShouldBeSkipped(node.Identifier.ValueText))
+            {
+                CheckIdentifier(node.Identifier);
+            }
 
-            if (ShouldBeSkipped(s))
-                return;
-
-            CheckIdentifier(node.Identifier);
             base.VisitCatchDeclaration(node);
         }
 
@@ -242,6 +280,12 @@ namespace Roslynator.CSharp.Spelling
         {
             if (node.Alias != null)
                 CheckIdentifier(node.Alias.Name.Identifier);
+        }
+
+        public override void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
+        {
+            VisitName(node.Name);
+            base.VisitNamespaceDeclaration(node);
         }
 
         private void VisitName(NameSyntax node)
@@ -263,12 +307,6 @@ namespace Roslynator.CSharp.Spelling
                         break;
                     }
             }
-        }
-
-        public override void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
-        {
-            VisitName(node.Name);
-            base.VisitNamespaceDeclaration(node);
         }
 
         public override void VisitTypeParameter(TypeParameterSyntax node)
@@ -365,10 +403,9 @@ namespace Roslynator.CSharp.Spelling
         {
             string s = node.Identifier.ValueText;
 
-            if (ShouldBeSkipped(s))
-                return;
+            if (!ShouldBeSkipped(s))
+                CheckValue(s, node.SyntaxTree, node.Span, node.Identifier);
 
-            CheckValue(s, node.SyntaxTree, node.Span, node.Identifier);
             base.VisitParameter(node);
         }
 
@@ -377,7 +414,7 @@ namespace Roslynator.CSharp.Spelling
             foreach (SyntaxToken token in node.TextTokens)
             {
                 if (token.IsKind(SyntaxKind.XmlTextLiteralToken))
-                    CheckValue(token.ValueText, node.SyntaxTree, token.Span, default);
+                    CheckValue(token.ValueText, node.SyntaxTree, token.Span);
             }
         }
 
@@ -401,7 +438,9 @@ namespace Roslynator.CSharp.Spelling
                             && node.Parent.IsParentKind(
                                 SyntaxKind.LocalDeclarationStatement,
                                 SyntaxKind.UsingStatement,
-                                SyntaxKind.FieldDeclaration);
+                                SyntaxKind.ForStatement,
+                                SyntaxKind.FieldDeclaration,
+                                SyntaxKind.EventFieldDeclaration);
                     }
                 default:
                     {
