@@ -105,7 +105,7 @@ namespace Roslynator.CSharp.Spelling
         {
             Debug.Assert(identifier.Parent != null, value);
 
-            if (value.Length <= 2)
+            if ((originalValue ?? value).Length <= 2)
                 return;
 
             if (originalValue != null)
@@ -278,6 +278,7 @@ namespace Roslynator.CSharp.Spelling
                             SyntaxKind.LocalDeclarationStatement,
                             SyntaxKind.UsingStatement,
                             SyntaxKind.ForStatement,
+                            SyntaxKind.FixedStatement,
                             SyntaxKind.FieldDeclaration,
                             SyntaxKind.EventFieldDeclaration),
                         node.Parent.Parent.Kind().ToString());
@@ -287,6 +288,7 @@ namespace Roslynator.CSharp.Spelling
                         case SyntaxKind.LocalDeclarationStatement:
                         case SyntaxKind.UsingStatement:
                         case SyntaxKind.ForStatement:
+                        case SyntaxKind.FixedStatement:
                             {
                                 if (!Options.IncludeLocal)
                                     return false;
@@ -499,6 +501,7 @@ namespace Roslynator.CSharp.Spelling
                                 SyntaxKind.LocalDeclarationStatement,
                                 SyntaxKind.UsingStatement,
                                 SyntaxKind.ForStatement,
+                                SyntaxKind.FixedStatement,
                                 SyntaxKind.FieldDeclaration,
                                 SyntaxKind.EventFieldDeclaration);
                     }

@@ -1,3 +1,50 @@
+elm
+Mercury
+Lasso
+Dart
+Darts
+Gherkin
+Gherkins
+allocated
+groovy
+borders
+brushes
+calculated
+delimiter
+delimiters
+enclose
+encloses
+indenting
+inserting
+measuring
+printed
+printing
+Raise
+Raises
+Renames
+renaming
+Sorts
+twip
+twips
+Typographic
+Agility
+allocated
+borders
+Brushes
+manifest
+measuring
+Phonetic
+Phonetics
+printed
+printing
+Typographic
+rights
+programming
+variance
+dimensional
+trait
+cracker
+
 abandoned
 abbreviation
 abort
@@ -57,6 +104,7 @@ advertise
 advertisement
 advertiser
 aeroplane
+affecting
 affects
 aftereffect
 afterthought
@@ -65,6 +113,7 @@ aged
 agents
 aggregate
 aggregated
+agreements
 aircushion
 airman
 airmen
@@ -82,6 +131,7 @@ aligned
 alignment
 alike
 allocates
+allocating
 allocation
 allocations
 allowance
@@ -158,7 +208,9 @@ applicable
 applicator
 applied
 applies
+applying
 appreciation
+approved
 approximate
 approximation
 april
@@ -250,6 +302,7 @@ await
 awaitable
 awaited
 awaiter
+awaits
 awake
 awkward
 axapta
@@ -505,6 +558,7 @@ cased
 cases
 cashpoint
 casing
+casting
 castle
 casual
 catches
@@ -648,6 +702,7 @@ colour
 colourful
 columns
 comb
+combinations
 combinator
 combined
 combines
@@ -917,6 +972,7 @@ decrement
 decrypt
 dedent
 deduction
+deemed
 deeper
 default
 defaults
@@ -1264,6 +1320,7 @@ exclude
 excluded
 excluding
 exclusive
+exclusives
 excuse
 executable
 execute
@@ -1817,6 +1874,7 @@ influenza
 info
 infos
 infrastructure
+infringed
 inherent
 inherit
 inheritance
@@ -1844,6 +1902,7 @@ innermost
 innovation
 input
 inputs
+insanity
 insect
 insensitive
 insert
@@ -2025,6 +2084,8 @@ lever
 levy
 liability
 licence
+licensed
+licenses
 lid
 lifecycle
 lifted
@@ -2095,6 +2156,7 @@ lorry
 loses
 lottery
 lowercase
+lowercased
 lowest
 luggage
 lump
@@ -2153,6 +2215,7 @@ matrix
 mattress
 mature
 max
+maximally
 maximum
 means
 meant
@@ -2203,6 +2266,7 @@ min
 miner
 mineral
 minimal
+minimally
 minimises
 minimum
 ministry
@@ -2212,6 +2276,7 @@ minuses
 minutes
 miscellaneous
 miserable
+misformatted
 mismatch
 missed
 missing
@@ -2870,6 +2935,7 @@ references
 referendum
 referentially
 referred
+refers
 refine
 reflux
 refresh
@@ -2950,6 +3016,7 @@ repository
 represented
 representing
 represents
+reproduce
 reproduction
 repulsion
 requested
@@ -2999,6 +3066,7 @@ reversed
 reversible
 revise
 revision
+revisit
 reward
 rewrite
 rewriter
@@ -3056,6 +3124,7 @@ sandal
 sandwich
 sanitized
 sanitizing
+sanity
 santa
 sardine
 satisfactory
@@ -3393,6 +3462,7 @@ subordinate
 subpattern
 subscribe
 subscripts
+subsequently
 subset
 subsidiary
 substitute
@@ -3478,12 +3548,14 @@ symbols
 symmetric
 sympathetic
 sync
+synchronization
 synchronize
 synchronizer
 synchronous
 synopsis
 syntax
 syntaxes
+synthesized
 tab
 tabify
 tables
@@ -3560,6 +3632,7 @@ thursday
 tick
 tide
 tidy
+ties
 tiger
 tights
 tilde
@@ -3782,12 +3855,14 @@ update
 updated
 updates
 updating
+upfront
 upgrade
 upkeep
 uplift
 upload
 uploaded
 uppercase
+uppercased
 upright
 uproot
 upset
@@ -3822,6 +3897,7 @@ vapor
 variables
 variant
 variants
+varying
 vascular
 vase
 vegetarian

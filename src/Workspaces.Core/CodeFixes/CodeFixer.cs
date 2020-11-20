@@ -708,6 +708,7 @@ namespace Roslynator.CodeFixes
                             (textChanges ??= new List<TextChange>()).Add(new TextChange(spellingError.Location.SourceSpan, fix));
 
                             SpellingData = SpellingData.AddFix(spellingError.Value, fix);
+                            SpellingData = SpellingData.AddWord(fix);
                         }
                         else
                         {
