@@ -81,17 +81,11 @@ namespace Roslynator.CSharp.Spelling
 
             while (match.Success)
             {
-                SplitItemCollection splitItems = SplitItemCollection.Create(_splitCommentWordRegex, match.Value);
-
-                if (splitItems.Count > 1)
-                {
-                }
-
-                foreach (SplitItem splitItem in splitItems)
+                foreach (SplitItem splitItem in SplitItemCollection.Create(_splitCommentWordRegex, match.Value))
                 {
                     CheckValue(
                         splitItem.Value,
-                        splitItem.Index + match.Index,
+                        match.Index + splitItem.Index,
                         syntaxTree,
                         textSpan,
                         default(SyntaxToken),
@@ -111,16 +105,30 @@ namespace Roslynator.CSharp.Spelling
         {
             Debug.Assert(identifier.Parent != null, value);
 
-            if (identifier.Parent != null)
+            if (value.Length <= 2)
+                return;
+
+            if (originalValue != null)
             {
-                if (value.Length <= 2)
+                if (SpellingData.IgnoreList.Contains(originalValue))
                     return;
 
-                if (SpellingData.IgnoreList.Contains(originalValue ?? value))
+                if (SpellingData.WordList.Contains(originalValue))
                     return;
             }
 
-            foreach (SplitItem splitItem in SplitItemCollection.Create(_splitIdentifierRegex, value))
+            SplitItemCollection splitItems = SplitItemCollection.Create(_splitIdentifierRegex, value);
+
+            if (splitItems.Count > 1)
+            {
+                if (SpellingData.IgnoreList.Contains(value))
+                    return;
+
+                if (SpellingData.WordList.Contains(value))
+                    return;
+            }
+
+            foreach (SplitItem splitItem in splitItems)
             {
                 Debug.Assert(splitItem.Value.All(f => char.IsLetter(f)), splitItem.Value);
 
@@ -155,7 +163,7 @@ namespace Roslynator.CSharp.Spelling
             if (SpellingData.IgnoreList.Contains(value))
                 return false;
 
-            if (SpellingData.Dictionary.Contains(value))
+            if (SpellingData.WordList.Contains(value))
                 return false;
 
             if (isSimpleIdentifier
@@ -165,7 +173,7 @@ namespace Roslynator.CSharp.Spelling
                 Match match = _typeParameterLowercaseRegex.Match(value);
 
                 if (match.Success
-                    && SpellingData.Dictionary.Contains(match.Value))
+                    && SpellingData.WordList.Contains(match.Value))
                 {
                     return false;
                 }
@@ -176,7 +184,7 @@ namespace Roslynator.CSharp.Spelling
             SpellingError spellingError;
             if (identifier.Parent != null)
             {
-                spellingError = new SpellingError(value, identifier.GetLocation(), identifier, index - identifier.SpanStart);
+                spellingError = new SpellingError(value, identifier.GetLocation(), identifier, index);
             }
             else
             {

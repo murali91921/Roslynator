@@ -19,38 +19,43 @@ namespace Roslynator.Spelling
             ImmutableDictionary.Create<string, string>(StringComparer.CurrentCulture));
 
         public SpellingData(
-            ImmutableHashSet<string> dictionary,
+            ImmutableHashSet<string> wordList,
             ImmutableHashSet<string> ignoreList,
             ImmutableDictionary<string, string> fixes)
         {
-            Dictionary = dictionary;
+            WordList = wordList;
             IgnoreList = ignoreList;
             Fixes = fixes;
         }
 
-        public ImmutableHashSet<string> Dictionary { get; }
+        public ImmutableHashSet<string> WordList { get; }
 
         public ImmutableHashSet<string> IgnoreList { get; }
 
         public ImmutableDictionary<string, string> Fixes { get; }
 
-        public SpellingData AddDictionary(IEnumerable<string> values)
+        public SpellingData AddWords(IEnumerable<string> values)
         {
             ImmutableHashSet<string> dictionary = ImmutableHashSet.CreateRange(
-                Dictionary.KeyComparer,
-                Dictionary.Concat(values));
+                WordList.KeyComparer,
+                WordList.Concat(values));
 
             return new SpellingData(dictionary, IgnoreList, Fixes);
         }
 
+        public SpellingData AddWord(string value)
+        {
+            return new SpellingData(WordList.Add(value), IgnoreList, Fixes);
+        }
+
         public SpellingData AddFix(string error, string fix)
         {
-            return new SpellingData(Dictionary, IgnoreList, Fixes.Add(error, fix));
+            return new SpellingData(WordList, IgnoreList, Fixes.Add(error, fix));
         }
 
         public SpellingData AddIgnoredValue(string value)
         {
-            return new SpellingData(Dictionary, IgnoreList.Add(value), Fixes);
+            return new SpellingData(WordList, IgnoreList.Add(value), Fixes);
         }
 
         public static SpellingData LoadFromDirectory(string directoryPath)
@@ -67,7 +72,7 @@ namespace Roslynator.Spelling
                     .Where(f => !string.IsNullOrWhiteSpace(f))
                     .Select(f => f.Trim());
 
-                spellingData = spellingData.AddDictionary(dictionary);
+                spellingData = spellingData.AddWords(dictionary);
             }
 
             return spellingData;
