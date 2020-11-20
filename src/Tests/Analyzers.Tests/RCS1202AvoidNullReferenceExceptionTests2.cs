@@ -118,7 +118,7 @@ static class E
         }
 
         [Fact, Trait(Traits.Analyzer, DiagnosticIdentifiers.AvoidNullReferenceException)]
-        public async Task TestNoDiagnostic_ThisCastedToItsInterface()
+        public async Task TestNoDiagnostic_ThisCastToItsInterface()
         {
             await VerifyNoDiagnosticAsync(@"
 interface I

@@ -30,7 +30,7 @@ namespace Roslynator.CSharp.Syntax
         public BinaryExpressionSyntax IsExpression { get; }
 
         /// <summary>
-        /// The expression that is being casted.
+        /// The expression that is being cast.
         /// </summary>
         public ExpressionSyntax Expression { get; }
 
