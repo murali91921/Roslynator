@@ -81,15 +81,18 @@ namespace Roslynator.CSharp.Spelling
 
             while (match.Success)
             {
-                foreach (SplitItem splitItem in SplitItemCollection.Create(_splitCommentWordRegex, match.Value))
+                if (match.Length > 2)
                 {
-                    CheckValue(
-                        splitItem.Value,
-                        match.Index + splitItem.Index,
-                        syntaxTree,
-                        textSpan,
-                        default(SyntaxToken),
-                        isSimpleIdentifier: false);
+                    foreach (SplitItem splitItem in SplitItemCollection.Create(_splitCommentWordRegex, match.Value))
+                    {
+                        CheckValue(
+                            splitItem.Value,
+                            match.Index + splitItem.Index,
+                            syntaxTree,
+                            textSpan,
+                            default(SyntaxToken),
+                            isSimpleIdentifier: false);
+                    }
                 }
 
                 match = match.NextMatch();
