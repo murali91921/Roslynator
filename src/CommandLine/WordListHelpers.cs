@@ -2,9 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 
 namespace Roslynator.CommandLine
 {
@@ -13,38 +13,30 @@ namespace Roslynator.CommandLine
         public static void CompareWordList()
         {
             WordList big1 = WordList.Load(@"E:\Projects\Roslynator\src\CommandLine\wordlist\big1.txt");
-            WordList big2 = WordList.Load(@"E:\Projects\Roslynator\src\CommandLine\wordlist\big2.txt");
-            WordList big3 = WordList.Load(@"E:\Projects\Roslynator\src\CommandLine\wordlist\big3.txt");
-            WordList core = WordList.Load(@"E:\Projects\Roslynator\src\CommandLine\wordlist\core.txt");
 
-            //WordList x = WordList.LoadText(@"");
+            WordList big2 = WordList.Load(@"E:\Projects\Roslynator\src\CommandLine\wordlist\big2.txt")
+                .SaveAndLoad();
 
-            var derived = core.GeneratePrefixes().Except(core).Intersect(big3);
+            WordList core = WordList.Load(@"E:\Projects\Roslynator\src\CommandLine\wordlist\core.txt")
+                .SaveAndLoad();
 
-            derived.Save(core.Path + ".derived");
-        }
+            WordList it = WordList.Load(@"E:\Projects\Roslynator\src\CommandLine\roslynator.spelling.it.dictionary")
+                .Except(core)
+                .SaveAndLoad();
 
-        public static IEnumerable<string> Load(string path)
-        {
-            return File.ReadLines(path)
-                .Where(f => !string.IsNullOrWhiteSpace(f))
-                .Select(f => f.Trim());
-        }
+            //WordList core2 = WordList.Load(@"E:\Projects\Roslynator\src\CommandLine\wordlist\core2.txt").SaveAndLoad();
 
-        public static void Save(string path, IEnumerable<string> values)
-        {
-            Save(path, StringComparer.OrdinalIgnoreCase, values);
-        }
+            WordList big = big1.AddValues(big2);
 
-        public static void Save(string path, StringComparer comparer, IEnumerable<string> values)
-        {
-            values = values
-                .Where(f => !string.IsNullOrWhiteSpace(f))
-                .Select(f => f.Trim().ToLower())
-                .Distinct(comparer)
-                .OrderBy(f => f, StringComparer.InvariantCulture);
+            WordList prefixes = core.GeneratePrefixes().Except(core).Intersect(big);
+            WordList suffixes = core.GenerateSuffixes().Except(core).Intersect(big);
 
-            File.WriteAllText(path, string.Join(Environment.NewLine, values));
+            prefixes.Save(core.Path + ".prefixes");
+            suffixes.Save(core.Path + ".suffixes");
+
+            WordList except = core.Except(big);
+            Debug.Assert(except.Values.Count == 0, except.Values.Count.ToString());
+            WordList.Save(big2.Path, except, append: true);
         }
     }
 }

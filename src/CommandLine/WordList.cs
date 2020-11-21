@@ -13,10 +13,12 @@ namespace Roslynator.CommandLine
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     internal class WordList
     {
+        public static StringComparer DefaultComparer { get; } = StringComparer.CurrentCultureIgnoreCase;
+
         public WordList(string path, StringComparer comparer, IEnumerable<string> values)
         {
             Path = path;
-            Comparer = comparer ?? StringComparer.CurrentCultureIgnoreCase;
+            Comparer = comparer ?? DefaultComparer;
             Values = values.ToImmutableHashSet(comparer);
         }
 
@@ -96,20 +98,36 @@ namespace Roslynator.CommandLine
             return WithValues(except);
         }
 
+        public WordList AddValues(WordList wordList)
+        {
+            IEnumerable<string> values = Values.Concat(wordList.Values).Distinct(Comparer);
+
+            return new WordList(Path, Comparer, values);
+        }
+
         public WordList WithValues(IEnumerable<string> values)
         {
             return new WordList(Path, Comparer, values);
         }
 
-        public void Save(string path = null)
+        public static void Save(
+            string path,
+            WordList wordList,
+            bool append = false)
         {
-            IEnumerable<string> values = Values
+            IEnumerable<string> values = wordList.Values
                 .Where(f => !string.IsNullOrWhiteSpace(f))
                 .Select(f => f.Trim().ToLower())
-                .Distinct(Comparer)
+                .Distinct(wordList.Comparer)
                 .OrderBy(f => f, StringComparer.InvariantCulture);
 
-            File.WriteAllText(path ?? Path, string.Join(Environment.NewLine, values));
+            using (var sw = new StreamWriter(path, append: append))
+                sw.Write(string.Join(Environment.NewLine, values));
+        }
+
+        public void Save(string path = null)
+        {
+            Save(path ?? Path, this);
         }
 
         public WordList SaveAndLoad()

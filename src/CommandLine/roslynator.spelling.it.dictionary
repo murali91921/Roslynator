@@ -1,4 +1,3 @@
-symlink
 accessor
 accessors
 admin
@@ -29,7 +28,8 @@ azure
 backreference
 backreferences
 bin
-blacklist
+bitmap
+bitmaps
 blazor
 blowfish
 bom
@@ -37,6 +37,8 @@ bool
 brainfuck
 bson
 builtin
+captcha
+captchas
 cased
 cdata
 chars
@@ -54,6 +56,8 @@ configurers
 const
 corefx
 cpp
+cpu
+cpus
 cref
 crlf
 cs
@@ -117,8 +121,8 @@ exec
 expr
 ext
 externs
-faker
 fakers
+faq
 filesystem
 filterpriority
 firefox
@@ -150,6 +154,7 @@ href
 html
 http
 https
+hypertext
 icsharpcode
 id
 ids
@@ -185,6 +190,10 @@ lookahead
 lookbehind
 lparam
 lua
+macintosh
+macintoshes
+mainframe
+mainframes
 masterpage
 masterpages
 mathematica
@@ -252,6 +261,7 @@ prop
 props
 protobuf
 queryable
+qwerty
 readme
 readonly
 refactor
@@ -296,6 +306,8 @@ subtree
 subtrees
 swagger
 swashbuckle
+symlink
+symlinks
 tabify
 temp
 thisobj
@@ -315,10 +327,12 @@ uitest
 ulong
 undef
 unicode
+unix
 untabify
 uri
-url
 urls
+username
+usernames
 ushort
 usings
 utc
@@ -334,8 +348,12 @@ virt
 vsixmanifest
 webcam
 webforms
+webmaster
+webmasters
 whitespace
 whitespaces
+widget
+widgets
 winform
 winforms
 workspace

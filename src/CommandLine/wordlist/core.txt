@@ -524,6 +524,7 @@ ashamed
 asian
 aside
 ask
+asked
 asking
 asleep
 aspect
@@ -650,6 +651,8 @@ backslash
 backslashes
 backspace
 backtick
+backup
+backups
 backward
 backwards
 backwoods
@@ -676,6 +679,8 @@ ban
 banana
 band
 bandage
+bandwidth
+bandwidths
 bang
 bank
 banking
@@ -837,6 +842,8 @@ book
 bookcase
 booking
 bookkeeper
+bookmark
+bookmarks
 bookshelf
 bookshop
 bookstore
@@ -905,6 +912,7 @@ brilliant
 bring
 british
 broad
+broadband
 broadcast
 broccoli
 brochure
@@ -1419,6 +1427,7 @@ composition
 compound
 compounds
 comprehensive
+compress
 compressed
 comprise
 compromise
@@ -1427,6 +1436,7 @@ compute
 computed
 computer
 computes
+computing
 concatenate
 concatenates
 concatenation
@@ -1742,6 +1752,7 @@ customization
 customs
 cut
 cute
+cyberspace
 cycle
 cyclic
 cycling
@@ -1765,6 +1776,8 @@ darkness
 dart
 darts
 dash
+dashboard
+dashboards
 data
 database
 date
@@ -1807,6 +1820,7 @@ declaring
 decline
 decode
 decompose
+decompress
 deconstruct
 deconstruction
 decorate
@@ -1931,6 +1945,8 @@ designer
 desire
 desired
 desk
+desktop
+desktops
 desperate
 despite
 dessert
@@ -2284,6 +2300,8 @@ emits
 emitted
 emitter
 emitting
+emoticon
+emoticons
 emotion
 emotional
 emphasis
@@ -2693,10 +2711,13 @@ firefighter
 firefly
 fireman
 fireplace
+firewall
+firewalls
 firework
 fireworks
 firing
 firm
+firmware
 first
 fish
 fisher
@@ -2717,6 +2738,7 @@ flag
 flaggy
 flags
 flame
+flaming
 flash
 flask
 flat
@@ -2737,6 +2759,8 @@ floor
 floppy
 flour
 flow
+flowchart
+flowcharts
 flower
 flu
 fluctuate
@@ -2830,6 +2854,7 @@ free
 freedom
 freeing
 frees
+freeware
 freezable
 freeze
 freezer
@@ -3082,6 +3107,8 @@ gyro
 habit
 habitat
 hack
+hacker
+hackers
 had
 hadn
 hadn't
@@ -3704,6 +3731,8 @@ journal
 journalist
 journey
 joy
+joystick
+joysticks
 judge
 judgment
 jug
@@ -3715,6 +3744,7 @@ jumps
 june
 jungle
 junior
+junk
 jury
 just
 justice
@@ -3727,6 +3757,8 @@ keeper
 keeps
 kennel
 kept
+kernel
+kernels
 kettle
 key
 keyboard
@@ -3994,9 +4026,12 @@ lump
 lunch
 lunchtime
 lung
+lurking
 luxury
 macaroni
 machine
+macro
+macros
 mad
 madam
 made
@@ -4023,6 +4058,7 @@ malaria
 male
 malformed
 mall
+malware
 man
 manage
 managed
@@ -4195,6 +4231,7 @@ minimally
 minimise
 minimises
 minimum
+mining
 minister
 ministry
 minor
@@ -4226,6 +4263,8 @@ mock
 mode
 model
 models
+modem
+modems
 moderate
 modern
 modes
@@ -4269,6 +4308,8 @@ mosquito
 most
 mostly
 mother
+motherboard
+motherboards
 motion
 motivation
 motive
@@ -4293,6 +4334,7 @@ mud
 mug
 multi
 multiline
+multimedia
 multipart
 multiple
 multiplication
@@ -4848,6 +4890,7 @@ phase
 phases
 phenomenon
 philosophy
+phishing
 phone
 phonetic
 phonetics
@@ -4886,6 +4929,7 @@ pineapple
 pink
 pipe
 pipeline
+piracy
 pirate
 piston
 pitch
@@ -4929,6 +4973,8 @@ plural
 plus
 pluses
 pocket
+podcast
+podcasts
 poem
 poet
 poetry
@@ -4966,6 +5012,8 @@ porcelain
 porch
 port
 portable
+portal
+portals
 porter
 portion
 portrait
@@ -5132,6 +5180,8 @@ profiler
 profiles
 profit
 program
+programmer
+programmers
 programming
 programs
 progress
@@ -5290,6 +5340,7 @@ range
 ranges
 rank
 ranks
+ransomware
 rap
 rapid
 rapidly
@@ -5335,6 +5386,7 @@ reasonable
 reasonably
 reasons
 rebel
+reboot
 rebuild
 recalculate
 recall
@@ -5674,6 +5726,8 @@ round
 roundabout
 rounded
 route
+router
+routers
 routes
 routine
 routing
@@ -5758,6 +5812,8 @@ says
 scale
 scan
 scandal
+scanner
+scanners
 scared
 scarf
 scarp
@@ -5786,6 +5842,8 @@ score
 scratch
 scream
 screen
+screenshot
+screenshots
 screw
 script
 scripts
@@ -5916,6 +5974,7 @@ shape
 shapes
 share
 shared
+shareware
 sharing
 shark
 sharp
@@ -6080,6 +6139,8 @@ smooth
 snack
 snake
 snap
+snapshot
+snapshots
 sneeze
 snippet
 snippets
@@ -6151,6 +6212,9 @@ space
 spaces
 spacing
 spade
+spam
+spammer
+spammers
 span
 spanish
 spans
@@ -6209,8 +6273,11 @@ sport
 sports
 spot
 spread
+spreadsheet
+spreadsheets
 spring
 spy
+spyware
 square
 squash
 squeeze
@@ -6414,6 +6481,8 @@ sunrise
 sunset
 sunshine
 super
+supercomputer
+supercomputers
 supermarket
 superscript
 superscripts
@@ -6587,6 +6656,8 @@ terabits
 terabyte
 terabytes
 term
+terminal
+terminals
 terminate
 terminated
 termination
@@ -6734,6 +6805,8 @@ tonight
 too
 took
 tool
+toolbar
+toolbars
 tools
 tooth
 toothache
@@ -6813,6 +6886,8 @@ transport
 transportation
 transpose
 trap
+trash
+trashes
 travel
 traverse
 traversed
@@ -6844,6 +6919,7 @@ trip
 triple
 trivia
 trivial
+trojan
 troop
 troops
 trouble
@@ -6881,6 +6957,7 @@ twist
 two
 type
 typed
+typeface
 types
 typical
 typically
@@ -7093,7 +7170,6 @@ varying
 vascular
 vase
 vast
-ve
 vegetable
 vegetarian
 vehicle
@@ -7111,6 +7187,7 @@ verifies
 verify
 veritable
 versa
+versatile
 verse
 version
 versions
@@ -7307,6 +7384,7 @@ winner
 winter
 wipe
 wire
+wireless
 wisdom
 wise
 wish
@@ -7336,6 +7414,8 @@ working
 workout
 works
 workshop
+workstation
+workstations
 world
 worm
 worried

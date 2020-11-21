@@ -1,12 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 
 namespace Roslynator.CommandLine
 {
@@ -69,7 +64,7 @@ namespace Roslynator.CommandLine
                     values.Add(prefix + value);
             }
 
-            return wordList.WithValues(values);
+            return wordList.WithValues(values.Where(f => f.Length > 3));
         }
 
         public static WordList GenerateSuffixes(this WordList wordList)
@@ -78,29 +73,55 @@ namespace Roslynator.CommandLine
 
             foreach (string value in wordList.Values)
             {
-                if (value[value.Length - 1] == 's'
-                    || value[value.Length - 1] == 'x'
-                    || value[value.Length - 1] == 'z')
+                if (value.StartsWith("x"))
                 {
                     values.Add(value + "es");
                 }
-                else if (value[value.Length - 1] == 'h'
-                    && (value[value.Length - 2] == 'c'
-                        || value[value.Length - 2] == 's'))
+                else if (value.StartsWith("o"))
                 {
                     values.Add(value + "es");
                 }
-                else if (value[value.Length - 1] == 'y')
+                else if (value.StartsWith("s")
+                    || value.StartsWith("z"))
+                {
+                    values.Add(value + "es");
+                    values.Add(value + "ses");
+                }
+                else if (value.StartsWith("ch")
+                    || value.StartsWith("sh"))
+                {
+                    values.Add(value + "es");
+                }
+                else if (value.StartsWith("y"))
                 {
                     values.Add(value.Remove(value.Length - 1) + "ies");
                 }
-                else
+                else if (value.EndsWith("us"))
                 {
-                    values.Add(value + "s");
+                    values.Add(value.Remove(value.Length - 2) + "i");
                 }
+                else if (value.EndsWith("is"))
+                {
+                    values.Add(value.Remove(value.Length - 2) + "es");
+                }
+                else if (value.EndsWith("on"))
+                {
+                    values.Add(value.Remove(value.Length - 2) + "a");
+                }
+                else if (value.StartsWith("f"))
+                {
+                    values.Add(value.Remove(value.Length - 1) + "ves");
+                }
+                else if (value.StartsWith("e")
+                    && value.StartsWith("f"))
+                {
+                    values.Add(value.Remove(value.Length - 2) + "ves");
+                }
+
+                values.Add(value + "s");
             }
 
-            return wordList.WithValues(values);
+            return wordList.WithValues(values.Where(f => f.Length > 3));
         }
     }
 }
