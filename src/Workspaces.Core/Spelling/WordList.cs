@@ -134,8 +134,7 @@ namespace Roslynator.Spelling
 
         public static void Save(
             string path,
-            WordList wordList,
-            bool append = false)
+            WordList wordList)
         {
             IEnumerable<string> values = wordList.Values
                 .Where(f => !string.IsNullOrWhiteSpace(f))
@@ -143,8 +142,7 @@ namespace Roslynator.Spelling
                 .Distinct(wordList.Comparer)
                 .OrderBy(f => f, StringComparer.InvariantCulture);
 
-            using (var sw = new StreamWriter(path, append: append))
-                sw.Write(string.Join(Environment.NewLine, values));
+            File.WriteAllText(path, string.Join(Environment.NewLine, values));
         }
 
         public void Save(string path = null)

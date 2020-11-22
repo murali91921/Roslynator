@@ -27,14 +27,15 @@ namespace Roslynator.CommandLine
             }
 
             //WordList prefixes = core.GeneratePrefixes().Except(core).Intersect(big);
-            //WordList suffixes = core.GenerateSuffixes().Except(core).Intersect(big);
-
             //prefixes.Save(core.Path + ".prefixes");
+
+            //WordList suffixes = core.GenerateSuffixes().Except(core).Intersect(big);
             //suffixes.Save(core.Path + ".suffixes");
 
             WordList except = core.Except(big);
-            Debug.Assert(except.Values.Count == 0, except.Values.Count.ToString());
-            WordList.Save(big2.Path, except, append: true);
+
+            if (except.Count > 0)
+                big2.AddValues(except).Save();
         }
     }
 }

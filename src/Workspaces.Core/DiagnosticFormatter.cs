@@ -86,7 +86,8 @@ namespace Roslynator
             sb.Append(spellingError.Value);
             sb.Append("'");
 
-            if (spellingError.Identifier.Parent != null)
+            if (spellingError.Identifier.Parent != null
+                && !string.Equals(spellingError.Value, spellingError.Identifier.ValueText, StringComparison.Ordinal))
             {
                 sb.Append(" in '");
                 sb.Append(spellingError.Identifier.ValueText);

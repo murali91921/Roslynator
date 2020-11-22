@@ -1,0 +1,7 @@
+Assignement=Assignment
+idenfifier=identifier
+lamdba=lambda
+overrided=overridden
+Overrided=Overridden
+Overriden=Overridden
+Souce=Source
