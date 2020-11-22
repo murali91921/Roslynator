@@ -7,12 +7,12 @@ using Roslynator.Host.Mef;
 
 namespace Roslynator.Spelling
 {
-    internal static class SpellingAnalysis
+    internal static class SpellingAnalyzer
     {
         public static async Task<SpellingAnalysisResult> AnalyzeSpellingAsync(
             Project project,
             SpellingData spellingData,
-            SpellingAnalysisOptions options = null,
+            SpellingFixerOptions options = null,
             CancellationToken cancellationToken = default)
         {
             ISpellingService service = MefWorkspaceServices.Default.GetService<ISpellingService>(project.Language);
@@ -39,7 +39,7 @@ namespace Roslynator.Spelling
             this ISpellingService service,
             Document document,
             SpellingData spellingData,
-            SpellingAnalysisOptions options = null,
+            SpellingFixerOptions options = null,
             CancellationToken cancellationToken = default)
         {
             SyntaxTree tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);

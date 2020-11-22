@@ -47,6 +47,7 @@ namespace Roslynator.CommandLine
                     AnalyzeCommandLineOptions,
                     ListSymbolsCommandLineOptions,
                     FormatCommandLineOptions,
+                    FixSpellingCommandLineOptions,
                     PhysicalLinesOfCodeCommandLineOptions,
                     LogicalLinesOfCodeCommandLineOptions,
                     GenerateDocCommandLineOptions,
@@ -96,6 +97,7 @@ namespace Roslynator.CommandLine
                     (AnalyzeCommandLineOptions options) => AnalyzeAsync(options).Result,
                     (ListSymbolsCommandLineOptions options) => ListSymbolsAsync(options).Result,
                     (FormatCommandLineOptions options) => FormatAsync(options).Result,
+                    (FixSpellingCommandLineOptions options) => FixSpellingAsync(options).Result,
                     (PhysicalLinesOfCodeCommandLineOptions options) => PhysicalLinesOfCodeAsync(options).Result,
                     (LogicalLinesOfCodeCommandLineOptions options) => LogicalLinesOrCodeAsync(options).Result,
                     (GenerateDocCommandLineOptions options) => GenerateDocAsync(options).Result,
@@ -327,6 +329,20 @@ namespace Roslynator.CommandLine
             }
 
             var command = new FormatCommand(options, projectFilter);
+
+            IEnumerable<string> properties = options.Properties;
+
+            CommandResult result = await command.ExecuteAsync(options.Path, options.MSBuildPath, properties);
+
+            return (result == CommandResult.Success) ? 0 : 1;
+        }
+
+        private static async Task<int> FixSpellingAsync(FixSpellingCommandLineOptions options)
+        {
+            if (!options.TryGetProjectFilter(out ProjectFilter projectFilter))
+                return 1;
+
+            var command = new FixSpellingCommand(options, projectFilter);
 
             IEnumerable<string> properties = options.Properties;
 

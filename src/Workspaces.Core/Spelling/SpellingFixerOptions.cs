@@ -2,20 +2,24 @@
 
 namespace Roslynator.Spelling
 {
-    internal class SpellingAnalysisOptions
+    internal class SpellingFixerOptions
     {
-        public static SpellingAnalysisOptions Default { get; } = new SpellingAnalysisOptions();
+        public static SpellingFixerOptions Default { get; } = new SpellingFixerOptions();
 
-        public SpellingAnalysisOptions(
+        public SpellingFixerOptions(
             bool includeLocal = true,
-            bool includeGeneratedCode = false)
+            bool includeGeneratedCode = false,
+            bool interactive = false)
         {
             IncludeLocal = includeLocal;
             IncludeGeneratedCode = includeGeneratedCode;
+            Interactive = interactive;
         }
 
         public bool IncludeLocal { get; }
 
         public bool IncludeGeneratedCode { get; }
+
+        public bool Interactive { get; }
     }
 }

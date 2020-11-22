@@ -13,7 +13,7 @@ namespace Roslynator.Spelling
         SpellingAnalysisResult AnalyzeSpelling(
             SyntaxNode node,
             SpellingData spellingData,
-            SpellingAnalysisOptions options,
+            SpellingFixerOptions options,
             CancellationToken cancellationToken);
     }
 }

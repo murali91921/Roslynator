@@ -57,7 +57,6 @@ namespace Roslynator.CommandLine
             var codeAnalyzer = new CodeAnalyzer(
                 analyzerAssemblies: analyzerAssemblies,
                 formatProvider: culture,
-                spellingData: spellingData,
                 options: codeAnalyzerOptions);
 
             if (projectOrSolution.IsProject)

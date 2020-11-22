@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -10,13 +11,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslynator.RegularExpressions;
 using Roslynator.Spelling;
-using System.Diagnostics;
 
 namespace Roslynator.CSharp.Spelling
 {
     internal class CSharpSpellingWalker : CSharpSyntaxWalker
     {
-        //TODO: parse NaN
         private static readonly Regex _splitIdentifierRegex = new Regex(
             @"
     \P{L}+
@@ -56,13 +55,13 @@ namespace Roslynator.CSharp.Spelling
 
         public SpellingData SpellingData { get; }
 
-        public SpellingAnalysisOptions Options { get; }
+        public SpellingFixerOptions Options { get; }
 
         public CancellationToken CancellationToken { get; }
 
         public List<SpellingError> Errors { get; private set; }
 
-        public CSharpSpellingWalker(SpellingData spellingData, SpellingAnalysisOptions options, CancellationToken cancellationToken)
+        public CSharpSpellingWalker(SpellingData spellingData, SpellingFixerOptions options, CancellationToken cancellationToken)
             : base(SyntaxWalkerDepth.StructuredTrivia)
         {
             SpellingData = spellingData;
@@ -163,6 +162,11 @@ namespace Roslynator.CSharp.Spelling
             if (value.All(f => char.IsUpper(f)))
                 return false;
 
+            if (IsPseudoWord(value))
+            {
+                return false;
+            }
+
             if (SpellingData.IgnoreList.Contains(value))
                 return false;
 
@@ -199,6 +203,60 @@ namespace Roslynator.CSharp.Spelling
             (Errors ??= new List<SpellingError>()).Add(spellingError);
 
             return true;
+        }
+
+        private bool IsPseudoWord(string value)
+        {
+            if (value.Length < 3)
+                return false;
+
+            int i = 0;
+            char ch = value[i];
+
+            switch (ch)
+            {
+                case 'a':
+                    {
+                        i++;
+                        int num = 'a' + 1;
+                        while (i < value.Length)
+                        {
+                            if (value[i] != num)
+                                return false;
+
+                            num++;
+                            i++;
+                        }
+
+                        return false;
+                    }
+                case 'A':
+                    {
+                        i++;
+                        int num = 'A' + 1;
+                        while (i < value.Length)
+                        {
+                            if (value[i] != num)
+                                return false;
+
+                            num++;
+                            i++;
+                        }
+
+                        return false;
+                    }
+            }
+
+            i = 1;
+            while (i < value.Length)
+            {
+                if (value[i] != ch)
+                    return false;
+
+                i++;
+            }
+
+            return false;
         }
 
         public override void VisitTrivia(SyntaxTrivia trivia)

@@ -4,15 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Roslynator.CodeFixes;
-using Roslynator.Spelling;
 using static Roslynator.Logger;
-using System.Collections.Immutable;
 
 namespace Roslynator.CommandLine
 {
@@ -107,65 +104,14 @@ namespace Roslynator.CommandLine
                 await codeFixer.FixSolutionAsync(f => projectFilter.IsMatch(f), cancellationToken);
             }
 
-            WordList ignoreList = codeFixer.SpellingData.IgnoreList;
-
-            if (ignoreList.Count > 0)
-            {
-                var oldWordList = new WordList("roslynator.spelling.ignore.wordlist", StringComparer.CurrentCulture, null);
-
-                if (File.Exists(oldWordList.Path))
-                {
-                    oldWordList = WordList.Load(oldWordList.Path, oldWordList.Comparer);
-                }
-
-                var wordList = new WordList(oldWordList.Path + ".new", oldWordList.Comparer, ignoreList.Values);
-
-                wordList = wordList.Except(oldWordList);
-
-                wordList.Save();
-            }
-
-            ImmutableDictionary<string, string> fixes = codeFixer.SpellingData.Fixes;
-
-            if (fixes.Count > 0)
-            {
-                const string path = @"..\..\..\WordLists\fixes.txt";
-
-                IEnumerable<KeyValuePair<string, string>> items = Enumerable.Empty<KeyValuePair<string, string>>();
-
-                if (File.Exists(path))
-                {
-                    items = File.ReadLines(path)
-                        .Where(f => !string.IsNullOrWhiteSpace(f))
-                        .Select(f =>
-                        {
-                            int index = f.IndexOf("=");
-
-                            return new KeyValuePair<string, string>(f.Remove(index), f.Substring(index + 1));
-                        });
-                }
-
-                items = items.Concat(fixes).OrderBy(f => f.Key);
-
-                File.WriteAllText(path, string.Join(Environment.NewLine, items.Select(f => $"{f.Key}={f.Value}")));
-            }
-
             return CommandResult.Success;
 
             CodeFixer GetCodeFixer(Solution solution)
             {
-                SpellingData spellingData = SpellingData.Empty;
-
-                string assemblyPath = typeof(FixCommand).Assembly.Location;
-
-                if (!string.IsNullOrEmpty(assemblyPath))
-                    spellingData = SpellingData.LoadFromDirectory(Path.Combine(Path.GetDirectoryName(assemblyPath), "WordLists"));
-
                 return new CodeFixer(
                     solution,
                     analyzerAssemblies: analyzerAssemblies,
                     formatProvider: formatProvider,
-                    spellingData: spellingData,
                     options: codeFixerOptions);
             }
         }

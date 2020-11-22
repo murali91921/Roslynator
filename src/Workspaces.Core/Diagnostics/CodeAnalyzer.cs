@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Roslynator.Host.Mef;
-using Roslynator.Spelling;
 using static Roslynator.Logger;
 
 namespace Roslynator.Diagnostics
@@ -28,20 +27,16 @@ namespace Roslynator.Diagnostics
         public CodeAnalyzer(
             IEnumerable<AnalyzerAssembly> analyzerAssemblies = null,
             IFormatProvider formatProvider = null,
-            SpellingData spellingData = null,
             CodeAnalyzerOptions options = null)
         {
             if (analyzerAssemblies != null)
                 _analyzerAssemblies.AddRange(analyzerAssemblies);
 
             FormatProvider = formatProvider;
-            SpellingData = spellingData;
             Options = options ?? CodeAnalyzerOptions.Default;
         }
 
         public IFormatProvider FormatProvider { get; }
-
-        public SpellingData SpellingData { get; }
 
         public CodeAnalyzerOptions Options { get; }
 
@@ -135,33 +130,6 @@ namespace Roslynator.Diagnostics
                 result = await AnalyzeProjectCoreAsync(project, analyzers, cancellationToken).ConfigureAwait(false);
             }
 
-            if (SpellingData != null)
-            {
-                WriteLine($"  Analyze spelling in '{project.Name}'", Verbosity.Normal);
-
-                SpellingAnalysisResult spellingAnalysisResult = await SpellingAnalysis.AnalyzeSpellingAsync(
-                    project,
-                    SpellingData,
-                    SpellingAnalysisOptions.Default,
-                    cancellationToken)
-                    .ConfigureAwait(false);
-
-                LogHelpers.WriteSpellingErrors(
-                    spellingAnalysisResult.Errors,
-                    baseDirectoryPath: Path.GetDirectoryName(project.FilePath),
-                    indentation: "  ",
-                    verbosity: Verbosity.Normal);
-
-                if (result != null)
-                {
-                    result = result.WithSpellingErrors(spellingAnalysisResult.Errors);
-                }
-                else
-                {
-                    result = new ProjectAnalysisResult(project.Id, default, default, default, spellingAnalysisResult.Errors, default);
-                }
-            }
-
             return result;
         }
 
@@ -231,7 +199,6 @@ namespace Roslynator.Diagnostics
                 analyzers,
                 compilerDiagnostics,
                 diagnostics,
-                default(ImmutableArray<SpellingError>),
                 telemetry);
         }
 
