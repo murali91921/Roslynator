@@ -64,19 +64,19 @@
   <ItemGroup>
     <None Include="..\..\images\icon.png" Pack="true" PackagePath="\" Visible="false" />
     <None Remove="_._" />
-    <None Update="roslynator.spelling.core.dictionary">
+    <None Update="WordLists\roslynator.spelling.big1.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="roslynator.spelling.a.dictionary">
+    <None Update="WordLists\roslynator.spelling.big2.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="roslynator.spelling.core2.dictionary">
+    <None Update="WordLists\roslynator.spelling.core.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="roslynator.spelling.it.dictionary">
+    <None Update="WordLists\roslynator.spelling.it.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="roslynator.spelling.ignore.dictionary">
+    <None Update="WordLists\roslynator.spelling.ignore.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

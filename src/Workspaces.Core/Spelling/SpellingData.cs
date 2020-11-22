@@ -11,71 +11,66 @@ namespace Roslynator.Spelling
 {
     internal class SpellingData
     {
-        private static readonly Regex _dictionaryFileName = new Regex(@"\Aroslynator\.spelling(\.|\z)", RegexOptions.IgnoreCase);
+        private static readonly Regex _wordListFileName = new Regex(@"\Aroslynator\.spelling(\.|\z)", RegexOptions.IgnoreCase);
 
         public static SpellingData Empty { get; } = new SpellingData(
-            ImmutableHashSet.Create<string>(StringComparer.CurrentCultureIgnoreCase),
-            ImmutableHashSet.Create<string>(StringComparer.CurrentCulture),
+            new WordList(null, StringComparer.CurrentCultureIgnoreCase, null),
+            new WordList(null, StringComparer.CurrentCulture, null),
             ImmutableDictionary.Create<string, string>(StringComparer.CurrentCulture));
 
         public SpellingData(
-            ImmutableHashSet<string> wordList,
-            ImmutableHashSet<string> ignoreList,
+            WordList list,
+            WordList ignoreList,
             ImmutableDictionary<string, string> fixes)
         {
-            WordList = wordList;
+            List = list;
             IgnoreList = ignoreList;
             Fixes = fixes;
         }
 
-        public ImmutableHashSet<string> WordList { get; }
+        public WordList List { get; }
 
-        public ImmutableHashSet<string> IgnoreList { get; }
+        public WordList IgnoreList { get; }
 
         public ImmutableDictionary<string, string> Fixes { get; }
 
         public SpellingData AddWords(IEnumerable<string> values)
         {
-            ImmutableHashSet<string> dictionary = ImmutableHashSet.CreateRange(
-                WordList.KeyComparer,
-                WordList.Concat(values));
+            WordList newList = List.AddValues(values);
 
-            return new SpellingData(dictionary, IgnoreList, Fixes);
+            return new SpellingData(newList, IgnoreList, Fixes);
         }
 
         public SpellingData AddWord(string value)
         {
-            return new SpellingData(WordList.Add(value), IgnoreList, Fixes);
+            return new SpellingData(List.AddValue(value), IgnoreList, Fixes);
         }
 
         public SpellingData AddFix(string error, string fix)
         {
-            return new SpellingData(WordList, IgnoreList, Fixes.Add(error, fix));
+            return new SpellingData(List, IgnoreList, Fixes.Add(error, fix));
         }
 
         public SpellingData AddIgnoredValue(string value)
         {
-            return new SpellingData(WordList, IgnoreList.Add(value), Fixes);
+            return new SpellingData(List, IgnoreList.AddValue(value), Fixes);
         }
 
         public static SpellingData LoadFromDirectory(string directoryPath)
         {
-            SpellingData spellingData = Empty;
+            WordList wordList = WordList.Default;
 
-            foreach (string filePath in Directory.EnumerateFiles(directoryPath, "*.dictionary", SearchOption.TopDirectoryOnly))
+            foreach (string filePath in Directory.EnumerateFiles(directoryPath, "*.wordlist", SearchOption.TopDirectoryOnly))
             {
                 string input = Path.GetFileNameWithoutExtension(filePath);
-                if (!_dictionaryFileName.IsMatch(input))
+
+                if (!_wordListFileName.IsMatch(input))
                     continue;
 
-                IEnumerable<string> dictionary = File.ReadAllLines(filePath)
-                    .Where(f => !string.IsNullOrWhiteSpace(f))
-                    .Select(f => f.Trim());
-
-                spellingData = spellingData.AddWords(dictionary);
+                wordList = wordList.AddValues(WordList.Load(filePath));
             }
 
-            return spellingData;
+            return Empty.AddWords(wordList.Values);
         }
     }
 }

@@ -8,18 +8,20 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
-namespace Roslynator.CommandLine
+namespace Roslynator.Spelling
 {
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     internal class WordList
     {
         public static StringComparer DefaultComparer { get; } = StringComparer.CurrentCultureIgnoreCase;
 
+        public static WordList Default { get; } = new WordList(null, DefaultComparer, null);
+
         public WordList(string path, StringComparer comparer, IEnumerable<string> values)
         {
             Path = path;
             Comparer = comparer ?? DefaultComparer;
-            Values = values.ToImmutableHashSet(comparer);
+            Values = values?.ToImmutableHashSet(comparer) ?? ImmutableHashSet<string>.Empty;
         }
 
         public string Path { get; }
@@ -27,6 +29,8 @@ namespace Roslynator.CommandLine
         public StringComparer Comparer { get; }
 
         public ImmutableHashSet<string> Values { get; }
+
+        public int Count => Values.Count;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay => $"Count = {Values.Count}  {Path}";
@@ -67,7 +71,8 @@ namespace Roslynator.CommandLine
         {
             return values
                 .Where(f => !string.IsNullOrWhiteSpace(f))
-                .Select(f => f.Trim());
+                .Select(f => f.Trim())
+                .Where(f => !f.StartsWith("#"));
         }
 
         public WordList Intersect(WordList wordList, params WordList[] additionalWordList)
@@ -96,6 +101,23 @@ namespace Roslynator.CommandLine
             }
 
             return WithValues(except);
+        }
+
+        public bool Contains(string value)
+        {
+            return Values.Contains(value);
+        }
+
+        public WordList AddValue(string value)
+        {
+            return new WordList(Path, Comparer, Values.Add(value));
+        }
+
+        public WordList AddValues(IEnumerable<string> values)
+        {
+            values = Values.Concat(values).Distinct(Comparer);
+
+            return new WordList(Path, Comparer, values);
         }
 
         public WordList AddValues(WordList wordList)

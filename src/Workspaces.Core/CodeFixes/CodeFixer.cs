@@ -27,6 +27,8 @@ namespace Roslynator.CodeFixes
 
         private readonly AnalyzerAssemblyList _analyzerReferences = new AnalyzerAssemblyList();
 
+        private bool? _interactive;
+
         public CodeFixer(
             Solution solution,
             IEnumerable<AnalyzerAssembly> analyzerAssemblies = null,
@@ -662,6 +664,12 @@ namespace Roslynator.CodeFixes
         {
             WriteLine($"  Fix spelling in '{project.Name}'", Verbosity.Normal);
 
+            if (_interactive == null)
+            {
+                Console.Write("Interactive?: ");
+                _interactive = Console.ReadLine()?.Trim().ToLower() != "n";
+            }
+
             while (true)
             {
                 SpellingAnalysisResult spellingAnalysisResult = await SpellingAnalysis.AnalyzeSpellingAsync(
@@ -686,16 +694,26 @@ namespace Roslynator.CodeFixes
                 {
                     document = project.GetDocument(grouping.Key);
 
+                    SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                    TextLineCollection lines = sourceText.Lines;
+
                     List<TextChange> textChanges = null;
 
                     foreach (SpellingError spellingError in grouping.OrderBy(f => f.Location.SourceSpan.Start))
                     {
+                        TextLine line = lines.GetLineFromPosition(spellingError.Location.SourceSpan.Start);
+
+                        Write("    ", Verbosity.Normal);
+                        WriteLine(line.ToString(), Verbosity.Normal);
+
                         LogHelpers.WriteSpellingError(spellingError, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
 
                         if (SpellingData.IgnoreList.Contains(spellingError.Value))
                             continue;
 
-                        if (!SpellingData.Fixes.TryGetValue(spellingError.Value, out string fix))
+                        if (!SpellingData.Fixes.TryGetValue(spellingError.Value, out string fix)
+                            && _interactive == true)
                         {
                             Console.Write("    Enter fixed value: ");
 
@@ -740,6 +758,15 @@ namespace Roslynator.CodeFixes
 
                     if (document != null)
                     {
+                        SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                        TextLineCollection lines = sourceText.Lines;
+
+                        TextLine line = lines.GetLineFromPosition(spellingError.Location.SourceSpan.Start);
+
+                        Write("    ", Verbosity.Normal);
+                        WriteLine(line.ToString(), Verbosity.Normal);
+
                         LogHelpers.WriteSpellingError(spellingError, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
 
                         if (SpellingData.IgnoreList.Contains(spellingError.Value))
@@ -755,7 +782,7 @@ namespace Roslynator.CodeFixes
                                     .Remove(spellingError.Index, spellingError.Value.Length)
                                     .Insert(spellingError.Index, fix);
                             }
-                            else
+                            else if (_interactive == true)
                             {
                                 Console.Write("    Enter fixed value: ");
 

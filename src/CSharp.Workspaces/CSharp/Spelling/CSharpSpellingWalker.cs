@@ -116,7 +116,7 @@ namespace Roslynator.CSharp.Spelling
                 if (SpellingData.IgnoreList.Contains(originalValue))
                     return;
 
-                if (SpellingData.WordList.Contains(originalValue))
+                if (SpellingData.List.Contains(originalValue))
                     return;
             }
 
@@ -127,7 +127,7 @@ namespace Roslynator.CSharp.Spelling
                 if (SpellingData.IgnoreList.Contains(value))
                     return;
 
-                if (SpellingData.WordList.Contains(value))
+                if (SpellingData.List.Contains(value))
                     return;
             }
 
@@ -166,7 +166,7 @@ namespace Roslynator.CSharp.Spelling
             if (SpellingData.IgnoreList.Contains(value))
                 return false;
 
-            if (SpellingData.WordList.Contains(value))
+            if (SpellingData.List.Contains(value))
                 return false;
 
             if (isSimpleIdentifier
@@ -176,7 +176,7 @@ namespace Roslynator.CSharp.Spelling
                 Match match = _typeParameterLowercaseRegex.Match(value);
 
                 if (match.Success
-                    && SpellingData.WordList.Contains(match.Value))
+                    && SpellingData.List.Contains(match.Value))
                 {
                     return false;
                 }

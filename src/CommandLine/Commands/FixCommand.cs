@@ -107,29 +107,47 @@ namespace Roslynator.CommandLine
                 await codeFixer.FixSolutionAsync(f => projectFilter.IsMatch(f), cancellationToken);
             }
 
-            ImmutableHashSet<string> ignoreList = codeFixer.SpellingData.IgnoreList;
+            WordList ignoreList = codeFixer.SpellingData.IgnoreList;
 
             if (ignoreList.Count > 0)
             {
-                const string filePath = "roslynator.spelling.ignore.dictionary";
+                var oldWordList = new WordList("roslynator.spelling.ignore.wordlist", StringComparer.CurrentCulture, null);
 
-                IEnumerable<string> oldIgnoreList = Enumerable.Empty<string>();
-
-                if (File.Exists(filePath))
+                if (File.Exists(oldWordList.Path))
                 {
-                    oldIgnoreList = File.ReadLines(filePath)
-                        .Where(f => !string.IsNullOrWhiteSpace(f))
-                        .Select(f => f.Trim())
-                        .ToArray();
+                    oldWordList = WordList.Load(oldWordList.Path, oldWordList.Comparer);
                 }
 
-                File.WriteAllText(
-                    filePath + ".new",
-                    string.Join(
-                        Environment.NewLine,
-                        ignoreList
-                            .Except(oldIgnoreList, StringComparer.CurrentCulture)
-                            .OrderBy(f => f, StringComparer.CurrentCulture)));
+                var wordList = new WordList(oldWordList.Path + ".new", oldWordList.Comparer, ignoreList.Values);
+
+                wordList = wordList.Except(oldWordList);
+
+                wordList.Save();
+            }
+
+            ImmutableDictionary<string, string> fixes = codeFixer.SpellingData.Fixes;
+
+            if (fixes.Count > 0)
+            {
+                const string path = @"..\..\..\WordLists\fixes.txt";
+
+                IEnumerable<KeyValuePair<string, string>> items = Enumerable.Empty<KeyValuePair<string, string>>();
+
+                if (File.Exists(path))
+                {
+                    items = File.ReadLines(path)
+                        .Where(f => !string.IsNullOrWhiteSpace(f))
+                        .Select(f =>
+                        {
+                            int index = f.IndexOf("=");
+
+                            return new KeyValuePair<string, string>(f.Remove(index), f.Substring(index + 1));
+                        });
+                }
+
+                items = items.Concat(fixes).OrderBy(f => f.Key);
+
+                File.WriteAllText(path, string.Join(Environment.NewLine, items.Select(f => $"{f.Key}={f.Value}")));
             }
 
             return CommandResult.Success;
@@ -141,7 +159,7 @@ namespace Roslynator.CommandLine
                 string assemblyPath = typeof(FixCommand).Assembly.Location;
 
                 if (!string.IsNullOrEmpty(assemblyPath))
-                    spellingData = SpellingData.LoadFromDirectory(Path.GetDirectoryName(assemblyPath));
+                    spellingData = SpellingData.LoadFromDirectory(Path.Combine(Path.GetDirectoryName(assemblyPath), "WordLists"));
 
                 return new CodeFixer(
                     solution,

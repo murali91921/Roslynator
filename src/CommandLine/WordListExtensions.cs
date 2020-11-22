@@ -2,13 +2,14 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Roslynator.Spelling;
 
 namespace Roslynator.CommandLine
 {
     internal static class WordListExtensions
     {
         private static readonly string[] _prefixes = new[] {
-            "a",
+            //"a",
             "an",
             "ante",
             "anti",
@@ -58,9 +59,12 @@ namespace Roslynator.CommandLine
         {
             var values = new List<string>();
 
-            foreach (string prefix in _prefixes)
+            foreach (string value in wordList.Values)
             {
-                foreach (string value in wordList.Values)
+                if (value.Length < 3)
+                    continue;
+
+                foreach (string prefix in _prefixes)
                     values.Add(prefix + value);
             }
 
@@ -73,6 +77,9 @@ namespace Roslynator.CommandLine
 
             foreach (string value in wordList.Values)
             {
+                if (value.Length < 3)
+                    continue;
+
                 if (value.StartsWith("x"))
                 {
                     values.Add(value + "es");
