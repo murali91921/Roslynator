@@ -124,7 +124,7 @@ namespace Roslynator.Spelling
                         TextLine line = lines.GetLineFromPosition(spellingError.Location.SourceSpan.Start);
 
                         Write("    ", Verbosity.Normal);
-                        WriteLine(line.ToString(), Verbosity.Normal);
+                        WriteLine(line.ToString(), ConsoleColor.DarkGray, Verbosity.Normal);
 
                         LogHelpers.WriteSpellingError(spellingError, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
 
@@ -141,8 +141,11 @@ namespace Roslynator.Spelling
                         {
                             (textChanges ??= new List<TextChange>()).Add(new TextChange(spellingError.Location.SourceSpan, fix));
 
-                            SpellingData = SpellingData.AddFix(spellingError.Value, fix);
-                            SpellingData = SpellingData.AddWord(fix);
+                            if (spellingError.Value != spellingError.ContainingValue)
+                            {
+                            }
+
+                            ProcessFix(spellingError, fix);
                         }
                         else
                         {
@@ -181,7 +184,7 @@ namespace Roslynator.Spelling
                         TextLine line = lines.GetLineFromPosition(spellingError.Location.SourceSpan.Start);
 
                         Write("    ", Verbosity.Normal);
-                        WriteLine(line.ToString(), Verbosity.Normal);
+                        WriteLine(line.ToString(), ConsoleColor.DarkGray, Verbosity.Normal);
 
                         LogHelpers.WriteSpellingError(spellingError, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
 
@@ -228,38 +231,12 @@ namespace Roslynator.Spelling
                                 return default;
                             }
 
-                            string fix2 = null;
-                            int index = spellingError.Index;
-
-                            if (fix.Length > index
-                                && string.CompareOrdinal(fix, 0, identifierText, 0, index) == 0)
-                            {
-                                int endIndex = index + spellingError.Value.Length;
-
-                                int length = identifierText.Length - endIndex;
-
-                                if (fix.Length > index + length
-                                    && string.CompareOrdinal(fix, fix.Length - length, identifierText, endIndex, length) == 0)
-                                {
-                                    fix2 = fix.Substring(index, fix.Length - length - index);
-                                }
-                            }
-
-                            if (fix2 != null)
-                            {
-                                SpellingData = SpellingData.AddFix(spellingError.Value, fix2);
-                                SpellingData = SpellingData.AddWord(fix2);
-                            }
-                            else
-                            {
-                                SpellingData = SpellingData.AddFix(identifierText, fix);
-                            }
-
+                            ProcessFix(spellingError, fix);
                             break;
                         }
                         else
                         {
-                            SpellingData = SpellingData.AddIgnoredValue(identifierText);
+                            SpellingData = SpellingData.AddIgnoredValue(spellingError.Value);
                         }
                     }
                 }
@@ -268,8 +245,53 @@ namespace Roslynator.Spelling
             }
         }
 
+        private void ProcessFix(SpellingError spellingError, string fix)
+        {
+            string containingValue = spellingError.ContainingValue;
+
+            string fix2 = null;
+            int index = spellingError.Index;
+
+            if (fix.Length > index
+                && string.CompareOrdinal(fix, 0, containingValue, 0, index) == 0)
+            {
+                int endIndex = index + spellingError.Value.Length;
+
+                int length = containingValue.Length - endIndex;
+
+                if (fix.Length > index + length
+                    && string.CompareOrdinal(fix, fix.Length - length, containingValue, endIndex, length) == 0)
+                {
+                    fix2 = fix.Substring(index, fix.Length - length - index);
+                }
+            }
+
+            if (fix2 != null)
+            {
+                SpellingData = SpellingData.AddFix(spellingError.Value, fix2);
+                SpellingData = SpellingData.AddWord(fix2);
+            }
+            else
+            {
+                SpellingData = SpellingData.AddFix(containingValue, fix);
+            }
+        }
+
         private string GetFix(SpellingError spellingError)
         {
+            if (spellingError.Value == "Shortname")
+            {
+            }
+
+            int splitIndex = GetSplitIndex(spellingError);
+
+            if (splitIndex >= 0)
+            {
+                string value = spellingError.Value;
+
+                return value.Remove(splitIndex).Insert(splitIndex, value[splitIndex].ToString());
+            }
+
             List<string> fixes = SpellingFixGenerator.GeneratePossibleFixes(spellingError, SpellingData).ToList();
 
             if (fixes.Count == 1)
@@ -296,6 +318,72 @@ namespace Roslynator.Spelling
             }
 
             return null;
+        }
+
+        private int GetSplitIndex(SpellingError spellingError)
+        {
+            string value = spellingError.Value;
+
+            if (value.Length < 4)
+                return -1;
+
+            if (!value.All(f => char.IsLower(f)))
+                return -1;
+
+            int index = -1;
+
+            ImmutableDictionary<int, ImmutableHashSet<string>> map = SpellingData.List.Map;
+
+            ImmutableHashSet<string> values = map[value[0]];
+
+            for (int i = 1; i < value.Length - 2; i++)
+            {
+                ImmutableHashSet<string> values2 = map[(i * 100) + value[i]];
+
+                values = values.Intersect(values2, StringComparer.CurrentCultureIgnoreCase)
+                    .ToImmutableHashSet(StringComparer.CurrentCultureIgnoreCase);
+
+                if (values.Count == 0)
+                    return -1;
+
+                foreach (string s in values)
+                {
+                    if (s.Length != i)
+                        continue;
+
+                    int j = i + 1;
+                    int k = 1;
+                    ImmutableHashSet<string> values3 = map[0 + value[j]];
+
+                    while (j < value.Length - 1)
+                    {
+                        ImmutableHashSet<string> values4 = map[(k * 100) + value[j]];
+
+                        values3 = values3.Intersect(values4, StringComparer.CurrentCultureIgnoreCase)
+                            .ToImmutableHashSet(StringComparer.CurrentCultureIgnoreCase);
+
+                        if (values3.Count == 0)
+                            break;
+
+                        j++;
+                        k++;
+                    }
+
+                    if (values3.Count == 1)
+                    {
+                        if (index == -1)
+                        {
+                            index = i;
+                        }
+                        else
+                        {
+                            return -1;
+                        }
+                    }
+                }
+            }
+
+            return index;
         }
     }
 }

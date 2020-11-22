@@ -9,13 +9,14 @@ namespace Roslynator.Spelling
     internal readonly struct SpellingError
     {
         public SpellingError(string value, Location location)
-            : this (value, location, default, -1)
+            : this (value, null, location, -1, default)
         {
         }
 
-        public SpellingError(string value, Location location, SyntaxToken identifier, int index)
+        public SpellingError(string value, string containingValue, Location location, int index, SyntaxToken identifier = default)
         {
             Value = value;
+            ContainingValue = containingValue;
             Location = location;
             Identifier = identifier;
             Index = index;
@@ -31,5 +32,7 @@ namespace Roslynator.Spelling
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay => $"{Value}  {Identifier.ValueText}";
+
+        public string ContainingValue { get; }
     }
 }

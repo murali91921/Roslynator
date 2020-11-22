@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 
 namespace Roslynator.Spelling
@@ -13,6 +14,8 @@ namespace Roslynator.Spelling
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     internal class WordList
     {
+        private ImmutableDictionary<int, ImmutableHashSet<string>> _map;
+
         public static StringComparer DefaultComparer { get; } = StringComparer.CurrentCultureIgnoreCase;
 
         public static WordList Default { get; } = new WordList(null, DefaultComparer, null);
@@ -31,6 +34,26 @@ namespace Roslynator.Spelling
         public ImmutableHashSet<string> Values { get; }
 
         public int Count => Values.Count;
+
+        public ImmutableDictionary<int, ImmutableHashSet<string>> Map
+        {
+            get
+            {
+                if (_map == null)
+                    Interlocked.CompareExchange(ref _map, CreateMap(), null);
+
+                return _map;
+            }
+        }
+
+        private ImmutableDictionary<int, ImmutableHashSet<string>> CreateMap()
+        {
+            return Values
+                .Select(v => (value: v, chars: v.Select((ch, i) => (ch, i))))
+                .SelectMany(f => f.chars.Select(g => (f.value, g.ch, g.i, key: g.i * 100 + (int)g.ch)))
+                .GroupBy(f => f.key)
+                .ToImmutableDictionary(f => f.Key, f => f.Select(f => f.value).ToImmutableHashSet(Comparer));
+        }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay => $"Count = {Values.Count}  {Path}";

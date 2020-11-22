@@ -53,6 +53,8 @@ namespace Roslynator.CSharp.Spelling
 
         private static readonly Regex _typeParameterLowercaseRegex = new Regex(@"(?<=\At)\p{Ll}{3,}\z");
 
+        private static readonly Regex _urlRegex = new Regex(@"\bhttps?://[^\s]+(?=\s|\z)", RegexOptions.IgnoreCase);
+
         public SpellingData SpellingData { get; }
 
         public SpellingFixerOptions Options { get; }
@@ -76,7 +78,25 @@ namespace Roslynator.CSharp.Spelling
 
         private void CheckCommentValue(string value, SyntaxTree syntaxTree, TextSpan textSpan)
         {
-            Match match = _wordInComment.Match(value);
+            int prevEnd = 0;
+
+            Match match = _urlRegex.Match(value, prevEnd);
+
+            while (match.Success)
+            {
+                CheckCommentValue(value, prevEnd, match.Length, syntaxTree, textSpan);
+
+                match = match.NextMatch();
+
+                prevEnd = match.Index + match.Length;
+            }
+
+            CheckCommentValue(value, prevEnd, value.Length - prevEnd, syntaxTree, textSpan);
+        }
+
+        private void CheckCommentValue(string value, int startIndex, int length, SyntaxTree syntaxTree, TextSpan textSpan)
+        {
+            Match match = _wordInComment.Match(value, startIndex, length);
 
             while (match.Success)
             {
@@ -86,6 +106,7 @@ namespace Roslynator.CSharp.Spelling
                     {
                         CheckValue(
                             splitItem.Value,
+                            value,
                             match.Index + splitItem.Index,
                             syntaxTree,
                             textSpan,
@@ -103,7 +124,12 @@ namespace Roslynator.CSharp.Spelling
             CheckValue(value, null, syntaxTree, textSpan, identifier);
         }
 
-        private void CheckValue(string value, string originalValue, SyntaxTree syntaxTree, TextSpan textSpan, SyntaxToken identifier)
+        private void CheckValue(
+            string value,
+            string originalValue,
+            SyntaxTree syntaxTree,
+            TextSpan textSpan,
+            SyntaxToken identifier)
         {
             Debug.Assert(identifier.Parent != null, value);
 
@@ -136,6 +162,7 @@ namespace Roslynator.CSharp.Spelling
 
                 if (CheckValue(
                     splitItem.Value,
+                    originalValue ?? value,
                     splitItem.Index,
                     syntaxTree,
                     textSpan,
@@ -150,6 +177,7 @@ namespace Roslynator.CSharp.Spelling
 
         private bool CheckValue(
             string value,
+            string containingValue,
             int index,
             SyntaxTree syntaxTree,
             TextSpan textSpan,
@@ -162,10 +190,12 @@ namespace Roslynator.CSharp.Spelling
             if (value.All(f => char.IsUpper(f)))
                 return false;
 
-            if (IsPseudoWord(value))
+            if (value == "xxx")
             {
-                return false;
             }
+
+            if (IsPseudoWord(value))
+                return false;
 
             if (SpellingData.IgnoreList.Contains(value))
                 return false;
@@ -186,16 +216,23 @@ namespace Roslynator.CSharp.Spelling
                 }
             }
 
-            //Debug.WriteLine(value);
-
             SpellingError spellingError;
             if (identifier.Parent != null)
             {
-                spellingError = new SpellingError(value, identifier.GetLocation(), identifier, index);
+                spellingError = new SpellingError(
+                    value,
+                    containingValue,
+                    identifier.GetLocation(),
+                    index,
+                    identifier);
             }
             else
             {
-                spellingError = new SpellingError(value, Location.Create(syntaxTree, new TextSpan(textSpan.Start + index, value.Length)));
+                spellingError = new SpellingError(
+                    value,
+                    containingValue,
+                    Location.Create(syntaxTree, new TextSpan(textSpan.Start + index, value.Length)),
+                    index);
             }
 
             Debug.Assert(identifier.Parent == null || identifier.ValueText.Length > 2, identifier.ValueText);
@@ -524,10 +561,10 @@ namespace Roslynator.CSharp.Spelling
 
         public override void VisitParameter(ParameterSyntax node)
         {
-            string s = node.Identifier.ValueText;
+            string identifierText = node.Identifier.ValueText;
 
-            if (!ShouldBeSkipped(s))
-                CheckValue(s, node.SyntaxTree, node.Span, node.Identifier);
+            if (!ShouldBeSkipped(identifierText))
+                CheckValue(identifierText, node.SyntaxTree, node.Span, node.Identifier);
 
             base.VisitParameter(node);
         }

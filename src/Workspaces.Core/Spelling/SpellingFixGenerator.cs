@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Roslynator.Spelling
 {
@@ -17,7 +18,7 @@ namespace Roslynator.Spelling
     // pronounciation > pronounciation
     internal static class SpellingFixGenerator
     {
-        private static readonly string[] _vowels = new[] {"a", "e", "i", "o", "u", "y" };
+        private static readonly string[] _vowels = new[] { "a", "e", "i", "o", "u", "y" };
 
         public static IEnumerable<string> GeneratePossibleFixes(SpellingError spellingError, SpellingData spellingData)
         {
@@ -30,6 +31,35 @@ namespace Roslynator.Spelling
 
             if (fix != null)
                 yield return fix;
+
+            if (spellingError.Value == "idenfifier")
+            {
+            }
+
+            IEnumerable<(string Key, int)> valueByCount = spellingError.Value.Select((f, i) => (f, i))
+                .Join(spellingData.List.Map, f => f.i, f => f.Key, (f, g) => g.Value)
+                .SelectMany(f => f)
+                .GroupBy(f => f)
+                .Select(f => (key: f.Key, count: f.Count()))
+                .OrderByDescending(f => f.count);
+
+            using (IEnumerator<(string key, int count)> en = valueByCount.GetEnumerator())
+            {
+                if (en.MoveNext())
+                {
+                    (string key, int count) curr = en.Current;
+
+                    if (curr.count >= value.Length - 1)
+                    {
+                        if (!en.MoveNext()
+                            || en.Current.count < curr.count)
+                        {
+                            fix = curr.key;
+                            yield return fix;
+                        }
+                    }
+                }
+            }
 
             // usefull > useful
             fix = value.Remove(value.Length - 1);
@@ -64,6 +94,14 @@ namespace Roslynator.Spelling
             else if (value.EndsWith("ical"))
             {
                 string s = value.Remove(value.Length - 2);
+
+                if (IsValidFix(s))
+                    yield return s;
+            }
+            else if (value.EndsWith("den")
+                && !value.EndsWith("dden"))
+            {
+                string s = value.Insert(value.Length - 2, "d");
 
                 if (IsValidFix(s))
                     yield return s;
@@ -409,9 +447,9 @@ namespace Roslynator.Spelling
                         {
                             case 'e':
                             case 'l':
-                                    return value.Insert(value.Length - 2, "'");
+                                return value.Insert(value.Length - 2, "'");
                             default:
-                                    return value.Insert(value.Length - 1, "'");
+                                return value.Insert(value.Length - 1, "'");
                         }
                     }
             }
