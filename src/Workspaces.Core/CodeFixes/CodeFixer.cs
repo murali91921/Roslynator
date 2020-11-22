@@ -840,13 +840,13 @@ namespace Roslynator.CodeFixes
                             {
                                 SpellingData = SpellingData.AddFix(identifierText, fix);
                             }
+
+                            break;
                         }
                         else
                         {
                             SpellingData = SpellingData.AddIgnoredValue(identifierText);
                         }
-
-                        break;
                     }
                 }
 

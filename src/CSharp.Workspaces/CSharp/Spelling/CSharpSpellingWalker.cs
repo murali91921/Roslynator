@@ -182,7 +182,7 @@ namespace Roslynator.CSharp.Spelling
                 }
             }
 
-            Debug.WriteLine(value);
+            //Debug.WriteLine(value);
 
             SpellingError spellingError;
             if (identifier.Parent != null)
