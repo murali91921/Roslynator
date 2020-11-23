@@ -2,44 +2,38 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Collections.Immutable;
 
 namespace Roslynator.Spelling
 {
-    // usecase=use case
-    // wellformed=well-formed
     internal static class SpellingFixGenerator
     {
-        private static readonly string[] _vowels = new[] { "a", "e", "i", "o", "u", "y" };
-
-        public static IEnumerable<string> GeneratePossibleFixes(SpellingError spellingError, SpellingData spellingData)
+        public static IEnumerable<string> GeneratePossibleFixes(
+            SpellingError spellingError,
+            SpellingData spellingData)
         {
             string value = spellingError.Value;
 
             int length = value.Length;
 
-            string fix = null;
+            Debug.WriteLine($"find auto fix for '{value}'");
 
-            // shouldnt > shouldn't
-            //string fix = AddMissingApostrophe(value);
+            if (length >= 4)
+            {
+                foreach (string match in MatchSwappedLetters(spellingError, spellingData))
+                {
+                    Debug.WriteLine($"match: {match}");
+                    yield return match;
+                }
 
-            if (fix != null)
-                yield return fix;
-
-            fix = FuzzyMatch2(spellingError, spellingData);
-
-            //fix = FuzzyMatch(spellingError, spellingData);
-
-            if (fix != null)
-                yield return fix;
-
-            // usefull > useful
-            //fix = value.Remove(value.Length - 1);
-
-            //if (IsValidFix(fix))
-            //    yield return fix;
+                foreach (string match in FuzzyMatch(spellingError, spellingData).Distinct())
+                {
+                    Debug.WriteLine($"match: {match}");
+                    yield return match;
+                }
+            }
 
             if (value.EndsWith("ed"))
             {
@@ -152,18 +146,6 @@ namespace Roslynator.Spelling
                 return default;
             }
 
-            //bool IsNextText(string s, int offset = 1)
-            //{
-            //    return i + offset + s.Length <= length
-            //        && string.CompareOrdinal(value, i + offset, s, 0, s.Length) == 0;
-            //}
-
-            //bool IsNextSuffix(string s, int offset = 1)
-            //{
-            //    return IsNextText(s, offset)
-            //        && i + offset + s.Length == length;
-            //}
-
             bool IsValidFix(string value)
             {
                 return spellingData.List.Contains(value)
@@ -171,213 +153,118 @@ namespace Roslynator.Spelling
             }
         }
 
-        private static string FuzzyMatch(SpellingError spellingError, SpellingData spellingData)
-        {
-            IEnumerable<(string value, int count)> fuzzyMatches = spellingData.List.Map.FuzzyMatches(spellingError);
-
-            using (IEnumerator<(string value, int count)> en = fuzzyMatches.GetEnumerator())
-            {
-                if (en.MoveNext())
-                {
-                    int length = spellingError.Value.Length;
-                    string fix = null;
-
-                    do
-                    {
-                        int diff = length - en.Current.count;
-                        int count = en.Current.count;
-                        string value2 = en.Current.value;
-                        int length2 = value2.Length;
-
-                        var shouldSkip = false;
-
-                        // lambda > lamdba
-                        if (diff == 2)
-                        {
-                            if (length2 != length)
-                                shouldSkip = true;
-                        }
-                        //lambda > lumbda
-                        //lambda > lamda
-                        else if (diff == 1)
-                        {
-                            if (length2 > length
-                                || length2 < length - 1)
-                            {
-                                shouldSkip = true;
-                            }
-                        }
-                        // laambda > lambda
-                        else if (diff == 0)
-                        {
-                            if (length2 <= length)
-                                shouldSkip = true;
-                        }
-                        else
-                        {
-                            Debug.Fail(diff.ToString());
-                        }
-
-                        if (!shouldSkip)
-                        {
-                            IEnumerable<WordChar> first = spellingError.Value
-                                .GroupBy(f => f)
-                                .Select(f => new WordChar(f.Key, f.Count()));
-
-                            IEnumerable<WordChar> second = en.Current.value
-                                .GroupBy(f => f)
-                                .Select(f => new WordChar(f.Key, f.Count()));
-
-                            int sum = spellingError.Value.GroupBy(f => f)
-                                .Join(
-                                    en.Current.value.GroupBy(f => f),
-                                    f => f.Key,
-                                    f => f.Key,
-                                    (f, g) => System.Math.Min(f.Count(), g.Count()))
-                                .Sum();
-
-                            if (sum == ((diff == 1) ? length - 1 : length))
-                            {
-                                if (fix == null)
-                                {
-                                    fix = en.Current.value;
-                                }
-                                else
-                                {
-                                    return null;
-                                }
-                            }
-                        }
-
-                    } while (en.MoveNext());
-
-                    return fix;
-                }
-            }
-
-            return null;
-        }
-
-        private static string FuzzyMatch2(SpellingError spellingError, SpellingData spellingData)
+        private static IEnumerable<string> FuzzyMatch(SpellingError spellingError, SpellingData spellingData)
         {
             string value = spellingError.Value;
-
-            if (value == "overriden") { }
-            if (value == "idenfifier") { }
-            if (value == "lamdba") { }
-            if (value == "ladbma") { }
-            if (value == "lanbda") { }
-            if (value == "lamda") { }
-            if (value == "laambda") { }
-
             int length = value.Length;
-
-            if (length < 4)
-                return null;
-
-            string match = MatchSwap(spellingError, spellingData);
-
-            if (match != null)
-                return match;
 
             WordCharMap map = spellingData.List.Map;
             WordCharMap reversedMap = spellingData.List.ReversedMap;
-            int i = 0;
+
             int max = length;
+            int i;
+            ImmutableHashSet<string> values;
 
-            ImmutableHashSet<string> values = ImmutableHashSet<string>.Empty;
-
-            for (;
-                max >= 0;
-                max = i - 1)
+            for (;max >= 0; max = i - 1)
             {
                 Debug.WriteLine($"\r\nmax: {max}");
 
                 values = ImmutableHashSet<string>.Empty;
 
+                int min = -1;
                 i = 0;
                 while (i < max)
                 {
                     if (!map.TryGetValue(value, i, out ImmutableHashSet<string> values2))
                         break;
 
-                    ImmutableHashSet<string> intersect = (values.Count == 0)
+                    ImmutableHashSet<string> intersect = (i == 0)
                         ? values2
                         : values.Intersect(values2);
 
                     if (intersect.Count == 0)
                         break;
 
-                    Debug.WriteLine($"left  {i,2}  {value[i].ToString()} {intersect.Count,5}");
+                    Debug.WriteLine($"left  {i,2}  {value[i]} {intersect.Count,5}");
 
                     values = intersect;
+                    min = i;
                     i++;
                 }
 
-                Debug.Assert(i < length);
-
-                if (i == length)
+                int j = length - 1;
+                while (j > min)
                 {
-                    // lambdaa
-                    string value2 = values.SingleOrDefault(f => f.Length - length == 1, shouldThrow: false);
+                    if (!reversedMap.TryGetValue(value[j], length - j - 1, out ImmutableHashSet<string> values2))
+                        break;
 
-                    if (match == null)
+                    ImmutableHashSet<string> intersect;
+                    if (max == 0
+                        && j == length - 1)
                     {
-                        match = value2;
-                        continue;
+                        intersect = values2;
                     }
                     else
                     {
-                        return null;
+                        intersect = values.Intersect(values2);
                     }
-                }
-
-                int k = 0;
-                int j = length - 1;
-                while (j > i)
-                {
-                    if (!reversedMap.TryGetValue(value[j], k, out ImmutableHashSet<string> values2))
-                        break;
-
-                    ImmutableHashSet<string> intersect = values.Intersect(values2);
 
                     if (intersect.Count == 0)
                         break;
 
-                    Debug.WriteLine($"right {k,2}  {value[j].ToString()} {intersect.Count,5}");
+                    Debug.WriteLine($"right {j,2}  {value[j]} {intersect.Count,5}");
 
                     values = intersect;
                     j--;
-                    k++;
                 }
 
                 int diff = j - i;
 
-                if (diff == 0)
+                if (diff == -1)
                 {
                     string value2 = values.SingleOrDefault(shouldThrow: false);
 
-                    // lanbda > lambda
-                    // lamda > lambda
-                    // laambda > lambda
-                    if (Math.Abs(length - value2.Length) <= 1)
+                    // lmbda
+                    // llambda
+                    if (value2 != null
+                        && Math.Abs(value2.Length - length) == 1)
                     {
-                        if (match == null)
+                        yield return value2;
+                    }
+                }
+                else if (diff == 0)
+                {
+                    string value2 = values.SingleOrDefault(shouldThrow: false);
+
+                    // lambdaa
+                    // ambda
+                    if (value2 != null
+                        && Math.Abs(value2.Length - length) == 1)
+                    {
+                        yield return value2;
+                    }
+                }
+                else if (diff == 1)
+                {
+                    string value2 = values.SingleOrDefault(shouldThrow: false);
+
+                    if (value2 != null)
+                    {
+                        int lengthDiff = value2.Length - length;
+
+                        // lanbda
+                        // laambda
+                        if (lengthDiff == 0
+                            || lengthDiff == 1)
                         {
-                            match = value2;
-                        }
-                        else
-                        {
-                            return null;
+                            yield return value2;
                         }
                     }
                 }
             }
-
-            return match;
         }
 
-        private static string MatchSwap(
+        private static IEnumerable<string> MatchSwappedLetters(
             SpellingError spellingError,
             SpellingData spellingData)
         {
@@ -400,8 +287,101 @@ namespace Roslynator.Spelling
                     break;
             }
 
-            return values.SingleOrDefault(f => f.Length == value.Length, shouldThrow: false);
+            return values.Where(f => f.Length == value.Length);
         }
+
+        private static string Replace(string value, string newValue, int index, int length)
+        {
+            return value.Remove(index, length).Insert(index, newValue);
+        }
+
+        //TODO: del
+        //private static string FuzzyMatch(SpellingError spellingError, SpellingData spellingData)
+        //{
+        //    IEnumerable<(string value, int count)> fuzzyMatches = spellingData.List.Map.FuzzyMatches(spellingError);
+
+        //    using (IEnumerator<(string value, int count)> en = fuzzyMatches.GetEnumerator())
+        //    {
+        //        if (en.MoveNext())
+        //        {
+        //            int length = spellingError.Value.Length;
+        //            string fix = null;
+
+        //            do
+        //            {
+        //                int diff = length - en.Current.count;
+        //                int count = en.Current.count;
+        //                string value2 = en.Current.value;
+        //                int length2 = value2.Length;
+
+        //                var shouldSkip = false;
+
+        //                // lambda > lamdba
+        //                if (diff == 2)
+        //                {
+        //                    if (length2 != length)
+        //                        shouldSkip = true;
+        //                }
+        //                //lambda > lumbda
+        //                //lambda > lamda
+        //                else if (diff == 1)
+        //                {
+        //                    if (length2 > length
+        //                        || length2 < length - 1)
+        //                    {
+        //                        shouldSkip = true;
+        //                    }
+        //                }
+        //                // laambda
+        //                else if (diff == 0)
+        //                {
+        //                    if (length2 <= length)
+        //                        shouldSkip = true;
+        //                }
+        //                else
+        //                {
+        //                    Debug.Fail(diff.ToString());
+        //                }
+
+        //                if (!shouldSkip)
+        //                {
+        //                    IEnumerable<WordChar> first = spellingError.Value
+        //                        .GroupBy(f => f)
+        //                        .Select(f => new WordChar(f.Key, f.Count()));
+
+        //                    IEnumerable<WordChar> second = en.Current.value
+        //                        .GroupBy(f => f)
+        //                        .Select(f => new WordChar(f.Key, f.Count()));
+
+        //                    int sum = spellingError.Value.GroupBy(f => f)
+        //                        .Join(
+        //                            en.Current.value.GroupBy(f => f),
+        //                            f => f.Key,
+        //                            f => f.Key,
+        //                            (f, g) => System.Math.Min(f.Count(), g.Count()))
+        //                        .Sum();
+
+        //                    if (sum == ((diff == 1) ? length - 1 : length))
+        //                    {
+        //                        if (fix == null)
+        //                        {
+        //                            fix = en.Current.value;
+        //                        }
+        //                        else
+        //                        {
+        //                            return null;
+        //                        }
+        //                    }
+        //                }
+
+        //            } while (en.MoveNext());
+
+        //            return fix;
+        //        }
+        //    }
+
+        //    return null;
+        //}
 
         //private static string AddMissingApostrophe(string value)
         //{
@@ -508,16 +488,5 @@ namespace Roslynator.Spelling
         //            return false;
         //    }
         //}
-
-        //private static bool IsConsonant(char ch)
-        //{
-        //    return ch != '\0'
-        //        && !IsVowel(ch);
-        //}
-
-        private static string Replace(string value, string newValue, int index, int length)
-        {
-            return value.Remove(index, length).Insert(index, newValue);
-        }
     }
 }
