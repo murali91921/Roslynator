@@ -30,7 +30,8 @@ namespace Roslynator.CommandLine
 
             var options = new SpellingFixerOptions(
                 includeLocal: false,
-                includeGeneratedCode: Options.IncludeGeneratedCode);
+                includeGeneratedCode: Options.IncludeGeneratedCode,
+                interactive: true);
 
             CultureInfo culture = (Options.Culture != null) ? CultureInfo.GetCultureInfo(Options.Culture) : null;
 

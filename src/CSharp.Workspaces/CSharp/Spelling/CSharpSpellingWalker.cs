@@ -84,11 +84,11 @@ namespace Roslynator.CSharp.Spelling
 
             while (match.Success)
             {
-                CheckCommentValue(value, prevEnd, match.Length, syntaxTree, textSpan);
-
-                match = match.NextMatch();
+                CheckCommentValue(value, prevEnd, match.Index - prevEnd, syntaxTree, textSpan);
 
                 prevEnd = match.Index + match.Length;
+
+                match = match.NextMatch();
             }
 
             CheckCommentValue(value, prevEnd, value.Length - prevEnd, syntaxTree, textSpan);

@@ -14,7 +14,7 @@ namespace Roslynator.Spelling
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     internal class WordList
     {
-        private ImmutableDictionary<int, ImmutableHashSet<string>> _map;
+        private WordCharMap _map;
 
         public static StringComparer DefaultComparer { get; } = StringComparer.CurrentCultureIgnoreCase;
 
@@ -35,24 +35,15 @@ namespace Roslynator.Spelling
 
         public int Count => Values.Count;
 
-        public ImmutableDictionary<int, ImmutableHashSet<string>> Map
+        public WordCharMap Map
         {
             get
             {
                 if (_map == null)
-                    Interlocked.CompareExchange(ref _map, CreateMap(), null);
+                    Interlocked.CompareExchange(ref _map, new WordCharMap(this), null);
 
                 return _map;
             }
-        }
-
-        private ImmutableDictionary<int, ImmutableHashSet<string>> CreateMap()
-        {
-            return Values
-                .Select(v => (value: v, chars: v.Select((ch, i) => (ch, i))))
-                .SelectMany(f => f.chars.Select(g => (f.value, g.ch, g.i, key: g.i * 100 + (int)g.ch)))
-                .GroupBy(f => f.key)
-                .ToImmutableDictionary(f => f.Key, f => f.Select(f => f.value).ToImmutableHashSet(Comparer));
         }
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]

@@ -283,7 +283,7 @@ namespace Roslynator.Spelling
             {
             }
 
-            int splitIndex = GetSplitIndex(spellingError);
+            int splitIndex = SpellingData.List.Map.GetSplitIndex(spellingError);
 
             if (splitIndex >= 0)
             {
@@ -318,72 +318,6 @@ namespace Roslynator.Spelling
             }
 
             return null;
-        }
-
-        private int GetSplitIndex(SpellingError spellingError)
-        {
-            string value = spellingError.Value;
-
-            if (value.Length < 4)
-                return -1;
-
-            if (!value.All(f => char.IsLower(f)))
-                return -1;
-
-            int index = -1;
-
-            ImmutableDictionary<int, ImmutableHashSet<string>> map = SpellingData.List.Map;
-
-            ImmutableHashSet<string> values = map[value[0]];
-
-            for (int i = 1; i < value.Length - 2; i++)
-            {
-                ImmutableHashSet<string> values2 = map[(i * 100) + value[i]];
-
-                values = values.Intersect(values2, StringComparer.CurrentCultureIgnoreCase)
-                    .ToImmutableHashSet(StringComparer.CurrentCultureIgnoreCase);
-
-                if (values.Count == 0)
-                    return -1;
-
-                foreach (string s in values)
-                {
-                    if (s.Length != i)
-                        continue;
-
-                    int j = i + 1;
-                    int k = 1;
-                    ImmutableHashSet<string> values3 = map[0 + value[j]];
-
-                    while (j < value.Length - 1)
-                    {
-                        ImmutableHashSet<string> values4 = map[(k * 100) + value[j]];
-
-                        values3 = values3.Intersect(values4, StringComparer.CurrentCultureIgnoreCase)
-                            .ToImmutableHashSet(StringComparer.CurrentCultureIgnoreCase);
-
-                        if (values3.Count == 0)
-                            break;
-
-                        j++;
-                        k++;
-                    }
-
-                    if (values3.Count == 1)
-                    {
-                        if (index == -1)
-                        {
-                            index = i;
-                        }
-                        else
-                        {
-                            return -1;
-                        }
-                    }
-                }
-            }
-
-            return index;
         }
     }
 }

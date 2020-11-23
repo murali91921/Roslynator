@@ -36,26 +36,37 @@ namespace Roslynator.Spelling
             {
             }
 
-            IEnumerable<(string Key, int)> valueByCount = spellingError.Value.Select((f, i) => (f, i))
-                .Join(spellingData.List.Map, f => f.i, f => f.Key, (f, g) => g.Value)
-                .SelectMany(f => f)
-                .GroupBy(f => f)
-                .Select(f => (key: f.Key, count: f.Count()))
-                .OrderByDescending(f => f.count);
+            IEnumerable<(string value, int count)> fuzzyMatches = spellingData.List.Map.FuzzyMatches(spellingError);
 
-            using (IEnumerator<(string key, int count)> en = valueByCount.GetEnumerator())
+            using (IEnumerator<(string key, int count)> en = fuzzyMatches.GetEnumerator())
             {
                 if (en.MoveNext())
                 {
-                    (string key, int count) curr = en.Current;
+                    (string value, int count) curr = en.Current;
+                    int count1 = curr.count;
 
-                    if (curr.count >= value.Length - 1)
+                    if (!en.MoveNext()
+                        || en.Current.count < curr.count)
                     {
-                        if (!en.MoveNext()
-                            || en.Current.count < curr.count)
+                        int count2 = curr.count;
+                        string value2 = curr.value;
+
+                        int diff = count1 - count2;
+
+                        if (diff == 2)
                         {
-                            fix = curr.key;
-                            yield return fix;
+                            if (value.Intersect(value2).Count() == value.Length)
+                                yield return value2;
+                        }
+                        else if (diff == 1)
+                        {
+                            if (value.Intersect(value2).Count() == value2.Length)
+                                yield return value2;
+                        }
+                        else if (diff == -1)
+                        {
+                            if (value.Intersect(value2).Count() == value.Length)
+                                yield return value2;
                         }
                     }
                 }
@@ -338,7 +349,10 @@ namespace Roslynator.Spelling
                 // threefore > therefore
                 string s = value.Remove(i, 1).Insert(i + 1, value[i].ToString());
                 if (IsValidFix(s))
+                {
                     yield return s;
+                    break;
+                }
             }
 
             string Replace(string s, int length = 1)
