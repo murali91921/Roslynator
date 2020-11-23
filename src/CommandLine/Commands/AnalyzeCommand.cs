@@ -4,14 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Roslynator.CommandLine.Xml;
 using Roslynator.Diagnostics;
-using Roslynator.Spelling;
 using static Roslynator.Logger;
 
 namespace Roslynator.CommandLine
@@ -46,13 +44,6 @@ namespace Roslynator.CommandLine
                 .SelectMany(path => AnalyzerAssemblyLoader.LoadFrom(path, loadFixers: false).Select(info => info.AnalyzerAssembly));
 
             CultureInfo culture = (Options.Culture != null) ? CultureInfo.GetCultureInfo(Options.Culture) : null;
-
-            SpellingData spellingData = SpellingData.Empty;
-
-            string assemblyPath = typeof(AnalyzeCommand).Assembly.Location;
-
-            if (!string.IsNullOrEmpty(assemblyPath))
-                spellingData = SpellingData.LoadFromDirectory(Path.GetDirectoryName(assemblyPath));
 
             var codeAnalyzer = new CodeAnalyzer(
                 analyzerAssemblies: analyzerAssemblies,

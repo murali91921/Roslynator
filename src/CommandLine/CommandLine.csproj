@@ -76,7 +76,7 @@
     <None Update="WordLists\roslynator.spelling.it.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="WordLists\roslynator.spelling.ignore.wordlist">
+    <None Update="WordLists\roslynator.spelling.core.ignorelist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

@@ -14,13 +14,18 @@ namespace Roslynator.Spelling
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     internal class WordList
     {
-        private WordCharMap _map;
-        private WordCharMap _reversedMap;
-        private ImmutableDictionary<WordChar, ImmutableHashSet<string>> _charMap;
+        private WordCharMap _charIndexMap;
+        private WordCharMap _reversedCharIndexMap;
+        private WordCharMap _charMap;
 
         public static StringComparer DefaultComparer { get; } = StringComparer.CurrentCultureIgnoreCase;
 
         public static WordList Default { get; } = new WordList(null, DefaultComparer, null);
+
+        public static WordList Default_CurrentCulture { get; } = new WordList(
+            null,
+            StringComparer.CurrentCulture,
+            null);
 
         public WordList(string path, StringComparer comparer, IEnumerable<string> values)
         {
@@ -37,48 +42,36 @@ namespace Roslynator.Spelling
 
         public int Count => Values.Count;
 
-        public WordCharMap Map
+        public WordCharMap CharIndexMap
         {
             get
             {
-                if (_map == null)
-                    Interlocked.CompareExchange(ref _map, WordCharMap.Create(this), null);
+                if (_charIndexMap == null)
+                    Interlocked.CompareExchange(ref _charIndexMap, WordCharMap.CreateCharIndexMap(this), null);
 
-                return _map;
+                return _charIndexMap;
             }
         }
 
-        public WordCharMap ReversedMap
+        public WordCharMap ReversedCharIndexMap
         {
             get
             {
-                if (_reversedMap == null)
-                    Interlocked.CompareExchange(ref _reversedMap, WordCharMap.Create(this, reverse: true), null);
+                if (_reversedCharIndexMap == null)
+                    Interlocked.CompareExchange(ref _reversedCharIndexMap, WordCharMap.CreateCharIndexMap(this, reverse: true), null);
 
-                return _reversedMap;
+                return _reversedCharIndexMap;
             }
         }
 
-        public ImmutableDictionary<WordChar, ImmutableHashSet<string>> CharMap
+        public WordCharMap CharMap
         {
             get
             {
                 if (_charMap == null)
-                    Interlocked.CompareExchange(ref _charMap, Create(), null);
+                    Interlocked.CompareExchange(ref _charMap, WordCharMap.CreateCharMap(this), null);
 
                 return _charMap;
-
-                ImmutableDictionary<WordChar, ImmutableHashSet<string>> Create()
-                {
-                    return Values
-                        .SelectMany(f => f
-                            .GroupBy(ch => ch)
-                            .Select(g => (value: f, key: new WordChar(g.Key, g.Count()))))
-                        .GroupBy(f => f.key)
-                        .ToImmutableDictionary(
-                            f => f.Key,
-                            f => f.Select(f => f.value).ToImmutableHashSet(Comparer));
-                }
             }
         }
 

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslynator.Spelling
 {
-    internal class WordCharMap
+    internal sealed class WordCharMap
     {
         private WordCharMap(WordList list, ImmutableDictionary<WordChar, ImmutableHashSet<string>> map)
         {
@@ -18,7 +18,7 @@ namespace Roslynator.Spelling
 
         public WordList List { get; }
 
-        public ImmutableDictionary<WordChar, ImmutableHashSet<string>> Map { get; }
+        private ImmutableDictionary<WordChar, ImmutableHashSet<string>> Map { get; }
 
         public ImmutableHashSet<string> this[string value, int index]
         {
@@ -45,24 +45,34 @@ namespace Roslynator.Spelling
             return Map.TryGetValue(new WordChar(ch, index), out value);
         }
 
-        public static WordCharMap Create(WordList wordList, bool reverse = false)
+        public static WordCharMap CreateCharIndexMap(WordList wordList, bool reverse = false)
         {
-            return new WordCharMap(wordList, CreateMap(wordList, reverse: reverse));
-        }
-
-        private static ImmutableDictionary<WordChar, ImmutableHashSet<string>> CreateMap(
-            WordList wordList,
-            bool reverse = false)
-        {
-            return wordList.Values
+            ImmutableDictionary<WordChar, ImmutableHashSet<string>> map = wordList.Values
                 .Select(f => (value: f, chars: ((reverse) ? f.Reverse() : f).Select((ch, i) => (ch, i))))
                 .SelectMany(f => f.chars.Select(g => (f.value, g.ch, g.i, key: new WordChar(g.ch, g.i))))
                 .GroupBy(f => f.key)
                 .ToImmutableDictionary(
                     f => f.Key,
                     f => f.Select(f => f.value).ToImmutableHashSet(wordList.Comparer));
+
+            return new WordCharMap(wordList, map);
         }
 
+        public static WordCharMap CreateCharMap(WordList wordList)
+        {
+            ImmutableDictionary<WordChar, ImmutableHashSet<string>> map = wordList.Values
+                .SelectMany(f => f
+                    .GroupBy(ch => ch)
+                    .Select(g => (value: f, key: new WordChar(g.Key, g.Count()))))
+                .GroupBy(f => f.key)
+                .ToImmutableDictionary(
+                    f => f.Key,
+                    f => f.Select(f => f.value).ToImmutableHashSet(wordList.Comparer));
+
+            return new WordCharMap(wordList, map);
+        }
+
+        //TODO: del
         public IEnumerable<(string value, int count)> FuzzyMatches(SpellingError spellingError)
         {
             string value = spellingError.Value;
@@ -77,14 +87,9 @@ namespace Roslynator.Spelling
                 .OrderByDescending(f => f.count);
         }
 
-        public int GetSplitIndex(SpellingError spellingError)
+        public int GetSplitIndex(string value)
         {
-            string value = spellingError.Value;
-
             if (value.Length < 4)
-                return -1;
-
-            if (!value.All(f => char.IsLower(f)))
                 return -1;
 
             int index = -1;

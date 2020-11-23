@@ -22,22 +22,24 @@ namespace Roslynator.Spelling
 
             if (length >= 4)
             {
-                foreach (string match in MatchSwappedLetters(spellingError, spellingData))
+                string valueLower = value.ToLowerInvariant();
+
+                foreach (string match in MatchSwappedLetters(valueLower, spellingData))
                 {
                     Debug.WriteLine($"match: {match}");
                     yield return match;
                 }
 
-                foreach (string match in FuzzyMatch(spellingError, spellingData).Distinct())
+                foreach (string match in FuzzyMatch(valueLower, spellingData))
                 {
                     Debug.WriteLine($"match: {match}");
                     yield return match;
                 }
             }
 
-            if (value.EndsWith("ed"))
+            if (value.EndsWith("ed", StringComparison.OrdinalIgnoreCase))
             {
-                if (value.EndsWith("tted"))
+                if (value.EndsWith("tted", StringComparison.OrdinalIgnoreCase))
                 {
                     string s = value.Remove(value.Length - 3);
 
@@ -52,64 +54,16 @@ namespace Roslynator.Spelling
                         yield return s;
                 }
             }
-            else if (value.EndsWith("ial"))
+            else if (value.EndsWith("ial", StringComparison.OrdinalIgnoreCase))
             {
                 string s = value.Remove(value.Length - 3);
 
                 if (IsValidFix(s))
                     yield return s;
             }
-            else if (value.EndsWith("ical"))
+            else if (value.EndsWith("ical", StringComparison.OrdinalIgnoreCase))
             {
                 string s = value.Remove(value.Length - 2);
-
-                if (IsValidFix(s))
-                    yield return s;
-            }
-            else if (value.EndsWith("den")
-                && !value.EndsWith("dden"))
-            {
-                string s = value.Insert(value.Length - 2, "d");
-
-                if (IsValidFix(s))
-                    yield return s;
-            }
-            // cacheing > caching
-            else if (value.EndsWith("eing"))
-            {
-                string s = value.Remove(value.Length - 4, 1);
-
-                if (IsValidFix(s))
-                    yield return s;
-            }
-            // collapsable > collapsible
-            else if (value.EndsWith("able"))
-            {
-                string s = Replace(value, "i", length - 4, 1);
-
-                if (IsValidFix(s))
-                    yield return s;
-            }
-            // customizeable > customizable
-            else if (value.EndsWith("eable"))
-            {
-                string s = value.Remove(value.Length - 4, 1);
-
-                if (IsValidFix(s))
-                    yield return s;
-            }
-            // compatability > compatibility
-            else if (value.EndsWith("ability"))
-            {
-                string s = Replace(value, "i", length - 7, 1);
-
-                if (IsValidFix(s))
-                    yield return s;
-            }
-            // serializeability > serializability
-            else if (value.EndsWith("eability"))
-            {
-                string s = value.Remove(value.Length - 8, 1);
 
                 if (IsValidFix(s))
                     yield return s;
@@ -153,18 +107,20 @@ namespace Roslynator.Spelling
             }
         }
 
-        private static IEnumerable<string> FuzzyMatch(SpellingError spellingError, SpellingData spellingData)
+        private static IEnumerable<string> FuzzyMatch(
+            string value,
+            SpellingData spellingData)
         {
-            string value = spellingError.Value;
             int length = value.Length;
 
-            WordCharMap map = spellingData.List.Map;
-            WordCharMap reversedMap = spellingData.List.ReversedMap;
+            WordCharMap map = spellingData.List.CharIndexMap;
+            WordCharMap reversedMap = spellingData.List.ReversedCharIndexMap;
 
             int max = length;
             int i;
             ImmutableHashSet<string> values;
 
+            //TODO: parallel
             for (;max >= 0; max = i - 1)
             {
                 Debug.WriteLine($"\r\nmax: {max}");
@@ -220,24 +176,15 @@ namespace Roslynator.Spelling
 
                 int diff = j - i;
 
-                if (diff == -1)
+                if (diff == 0
+                    || diff == -1)
                 {
                     string value2 = values.SingleOrDefault(shouldThrow: false);
 
+                    // ambda
                     // lmbda
                     // llambda
-                    if (value2 != null
-                        && Math.Abs(value2.Length - length) == 1)
-                    {
-                        yield return value2;
-                    }
-                }
-                else if (diff == 0)
-                {
-                    string value2 = values.SingleOrDefault(shouldThrow: false);
-
                     // lambdaa
-                    // ambda
                     if (value2 != null
                         && Math.Abs(value2.Length - length) == 1)
                     {
@@ -265,13 +212,12 @@ namespace Roslynator.Spelling
         }
 
         private static IEnumerable<string> MatchSwappedLetters(
-            SpellingError spellingError,
+            string value,
             SpellingData spellingData)
         {
-            string value = spellingError.Value;
-
             ImmutableHashSet<string> values = ImmutableHashSet<string>.Empty;
 
+            //TODO: parallel
             foreach (WordChar wordChar in value
                 .GroupBy(f => f)
                 .Select(f => new WordChar(f.Key, f.Count())))
@@ -288,11 +234,6 @@ namespace Roslynator.Spelling
             }
 
             return values.Where(f => f.Length == value.Length);
-        }
-
-        private static string Replace(string value, string newValue, int index, int length)
-        {
-            return value.Remove(index, length).Insert(index, newValue);
         }
 
         //TODO: del

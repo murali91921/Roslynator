@@ -13,18 +13,18 @@ namespace Roslynator.Spelling
         private static readonly Regex _wordListFileName = new Regex(@"\Aroslynator\.spelling(\.|\z)", RegexOptions.IgnoreCase);
 
         public static SpellingData Empty { get; } = new SpellingData(
-            new WordList(null, StringComparer.CurrentCultureIgnoreCase, null),
-            new WordList(null, StringComparer.CurrentCulture, null),
+            WordList.Default,
+            WordList.Default_CurrentCulture,
             ImmutableDictionary.Create<string, string>(StringComparer.CurrentCulture));
 
         public SpellingData(
             WordList list,
             WordList ignoreList,
-            ImmutableDictionary<string, string> fixes)
+            ImmutableDictionary<string, string> fixes = null)
         {
             List = list;
             IgnoreList = ignoreList;
-            Fixes = fixes;
+            Fixes = fixes ?? ImmutableDictionary.Create<string, string>(StringComparer.CurrentCulture);
         }
 
         public WordList List { get; }
@@ -69,7 +69,19 @@ namespace Roslynator.Spelling
                 wordList = wordList.AddValues(WordList.Load(filePath));
             }
 
-            return Empty.AddWords(wordList.Values);
+            WordList ignoreList = WordList.Default_CurrentCulture;
+
+            foreach (string filePath in Directory.EnumerateFiles(directoryPath, "*.ignorelist", SearchOption.TopDirectoryOnly))
+            {
+                string input = Path.GetFileNameWithoutExtension(filePath);
+
+                if (!_wordListFileName.IsMatch(input))
+                    continue;
+
+                ignoreList = ignoreList.AddValues(WordList.Load(filePath));
+            }
+
+            return new SpellingData(wordList, ignoreList);
         }
     }
 }

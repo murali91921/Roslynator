@@ -187,14 +187,7 @@ namespace Roslynator.CSharp.Spelling
             if (value.Length <= 1)
                 return false;
 
-            if (value.All(f => char.IsUpper(f)))
-                return false;
-
-            if (value == "xxx")
-            {
-            }
-
-            if (IsPseudoWord(value))
+            if (IsAllowedNonsensicalWord(value))
                 return false;
 
             if (SpellingData.IgnoreList.Contains(value))
@@ -232,7 +225,7 @@ namespace Roslynator.CSharp.Spelling
             return true;
         }
 
-        private bool IsPseudoWord(string value)
+        private bool IsAllowedNonsensicalWord(string value)
         {
             if (value.Length < 3)
                 return false;
@@ -255,7 +248,7 @@ namespace Roslynator.CSharp.Spelling
                             i++;
                         }
 
-                        return false;
+                        return true;
                     }
                 case 'A':
                     {
@@ -270,7 +263,7 @@ namespace Roslynator.CSharp.Spelling
                             i++;
                         }
 
-                        return false;
+                        return true;
                     }
             }
 
@@ -283,7 +276,7 @@ namespace Roslynator.CSharp.Spelling
                 i++;
             }
 
-            return false;
+            return true;
         }
 
         public override void VisitTrivia(SyntaxTrivia trivia)

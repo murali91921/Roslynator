@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -248,9 +249,10 @@ namespace Roslynator.Spelling
 
         private void ProcessFix(SpellingError spellingError, string fix)
         {
+            string fix2 = null;
+
             string containingValue = spellingError.ContainingValue;
 
-            string fix2 = null;
             int index = spellingError.Index;
 
             if (fix.Length > index
@@ -274,40 +276,106 @@ namespace Roslynator.Spelling
             }
             else
             {
-                SpellingData = SpellingData.AddFix(containingValue, fix);
+                SpellingData = SpellingData.AddFix(spellingError.ContainingValue, fix);
             }
         }
 
         private string GetFix(SpellingError spellingError)
         {
-            if (spellingError.Value == "Shortname")
-            {
-            }
+            string value = spellingError.Value;
 
-            int splitIndex = SpellingData.List.Map.GetSplitIndex(spellingError);
+            //TODO: GetSplitIndex
+            int splitIndex = SpellingData.List.CharIndexMap.GetSplitIndex(value.ToLowerInvariant());
 
             if (splitIndex >= 0)
             {
-                string value = spellingError.Value;
+                string fix =  value.Remove(splitIndex).Insert(splitIndex, value[splitIndex].ToString());
 
-                return value.Remove(splitIndex).Insert(splitIndex, value[splitIndex].ToString());
+                Console.Write("    Auto fix (case): ");
+                Console.WriteLine(fix);
+
+                return fix;
             }
 
-            List<string> fixes = SpellingFixGenerator.GeneratePossibleFixes(spellingError, SpellingData).ToList();
+            TextCasing textCasing = GetTextCasing(value);
 
-            if (fixes.Count == 1)
-            {
-                Console.Write("    Autofix: ");
-                Console.WriteLine(fixes[0]);
+            if (textCasing == TextCasing.Mixed)
+                return null;
 
-                return fixes[0];
-            }
-            else if (fixes.Count > 1)
+            using (IEnumerator<string> en = SpellingFixGenerator
+                .GeneratePossibleFixes(spellingError, SpellingData)
+                .GetEnumerator())
             {
-                foreach (string fix in fixes)
+                if (en.MoveNext())
                 {
-                    Console.Write("    Possible fix: ");
-                    Console.WriteLine(fix);
+                    string fix = en.Current;
+
+                    List<string> fixes = null;
+
+                    while (en.MoveNext()
+                        && (fixes == null || fixes.Count < 5))
+                    {
+                        if (fixes != null)
+                        {
+                            if (!fixes.Contains(en.Current, StringComparer.CurrentCultureIgnoreCase))
+                                fixes.Add(en.Current);
+                        }
+                        else if (!string.Equals(fix, en.Current, StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            fixes = new List<string>() { fix, en.Current };
+                        }
+                    }
+
+                    if (fixes != null)
+                    {
+                        for (int i = 0; i < fixes.Count; i++)
+                        {
+                            string fix2 = SetTextCasing(fixes[i], textCasing);
+
+                            Console.Write("    Fix suggestion");
+
+                            if (Options.Interactive)
+                                Console.Write($" ({i + 1}): ");
+
+                            Console.Write(": ");
+                            Console.WriteLine(fix2);
+
+                            fixes[i] = fix2;
+                        }
+
+                        if (Options.Interactive)
+                        {
+                            Console.Write("    Enter number of fix suggestion: ");
+
+                            if (int.TryParse(Console.ReadLine()?.Trim(), out int number)
+                                && number >= 1
+                                && number <= fixes.Count)
+                            {
+                                fix = fixes[number - 1];
+
+                                string value2 = spellingError.ContainingValue;
+                                if (value != value2)
+                                {
+                                    int endIndex = spellingError.Index + value.Length;
+
+                                    fix = value2.Remove(spellingError.Index)
+                                        + fix
+                                        + value2.Substring(endIndex, value2.Length - endIndex);
+                                }
+
+                                return fix;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        fix = SetTextCasing(fix, textCasing);
+
+                        Console.Write("    Auto fix: ");
+                        Console.WriteLine(fix);
+
+                        return fix;
+                    }
                 }
             }
 
@@ -319,6 +387,77 @@ namespace Roslynator.Spelling
             }
 
             return null;
+        }
+
+        private static string SetTextCasing(string s, TextCasing textCasing)
+        {
+            TextCasing textCasing2 = GetTextCasing(s);
+
+            if (textCasing == textCasing2)
+                return s;
+
+            switch (textCasing)
+            {
+                case TextCasing.Lower:
+                    return s.ToLowerInvariant();
+                case TextCasing.Upper:
+                    return s.ToUpperInvariant();
+                case TextCasing.FirstUpper:
+                    return s.Substring(0, 1).ToUpperInvariant() + s.Substring(1).ToLowerInvariant();
+                default:
+                    throw new InvalidOperationException($"Invalid enum value '{textCasing}'");
+            }
+        }
+
+        private static TextCasing GetTextCasing(string s)
+        {
+            char ch = s[0];
+
+            if (char.IsLower(ch))
+            {
+                for (int i = 1; i < s.Length; i++)
+                {
+                    if (!char.IsLower(s[i]))
+                        return TextCasing.Mixed;
+                }
+
+                return TextCasing.Lower;
+            }
+            else if (char.IsUpper(ch))
+            {
+                ch = s[1];
+
+                if (char.IsLower(ch))
+                {
+                    for (int i = 2; i < s.Length; i++)
+                    {
+                        if (!char.IsLower(s[i]))
+                            return TextCasing.Mixed;
+                    }
+
+                    return TextCasing.FirstUpper;
+                }
+                else if (char.IsUpper(ch))
+                {
+                    for (int i = 0; i < s.Length; i++)
+                    {
+                        if (!char.IsUpper(s[i]))
+                            return TextCasing.Mixed;
+                    }
+
+                    return TextCasing.Upper;
+                }
+            }
+
+            return TextCasing.Mixed;
+        }
+
+        private enum TextCasing
+        {
+            Mixed,
+            Lower,
+            Upper,
+            FirstUpper,
         }
     }
 }
