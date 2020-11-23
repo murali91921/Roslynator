@@ -10,10 +10,10 @@ namespace Roslynator.Spelling
 {
     internal class WordCharMap
     {
-        public WordCharMap(WordList list)
+        private WordCharMap(WordList list, ImmutableDictionary<WordChar, ImmutableHashSet<string>> map)
         {
             List = list;
-            Map = CreateMap();
+            Map = map;
         }
 
         public WordList List { get; }
@@ -30,15 +30,37 @@ namespace Roslynator.Spelling
             get { return Map[new WordChar(ch, index)]; }
         }
 
-        private ImmutableDictionary<WordChar, ImmutableHashSet<string>> CreateMap()
+        public bool TryGetValue(WordChar wordChar, out ImmutableHashSet<string> value)
         {
-            return List.Values
-                .Select(f => (value: f, chars: f.Select((ch, i) => (ch, i))))
+            return Map.TryGetValue(wordChar, out value);
+        }
+
+        public bool TryGetValue(string word, int index, out ImmutableHashSet<string> value)
+        {
+            return Map.TryGetValue(WordChar.Create(word, index), out value);
+        }
+
+        public bool TryGetValue(char ch, int index, out ImmutableHashSet<string> value)
+        {
+            return Map.TryGetValue(new WordChar(ch, index), out value);
+        }
+
+        public static WordCharMap Create(WordList wordList, bool reverse = false)
+        {
+            return new WordCharMap(wordList, CreateMap(wordList, reverse: reverse));
+        }
+
+        private static ImmutableDictionary<WordChar, ImmutableHashSet<string>> CreateMap(
+            WordList wordList,
+            bool reverse = false)
+        {
+            return wordList.Values
+                .Select(f => (value: f, chars: ((reverse) ? f.Reverse() : f).Select((ch, i) => (ch, i))))
                 .SelectMany(f => f.chars.Select(g => (f.value, g.ch, g.i, key: new WordChar(g.ch, g.i))))
                 .GroupBy(f => f.key)
                 .ToImmutableDictionary(
                     f => f.Key,
-                    f => f.Select(f => f.value).ToImmutableHashSet(List.Comparer));
+                    f => f.Select(f => f.value).ToImmutableHashSet(wordList.Comparer));
         }
 
         public IEnumerable<(string value, int count)> FuzzyMatches(SpellingError spellingError)
