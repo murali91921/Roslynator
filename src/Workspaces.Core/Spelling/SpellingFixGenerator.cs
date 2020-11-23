@@ -1,21 +1,13 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Roslynator.Spelling
 {
-    // vložit mezeru nebo vložit pomlčku a nebo změnit case: 
     // usecase=use case
     // wellformed=well-formed
-    // TestNonexistantFields=Nonexistent
-
-    // přidat písmeno na konec Unknow > Unknown
-    // přidat sa Unqoted > Unquoted
-    // přidat sou mezi sa a sou vebose > verbose
-    // odmazat jedno písmeno
-    // souhlásku za jinou souhlásku
-    // pronounciation > pronounciation
     internal static class SpellingFixGenerator
     {
         private static readonly string[] _vowels = new[] { "a", "e", "i", "o", "u", "y" };
@@ -32,51 +24,16 @@ namespace Roslynator.Spelling
             if (fix != null)
                 yield return fix;
 
-            if (spellingError.Value == "idenfifier")
-            {
-            }
+            fix = FuzzyMatch(spellingError, spellingData);
 
-            IEnumerable<(string value, int count)> fuzzyMatches = spellingData.List.Map.FuzzyMatches(spellingError);
-
-            using (IEnumerator<(string key, int count)> en = fuzzyMatches.GetEnumerator())
-            {
-                if (en.MoveNext())
-                {
-                    (string value, int count) curr = en.Current;
-                    int count1 = curr.count;
-
-                    if (!en.MoveNext()
-                        || en.Current.count < curr.count)
-                    {
-                        int count2 = curr.count;
-                        string value2 = curr.value;
-
-                        int diff = count1 - count2;
-
-                        if (diff == 2)
-                        {
-                            if (value.Intersect(value2).Count() == value.Length)
-                                yield return value2;
-                        }
-                        else if (diff == 1)
-                        {
-                            if (value.Intersect(value2).Count() == value2.Length)
-                                yield return value2;
-                        }
-                        else if (diff == -1)
-                        {
-                            if (value.Intersect(value2).Count() == value.Length)
-                                yield return value2;
-                        }
-                    }
-                }
-            }
+            if (fix != null)
+                yield return fix;
 
             // usefull > useful
-            fix = value.Remove(value.Length - 1);
+            //fix = value.Remove(value.Length - 1);
 
-            if (IsValidFix(fix))
-                yield return fix;
+            //if (IsValidFix(fix))
+            //    yield return fix;
 
             if (value.EndsWith("ed"))
             {
@@ -317,43 +274,31 @@ namespace Roslynator.Spelling
                 }
             }
 
-            i = 0;
-            for (; i < length - 1; i++)
-            {
-                // udpate > update
-                // ugprade > upgrade
-                // sublcass > subclass
-                // threefore > therefore
-                string s = value.Remove(i, 1).Insert(i + 1, value[i].ToString());
-                if (IsValidFix(s))
-                    yield return s;
-            }
-
-            i = 0;
-            for (; i < length - 1; i++)
-            {
-                if (IsVowel(value[i]))
-                {
-                    // valies > values
-                    // stabelize > stabilize
-                    foreach (string vowel in _vowels)
-                    {
-                        string s2 = Replace(vowel);
-                        if (IsValidFix(s2))
-                            yield return s2;
-                    }
-                }
-                // udpate > update
-                // ugprade > upgrade
-                // sublcass > subclass
-                // threefore > therefore
-                string s = value.Remove(i, 1).Insert(i + 1, value[i].ToString());
-                if (IsValidFix(s))
-                {
-                    yield return s;
-                    break;
-                }
-            }
+            //i = 0;
+            //for (; i < length - 1; i++)
+            //{
+            //    if (IsVowel(value[i]))
+            //    {
+            //        // valies > values
+            //        // stabelize > stabilize
+            //        foreach (string vowel in _vowels)
+            //        {
+            //            string s2 = Replace(vowel);
+            //            if (IsValidFix(s2))
+            //                yield return s2;
+            //        }
+            //    }
+            //    // udpate > update
+            //    // ugprade > upgrade
+            //    // sublcass > subclass
+            //    // threefore > therefore
+            //    string s = value.Remove(i, 1).Insert(i + 1, value[i].ToString());
+            //    if (IsValidFix(s))
+            //    {
+            //        yield return s;
+            //        break;
+            //    }
+            //}
 
             string Replace(string s, int length = 1)
             {
@@ -385,6 +330,97 @@ namespace Roslynator.Spelling
                 return spellingData.List.Contains(value)
                     && !spellingData.IgnoreList.Contains(value);
             }
+        }
+
+        private static string FuzzyMatch(SpellingError spellingError, SpellingData spellingData)
+        {
+            if (spellingError.Value == "overriden")
+            {
+            }
+
+            IEnumerable<(string value, int count)> fuzzyMatches = spellingData.List.Map.FuzzyMatches(spellingError);
+
+            using (IEnumerator<(string value, int count)> en = fuzzyMatches.GetEnumerator())
+            {
+                if (en.MoveNext())
+                {
+                    int length = spellingError.Value.Length;
+                    string fix = null;
+
+                    do
+                    {
+                        int diff = length - en.Current.count;
+                        int count = en.Current.count;
+                        string value2 = en.Current.value;
+                        int length2 = value2.Length;
+
+                        var shouldSkip = false;
+
+                        // lambda > lamdba
+                        if (diff == 2)
+                        {
+                            if (length2 != length)
+                                shouldSkip = true;
+                        }
+                        //lambda > lumbda
+                        //lambda > lamda
+                        else if (diff == 1)
+                        {
+                            if (length2 > length
+                                || length2 < length - 1)
+                            {
+                                shouldSkip = true;
+                            }
+                        }
+                        // laambda > lambda
+                        else if (diff == 0)
+                        {
+                            if (length2 <= length)
+                                shouldSkip = true;
+                        }
+                        else
+                        {
+                            Debug.Fail(diff.ToString());
+                        }
+
+                        if (!shouldSkip)
+                        {
+                            IEnumerable<WordChar> first = spellingError.Value
+                                .GroupBy(f => f)
+                                .Select(f => new WordChar(f.Key, f.Count()));
+
+                            IEnumerable<WordChar> second = en.Current.value
+                                .GroupBy(f => f)
+                                .Select(f => new WordChar(f.Key, f.Count()));
+
+                            int sum = spellingError.Value.GroupBy(f => f)
+                                .Join(
+                                    en.Current.value.GroupBy(f => f),
+                                    f => f.Key,
+                                    f => f.Key,
+                                    (f, g) => System.Math.Min(f.Count(), g.Count()))
+                                .Sum();
+
+                            if (sum == ((diff == 1) ? length - 1 : length))
+                            {
+                                if (fix == null)
+                                {
+                                    fix = en.Current.value;
+                                }
+                                else
+                                {
+                                    return null;
+                                }
+                            }
+                        }
+
+                    } while (en.MoveNext());
+
+                    return fix;
+                }
+            }
+
+            return null;
         }
 
         private static string AddMissingApostrophe(string value)

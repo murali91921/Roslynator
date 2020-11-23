@@ -106,10 +106,10 @@ namespace Roslynator.CSharp.Spelling
                     {
                         CheckValue(
                             splitItem.Value,
-                            value,
-                            match.Index + splitItem.Index,
+                            match.Value,
+                            splitItem.Index,
                             syntaxTree,
-                            textSpan,
+                            new TextSpan(textSpan.Start + match.Index + splitItem.Index, splitItem.Value.Length),
                             default(SyntaxToken),
                             isSimpleIdentifier: false);
                     }
@@ -216,24 +216,14 @@ namespace Roslynator.CSharp.Spelling
                 }
             }
 
-            SpellingError spellingError;
-            if (identifier.Parent != null)
-            {
-                spellingError = new SpellingError(
-                    value,
-                    containingValue,
-                    identifier.GetLocation(),
-                    index,
-                    identifier);
-            }
-            else
-            {
-                spellingError = new SpellingError(
-                    value,
-                    containingValue,
-                    Location.Create(syntaxTree, new TextSpan(textSpan.Start + index, value.Length)),
-                    index);
-            }
+            var spellingError = new SpellingError(
+                value,
+                containingValue,
+                (identifier.Parent != null)
+                    ? identifier.GetLocation()
+                    : Location.Create(syntaxTree, textSpan),
+                index,
+                identifier);
 
             Debug.Assert(identifier.Parent == null || identifier.ValueText.Length > 2, identifier.ValueText);
 

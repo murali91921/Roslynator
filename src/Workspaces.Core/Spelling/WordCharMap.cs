@@ -33,20 +33,25 @@ namespace Roslynator.Spelling
         private ImmutableDictionary<WordChar, ImmutableHashSet<string>> CreateMap()
         {
             return List.Values
-                .Select(v => (value: v, chars: v.Select((ch, i) => (ch, i))))
+                .Select(f => (value: f, chars: f.Select((ch, i) => (ch, i))))
                 .SelectMany(f => f.chars.Select(g => (f.value, g.ch, g.i, key: new WordChar(g.ch, g.i))))
                 .GroupBy(f => f.key)
-                .ToImmutableDictionary(f => f.Key, f => f.Select(f => f.value).ToImmutableHashSet(List.Comparer));
+                .ToImmutableDictionary(
+                    f => f.Key,
+                    f => f.Select(f => f.value).ToImmutableHashSet(List.Comparer));
         }
 
         public IEnumerable<(string value, int count)> FuzzyMatches(SpellingError spellingError)
         {
-            return spellingError.Value.Select((f, i) => (f, i))
-                .Join(Map, f => new WordChar(f.f, f.i), f => f.Key, (_, g) => g.Value)
+            string value = spellingError.Value;
+
+            return value.Select((ch, i) => (ch, i))
+                .Join(Map, f => new WordChar(f.ch, f.i), f => f.Key, (_, kvp) => kvp.Value)
                 .SelectMany(f => f)
-                .Where(f => f.Length >= spellingError.Value.Length - 2 && f.Length <= spellingError.Value.Length + 1)
+                .Where(f => f.Length >= value.Length - 2 && f.Length <= value.Length + 1)
                 .GroupBy(f => f)
-                .Select(f => (key: f.Key, count: f.Count()))
+                .Select(f => (value: f.Key, count: f.Count()))
+                .Where(f => f.count >= value.Length - 2)
                 .OrderByDescending(f => f.count);
         }
 

@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 
 namespace Roslynator.Spelling
 {
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     internal readonly struct WordChar : IEquatable<WordChar>
     {
         public WordChar(char value, int index)
@@ -15,6 +17,9 @@ namespace Roslynator.Spelling
         public char Value { get; }
 
         public int Index { get; }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        private string DebuggerDisplay => $"{Value}  {(int)Value}  {Index}";
 
         public static WordChar Create(string value, int index)
         {

@@ -141,6 +141,7 @@ namespace Roslynator.Spelling
                         {
                             (textChanges ??= new List<TextChange>()).Add(new TextChange(spellingError.Location.SourceSpan, fix));
 
+                            //TODO: del
                             if (spellingError.Value != spellingError.ContainingValue)
                             {
                             }
