@@ -284,23 +284,27 @@ namespace Roslynator.Spelling
         {
             string value = spellingError.Value;
 
-            //TODO: GetSplitIndex
-            int splitIndex = SpellingData.List.CharIndexMap.GetSplitIndex(value.ToLowerInvariant());
-
-            if (splitIndex >= 0)
-            {
-                string fix =  value.Remove(splitIndex).Insert(splitIndex, value[splitIndex].ToString());
-
-                Console.Write("    Auto fix (case): ");
-                Console.WriteLine(fix);
-
-                return fix;
-            }
+            var fixes = new List<string>();
 
             TextCasing textCasing = GetTextCasing(value);
 
             if (textCasing == TextCasing.Mixed)
                 return null;
+
+            if (textCasing == TextCasing.Lower
+                || textCasing == TextCasing.FirstUpper)
+            {
+                int splitIndex = SpellingData.List.CharIndexMap.GetSplitIndex(value.ToLowerInvariant());
+
+                if (splitIndex >= 0)
+                {
+                    string fix = value
+                        .Remove(splitIndex, 1)
+                        .Insert(splitIndex, char.ToUpperInvariant(value[splitIndex]).ToString());
+
+                    fixes.Add(fix);
+                }
+            }
 
             using (IEnumerator<string> en = SpellingFixGenerator
                 .GeneratePossibleFixes(spellingError, SpellingData)
@@ -308,73 +312,52 @@ namespace Roslynator.Spelling
             {
                 if (en.MoveNext())
                 {
-                    string fix = en.Current;
-
-                    List<string> fixes = null;
+                    fixes.Add(en.Current);
 
                     while (en.MoveNext()
-                        && (fixes == null || fixes.Count < 5))
+                        && fixes.Count < 5)
                     {
-                        if (fixes != null)
-                        {
-                            if (!fixes.Contains(en.Current, StringComparer.CurrentCultureIgnoreCase))
-                                fixes.Add(en.Current);
-                        }
-                        else if (!string.Equals(fix, en.Current, StringComparison.CurrentCultureIgnoreCase))
-                        {
-                            fixes = new List<string>() { fix, en.Current };
-                        }
+                        if (!fixes.Contains(en.Current, StringComparer.CurrentCultureIgnoreCase))
+                            fixes.Add(en.Current);
                     }
 
-                    if (fixes != null)
+                    for (int i = 0; i < fixes.Count; i++)
                     {
-                        for (int i = 0; i < fixes.Count; i++)
-                        {
-                            string fix2 = SetTextCasing(fixes[i], textCasing);
+                        string fix2 = SetTextCasing(fixes[i], textCasing);
 
-                            Console.Write("    Fix suggestion");
-
-                            if (Options.Interactive)
-                                Console.Write($" ({i + 1}): ");
-
-                            Console.Write(": ");
-                            Console.WriteLine(fix2);
-
-                            fixes[i] = fix2;
-                        }
+                        Console.Write("    Fix suggestion");
 
                         if (Options.Interactive)
-                        {
-                            Console.Write("    Enter number of fix suggestion: ");
+                            Console.Write($" ({i + 1})");
 
-                            if (int.TryParse(Console.ReadLine()?.Trim(), out int number)
-                                && number >= 1
-                                && number <= fixes.Count)
-                            {
-                                fix = fixes[number - 1];
+                        Console.Write(": ");
+                        Console.WriteLine(fix2);
 
-                                string value2 = spellingError.ContainingValue;
-                                if (value != value2)
-                                {
-                                    int endIndex = spellingError.Index + value.Length;
-
-                                    fix = value2.Remove(spellingError.Index)
-                                        + fix
-                                        + value2.Substring(endIndex, value2.Length - endIndex);
-                                }
-
-                                return fix;
-                            }
-                        }
+                        fixes[i] = fix2;
                     }
-                    else
+
+                    if (Options.Interactive)
                     {
-                        fix = SetTextCasing(fix, textCasing);
+                        Console.Write("    Enter number of fix suggestion: ");
 
-                        Console.Write("    Auto fix: ");
-                        Console.WriteLine(fix);
+                        if (int.TryParse(Console.ReadLine()?.Trim(), out int number)
+                            && number >= 1
+                            && number <= fixes.Count)
+                        {
+                            string fix = fixes[number - 1];
 
-                        return fix;
+                            string value2 = spellingError.ContainingValue;
+                            if (value != value2)
+                            {
+                                int endIndex = spellingError.Index + value.Length;
+
+                                fix = value2.Remove(spellingError.Index)
+                                    + fix
+                                    + value2.Substring(endIndex, value2.Length - endIndex);
+                            }
+
+                            return fix;
+                        }
                     }
                 }
             }

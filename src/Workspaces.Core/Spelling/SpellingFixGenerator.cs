@@ -121,7 +121,7 @@ namespace Roslynator.Spelling
             ImmutableHashSet<string> values;
 
             //TODO: parallel
-            for (;max >= 0; max = i - 1)
+            for (; max >= 0; max = i - 1)
             {
                 Debug.WriteLine($"\r\nmax: {max}");
 

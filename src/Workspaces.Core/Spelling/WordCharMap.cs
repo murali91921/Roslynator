@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -70,21 +69,6 @@ namespace Roslynator.Spelling
                     f => f.Select(f => f.value).ToImmutableHashSet(wordList.Comparer));
 
             return new WordCharMap(wordList, map);
-        }
-
-        //TODO: del
-        public IEnumerable<(string value, int count)> FuzzyMatches(SpellingError spellingError)
-        {
-            string value = spellingError.Value;
-
-            return value.Select((ch, i) => (ch, i))
-                .Join(Map, f => new WordChar(f.ch, f.i), f => f.Key, (_, kvp) => kvp.Value)
-                .SelectMany(f => f)
-                .Where(f => f.Length >= value.Length - 2 && f.Length <= value.Length + 1)
-                .GroupBy(f => f)
-                .Select(f => (value: f.Key, count: f.Count()))
-                .Where(f => f.count >= value.Length - 2)
-                .OrderByDescending(f => f.count);
         }
 
         public int GetSplitIndex(string value)
