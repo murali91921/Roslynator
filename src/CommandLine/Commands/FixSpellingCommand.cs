@@ -94,7 +94,7 @@ namespace Roslynator.CommandLine
                 wordList.Save();
             }
 
-            ImmutableDictionary<string, string> fixes = spellingFixer.SpellingData.Fixes;
+            ImmutableDictionary<string, SpellingFix> fixes = spellingFixer.SpellingData.Fixes;
 
             if (fixes.Count > 0)
             {
@@ -114,7 +114,9 @@ namespace Roslynator.CommandLine
                         });
                 }
 
-                items = items.Concat(fixes).OrderBy(f => f.Key);
+                items = items
+                    .Concat(fixes.Select(f => new KeyValuePair<string, string>(f.Key, f.Value.FixedValue)))
+                    .OrderBy(f => f.Key);
 
                 File.WriteAllText(path, string.Join(Environment.NewLine, items.Select(f => $"{f.Key}={f.Value}")));
             }

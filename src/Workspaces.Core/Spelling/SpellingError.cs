@@ -8,12 +8,12 @@ namespace Roslynator.Spelling
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     internal readonly struct SpellingError
     {
-        public SpellingError(string value, Location location)
-            : this (value, null, location, -1, default)
-        {
-        }
-
-        public SpellingError(string value, string containingValue, Location location, int index, SyntaxToken identifier = default)
+        public SpellingError(
+            string value,
+            string containingValue,
+            Location location,
+            int index,
+            SyntaxToken identifier = default)
         {
             Value = value;
             ContainingValue = containingValue;

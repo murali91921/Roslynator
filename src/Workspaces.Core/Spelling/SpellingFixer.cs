@@ -132,10 +132,7 @@ namespace Roslynator.Spelling
                         if (SpellingData.IgnoreList.Contains(spellingError.Value))
                             continue;
 
-                        if (!SpellingData.Fixes.TryGetValue(spellingError.Value, out string fix))
-                        {
-                            fix = GetFix(spellingError);
-                        }
+                        string fix = GetFix(spellingError);
 
                         if (!string.IsNullOrEmpty(fix)
                             && !string.Equals(fix, spellingError.Value, StringComparison.Ordinal))
@@ -195,19 +192,22 @@ namespace Roslynator.Spelling
 
                         string identifierText = spellingError.Identifier.ValueText;
 
-                        if (!SpellingData.Fixes.TryGetValue(identifierText, out string fix))
-                        {
-                            if (SpellingData.Fixes.TryGetValue(spellingError.Value, out fix))
-                            {
-                                fix = identifierText
-                                    .Remove(spellingError.Index, spellingError.Value.Length)
-                                    .Insert(spellingError.Index, fix);
-                            }
-                            else
-                            {
-                                fix = GetFix(spellingError);
-                            }
-                        }
+                        string fix = GetFix(spellingError);
+
+                        //TODO: del
+                        //if (!SpellingData.Fixes.TryGetValue(identifierText, out string fix))
+                        //{
+                        //    if (SpellingData.Fixes.TryGetValue(spellingError.Value, out fix))
+                        //    {
+                        //        fix = identifierText
+                        //            .Remove(spellingError.Index, spellingError.Value.Length)
+                        //            .Insert(spellingError.Index, fix);
+                        //    }
+                        //    else
+                        //    {
+                        //        fix = GetFix(spellingError);
+                        //    }
+                        //}
 
                         if (!string.IsNullOrEmpty(fix)
                             && !string.Equals(fix, identifierText, StringComparison.Ordinal))
@@ -283,24 +283,71 @@ namespace Roslynator.Spelling
         private string GetFix(SpellingError spellingError)
         {
             string value = spellingError.Value;
+            string containingValue = spellingError.ContainingValue;
 
-            var fixes = new List<string>();
+            bool isContained = !string.Equals(value, containingValue, StringComparison.Ordinal);
+
+            if (isContained
+                && SpellingData.Fixes.TryGetValue(containingValue, out SpellingFix spellingFix)
+                && string.Equals(containingValue, spellingFix.FixedValue, StringComparison.Ordinal))
+            {
+                return spellingFix.FixedValue;
+            }
 
             TextCasing textCasing = GetTextCasing(value);
+
+            if (SpellingData.Fixes.TryGetValue(value, out spellingFix))
+            {
+                string fix = spellingFix.FixedValue;
+
+                if (!string.Equals(value, spellingFix.OriginalValue))
+                {
+                    if (textCasing == TextCasing.Mixed)
+                    {
+                        fix = null;
+                    }
+                    else if (GetTextCasing(fix) != TextCasing.Mixed)
+                    {
+                        fix = SetTextCasing(fix, textCasing);
+                    }
+                }
+
+                if (fix != null)
+                {
+                    if (isContained)
+                    {
+                        fix = containingValue
+                            .Remove(spellingError.Index, value.Length)
+                            .Insert(spellingError.Index, fix);
+                    }
+
+                    return fix;
+                }
+            }
 
             if (textCasing == TextCasing.Mixed)
                 return null;
 
+            var fixes = new List<string>();
+
             if (textCasing == TextCasing.Lower
                 || textCasing == TextCasing.FirstUpper)
             {
-                int splitIndex = SpellingData.List.CharIndexMap.GetSplitIndex(value.ToLowerInvariant());
-
-                if (splitIndex >= 0)
+                foreach (int splitIndex in SpellingFixGenerator
+                    .GetSplitIndex(value.ToLowerInvariant(), SpellingData)
+                    .Take(5))
                 {
-                    string fix = value
-                        .Remove(splitIndex, 1)
-                        .Insert(splitIndex, char.ToUpperInvariant(value[splitIndex]).ToString());
+                    string fix;
+                    if (spellingError.Identifier.Parent != null)
+                    {
+                        fix = value
+                            .Remove(splitIndex, 1)
+                            .Insert(splitIndex, char.ToUpperInvariant(value[splitIndex]).ToString());
+                    }
+                    else
+                    {
+                        fix = value.Insert(splitIndex, " ");
+                    }
 
                     fixes.Add(fix);
                 }
@@ -320,45 +367,51 @@ namespace Roslynator.Spelling
                         if (!fixes.Contains(en.Current, StringComparer.CurrentCultureIgnoreCase))
                             fixes.Add(en.Current);
                     }
+                }
+            }
 
-                    for (int i = 0; i < fixes.Count; i++)
+            for (int i = 0; i < fixes.Count; i++)
+            {
+                string fix = fixes[i];
+
+                if (GetTextCasing(fix) != TextCasing.Mixed)
+                {
+                    fix = SetTextCasing(fixes[i], textCasing);
+                    fixes[i] = fix;
+                }
+
+                Console.Write("    Fix suggestion");
+
+                if (Options.Interactive)
+                    Console.Write($" ({i + 1})");
+
+                Console.Write(": ");
+                Console.WriteLine(fix);
+            }
+
+            if (Options.Interactive
+                && fixes.Count > 0)
+            {
+                Console.Write("    Enter number of fix suggestion: ");
+
+                if (int.TryParse(Console.ReadLine()?.Trim(), out int number)
+                    && number >= 1
+                    && number <= fixes.Count)
+                {
+                    string fix = fixes[number - 1];
+
+                    string value2 = spellingError.ContainingValue;
+
+                    if (value != value2)
                     {
-                        string fix2 = SetTextCasing(fixes[i], textCasing);
+                        int endIndex = spellingError.Index + value.Length;
 
-                        Console.Write("    Fix suggestion");
-
-                        if (Options.Interactive)
-                            Console.Write($" ({i + 1})");
-
-                        Console.Write(": ");
-                        Console.WriteLine(fix2);
-
-                        fixes[i] = fix2;
+                        fix = value2.Remove(spellingError.Index)
+                            + fix
+                            + value2.Substring(endIndex, value2.Length - endIndex);
                     }
 
-                    if (Options.Interactive)
-                    {
-                        Console.Write("    Enter number of fix suggestion: ");
-
-                        if (int.TryParse(Console.ReadLine()?.Trim(), out int number)
-                            && number >= 1
-                            && number <= fixes.Count)
-                        {
-                            string fix = fixes[number - 1];
-
-                            string value2 = spellingError.ContainingValue;
-                            if (value != value2)
-                            {
-                                int endIndex = spellingError.Index + value.Length;
-
-                                fix = value2.Remove(spellingError.Index)
-                                    + fix
-                                    + value2.Substring(endIndex, value2.Length - endIndex);
-                            }
-
-                            return fix;
-                        }
-                    }
+                    return fix;
                 }
             }
 

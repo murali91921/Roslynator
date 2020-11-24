@@ -15,23 +15,23 @@ namespace Roslynator.Spelling
         public static SpellingData Empty { get; } = new SpellingData(
             WordList.Default,
             WordList.Default_CurrentCulture,
-            ImmutableDictionary.Create<string, string>(StringComparer.CurrentCulture));
+            ImmutableDictionary.Create<string, SpellingFix>(WordList.DefaultComparer));
 
         public SpellingData(
             WordList list,
             WordList ignoreList,
-            ImmutableDictionary<string, string> fixes = null)
+            ImmutableDictionary<string, SpellingFix> fixes = null)
         {
             List = list;
             IgnoreList = ignoreList;
-            Fixes = fixes ?? ImmutableDictionary.Create<string, string>(StringComparer.CurrentCulture);
+            Fixes = fixes ?? ImmutableDictionary.Create<string, SpellingFix>(WordList.DefaultComparer);
         }
 
         public WordList List { get; }
 
         public WordList IgnoreList { get; }
 
-        public ImmutableDictionary<string, string> Fixes { get; }
+        public ImmutableDictionary<string, SpellingFix> Fixes { get; }
 
         public SpellingData AddWords(IEnumerable<string> values)
         {
@@ -47,7 +47,7 @@ namespace Roslynator.Spelling
 
         public SpellingData AddFix(string error, string fix)
         {
-            return new SpellingData(List, IgnoreList, Fixes.Add(error, fix));
+            return new SpellingData(List, IgnoreList, Fixes.Add(error, new SpellingFix(error, fix)));
         }
 
         public SpellingData AddIgnoredValue(string value)

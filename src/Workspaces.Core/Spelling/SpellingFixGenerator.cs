@@ -123,7 +123,7 @@ namespace Roslynator.Spelling
             //TODO: parallel
             for (; max >= 0; max = i - 1)
             {
-                Debug.WriteLine($"\r\nmax: {max}");
+                //Debug.WriteLine($"\r\nmax: {max}");
 
                 values = ImmutableHashSet<string>.Empty;
 
@@ -141,7 +141,7 @@ namespace Roslynator.Spelling
                     if (intersect.Count == 0)
                         break;
 
-                    Debug.WriteLine($"left  {i,2}  {value[i]} {intersect.Count,5}");
+                    //Debug.WriteLine($"left  {i,2}  {value[i]} {intersect.Count,5}");
 
                     values = intersect;
                     min = i;
@@ -168,7 +168,7 @@ namespace Roslynator.Spelling
                     if (intersect.Count == 0)
                         break;
 
-                    Debug.WriteLine($"right {j,2}  {value[j]} {intersect.Count,5}");
+                    //Debug.WriteLine($"right {j,2}  {value[j]} {intersect.Count,5}");
 
                     values = intersect;
                     j--;
@@ -234,6 +234,60 @@ namespace Roslynator.Spelling
             }
 
             return values.Where(f => f.Length == value.Length);
+        }
+
+        public static IEnumerable<int> GetSplitIndex(string value, SpellingData spellingData)
+        {
+            if (value.Length < 6)
+                yield break;
+
+            WordCharMap map = spellingData.List.CharIndexMap;
+
+            ImmutableHashSet<string> values = ImmutableHashSet<string>.Empty;
+
+            for (int i = 0; i < value.Length - 3; i++)
+            {
+                if (!map.TryGetValue(value, i, out ImmutableHashSet<string> values2))
+                    break;
+
+                values = (i == 0) ? values2 : values.Intersect(values2);
+
+                if (values.Count == 0)
+                    break;
+
+                if (i < 2)
+                    continue;
+
+                foreach (string value2 in values)
+                {
+                    if (value2.Length != i + 1)
+                        continue;
+
+                    ImmutableHashSet<string> values3 = ImmutableHashSet<string>.Empty;
+
+                    for (int j = i + 1; j < value.Length; j++)
+                    {
+                        if (!map.TryGetValue(value[j], j - i - 1, out ImmutableHashSet<string> values4))
+                            break;
+
+                        values3 = (j == i + 1) ? values4 : values3.Intersect(values4);
+
+                        if (values3.Count == 0)
+                            break;
+                    }
+
+                    foreach (string value3 in values3)
+                    {
+                        if (value3.Length != value.Length - i - 1)
+                            continue;
+
+                        yield return i + 1;
+                        break;
+                    }
+
+                    break;
+                }
+            }
         }
 
         //TODO: del
