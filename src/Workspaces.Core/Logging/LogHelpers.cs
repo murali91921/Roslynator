@@ -73,11 +73,10 @@ namespace Roslynator
             string indentation,
             Verbosity verbosity)
         {
-            Write(indentation, verbosity);
-
             string text = DiagnosticFormatter.FormatSpellingError(spellingError, baseDirectoryPath);
 
-            WriteLine(text, verbosity);
+            Write(indentation, verbosity);
+            WriteLine(text, ConsoleColor.Cyan, verbosity);
             Write(indentation, verbosity);
 
             TextSpan span = spellingError.Location.SourceSpan;

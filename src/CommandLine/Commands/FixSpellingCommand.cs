@@ -94,14 +94,36 @@ namespace Roslynator.CommandLine
                 wordList.Save();
             }
 
-            ImmutableDictionary<string, SpellingFix> fixes = spellingFixer.SpellingData.Fixes;
+            ImmutableDictionary<string, ImmutableHashSet<string>> fixes
+                = spellingFixer.SpellingData.FixList.Items;
 
             if (fixes.Count > 0)
             {
                 const string path = @"..\..\..\WordLists\roslynator.spelling.core.fixlist2";
 
                 if (File.Exists(path))
-                    fixes = fixes.SetItems(FixList.Load(path));
+                {
+                    Dictionary<string, List<string>> dic = fixes
+                        .ToDictionary(f => f.Key, f => f.Value.ToList());
+
+                    foreach (KeyValuePair<string, ImmutableHashSet<string>> item in FixList.Load(path).Items)
+                    {
+                        if (dic.TryGetValue(item.Key, out List<string> list))
+                        {
+                            list.AddRange(item.Value);
+                        }
+                        else
+                        {
+                            dic[item.Key] = item.Value.ToList();
+                        }
+                    }
+
+                    fixes = dic.ToImmutableDictionary(
+                        f => f.Key,
+                        f => f.Value
+                            .Distinct(StringComparer.CurrentCulture)
+                            .ToImmutableHashSet(StringComparer.CurrentCulture));
+                }
 
                 FixList.Save(path, fixes);
             }

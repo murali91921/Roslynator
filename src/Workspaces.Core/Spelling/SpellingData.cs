@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -15,46 +17,46 @@ namespace Roslynator.Spelling
         public static SpellingData Empty { get; } = new SpellingData(
             WordList.Default,
             WordList.Default_CurrentCulture,
-            ImmutableDictionary.Create<string, SpellingFix>(WordList.DefaultComparer));
+            FixList.Empty);
 
         public SpellingData(
             WordList list,
             WordList ignoreList,
-            ImmutableDictionary<string, SpellingFix> fixes = null)
+            FixList fixList = null)
         {
             List = list;
             IgnoreList = ignoreList;
-            Fixes = fixes ?? ImmutableDictionary.Create<string, SpellingFix>(WordList.DefaultComparer);
+            FixList = fixList ?? FixList.Empty;
         }
 
         public WordList List { get; }
 
         public WordList IgnoreList { get; }
 
-        public ImmutableDictionary<string, SpellingFix> Fixes { get; }
+        public FixList FixList { get; }
 
         public SpellingData AddWords(IEnumerable<string> values)
         {
             WordList newList = List.AddValues(values);
 
-            return new SpellingData(newList, IgnoreList, Fixes);
+            return new SpellingData(newList, IgnoreList, FixList);
         }
 
         public SpellingData AddWord(string value)
         {
-            return new SpellingData(List.AddValue(value), IgnoreList, Fixes);
+            return new SpellingData(List.AddValue(value), IgnoreList, FixList);
         }
 
         public SpellingData AddFix(string error, string fix)
         {
-            return (!Fixes.ContainsKey(error))
-                ? new SpellingData(List, IgnoreList, Fixes.Add(error, new SpellingFix(error, fix)))
-                : this;
+            FixList fixList = FixList.Add(error, fix);
+
+            return new SpellingData(List, IgnoreList, fixList);
         }
 
         public SpellingData AddIgnoredValue(string value)
         {
-            return new SpellingData(List, IgnoreList.AddValue(value), Fixes);
+            return new SpellingData(List, IgnoreList.AddValue(value), FixList);
         }
 
         public static SpellingData LoadFromDirectory(string directoryPath)
@@ -83,7 +85,7 @@ namespace Roslynator.Spelling
                 ignoreList = ignoreList.AddValues(WordList.Load(filePath));
             }
 
-            ImmutableDictionary<string, SpellingFix>.Builder fixList = ImmutableDictionary.CreateBuilder<string, SpellingFix>();
+            var fixes = new Dictionary<string, List<string>>();
 
             foreach (string filePath in Directory.EnumerateFiles(directoryPath, "*.fixlist", SearchOption.TopDirectoryOnly))
             {
@@ -92,11 +94,29 @@ namespace Roslynator.Spelling
                 if (!_wordListFileName.IsMatch(input))
                     continue;
 
-                foreach (KeyValuePair<string, SpellingFix> kvp in FixList.Load(filePath))
-                    fixList[kvp.Key] = kvp.Value;
+                FixList fixList2 = FixList.Load(filePath);
+
+                foreach (KeyValuePair<string, ImmutableHashSet<string>> kvp in fixList2.Items)
+                {
+                    if (fixes.TryGetValue(kvp.Key, out List<string> fixes2))
+                    {
+                        fixes2.AddRange(kvp.Value);
+                    }
+                    else
+                    {
+                        fixes[kvp.Key] = kvp.Value.ToList();
+                    }
+                }
             }
 
-            return new SpellingData(wordList, ignoreList, fixList.ToImmutableDictionary());
+            ImmutableDictionary<string, ImmutableHashSet<string>> fixList = fixes.ToImmutableDictionary(
+                f => f.Key,
+                f => f.Value
+                    .Distinct(StringComparer.CurrentCulture)
+                    .ToImmutableHashSet(StringComparer.CurrentCulture),
+                WordList.DefaultComparer);
+
+            return new SpellingData(wordList, ignoreList, new FixList(fixList));
         }
     }
 }

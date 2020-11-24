@@ -82,20 +82,20 @@ namespace Roslynator
 
             AppendLocation(spellingError.Location, baseDirectoryPath, sb);
 
-            sb.Append("Possible spelling error '");
+            sb.Append("Fix spelling of '");
 
-            sb.Append((spellingError.Identifier.Parent != null)
-                ? spellingError.Identifier.ValueText
-                : spellingError.Value);
+            sb.Append(spellingError.Value);
 
             sb.Append("'");
 
             if (spellingError.Identifier.Parent != null
                 && !string.Equals(spellingError.Value, spellingError.Identifier.ValueText, StringComparison.Ordinal))
             {
-                sb.Append(" ('");
-                sb.Append(spellingError.Value);
-                sb.Append("')");
+                sb.Append(" in '");
+                sb.Append((spellingError.Identifier.Parent != null)
+                    ? spellingError.Identifier.ValueText
+                    : spellingError.Value);
+                sb.Append("'");
             }
 
             return StringBuilderCache.GetStringAndFree(sb);

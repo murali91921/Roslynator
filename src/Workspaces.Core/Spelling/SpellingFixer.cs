@@ -6,10 +6,12 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Roslynator.Text;
 using static Roslynator.Logger;
 
 namespace Roslynator.Spelling
@@ -219,24 +221,33 @@ namespace Roslynator.Spelling
             string value = spellingError.Value;
             string containingValue = spellingError.ContainingValue;
 
+            if (value == "overrided")
+            {
+            }
+
             bool isContained = !string.Equals(value, containingValue, StringComparison.Ordinal);
 
             if (isContained
-                && SpellingData.Fixes.TryGetValue(containingValue, out SpellingFix spellingFix)
-                && string.Equals(containingValue, spellingFix.FixedValue, StringComparison.Ordinal))
+                && SpellingData.FixList.TryGetValue(containingValue, out ImmutableHashSet<string> fixes)
+                && fixes.Count == 1)
             {
-                return spellingFix.FixedValue;
+                string singleFix = fixes.First();
+
+                if (string.Equals(containingValue, singleFix, StringComparison.Ordinal))
+                    return singleFix;
             }
 
             string fix = null;
 
             TextCasing textCasing = GetTextCasing(value);
 
-            if (SpellingData.Fixes.TryGetValue(value, out spellingFix))
+            if (SpellingData.FixList.TryGetValue(value, out fixes)
+                && fixes.Count == 1)
             {
-                fix = spellingFix.FixedValue;
+                fix = fixes.First();
 
-                if (!string.Equals(value, spellingFix.OriginalValue, StringComparison.Ordinal))
+                if (SpellingData.FixList.Items.TryGetKey(value, out string originalValue)
+                    && !string.Equals(value, originalValue, StringComparison.Ordinal))
                 {
                     if (textCasing == TextCasing.Mixed)
                     {
@@ -252,7 +263,10 @@ namespace Roslynator.Spelling
             if (fix == null
                 && textCasing != TextCasing.Mixed)
             {
-                fix = GetAutoFix(spellingError, textCasing);
+                fix = GetAutoFix(
+                    spellingError,
+                    (fixes?.Count > 1) ? fixes.ToList() : new List<string>(),
+                    textCasing);
             }
 
             if (fix != null
@@ -271,18 +285,18 @@ namespace Roslynator.Spelling
             return fix;
         }
 
-        private string GetAutoFix(SpellingError spellingError, TextCasing textCasing)
+        private string GetAutoFix(
+            SpellingError spellingError,
+            List<string> fixes,
+            TextCasing textCasing)
         {
             string value = spellingError.Value;
-
-            var fixes = new List<string>();
 
             if (textCasing == TextCasing.Lower
                 || textCasing == TextCasing.FirstUpper)
             {
                 foreach (int splitIndex in SpellingFixProvider
-                    .GetSplitIndex(value.ToLowerInvariant(), SpellingData)
-                    .Take(5))
+                    .GetSplitIndex(value.ToLowerInvariant(), SpellingData))
                 {
                     fixes.Add(value
                         .Remove(splitIndex, 1)
@@ -310,6 +324,11 @@ namespace Roslynator.Spelling
                 }
             }
 
+            fixes = fixes
+                .Distinct()
+                .OrderBy(f => f)
+                .ToList();
+
             for (int i = 0; i < fixes.Count; i++)
             {
                 string fix = fixes[i];
@@ -320,7 +339,7 @@ namespace Roslynator.Spelling
                     fixes[i] = fix;
                 }
 
-                WriteSuggestion(value, fix, i);
+                WriteSuggestion(spellingError, fix, i);
             }
 
             if (Options.Interactive
@@ -374,7 +393,7 @@ namespace Roslynator.Spelling
                     + fix
                     + containingValue.Substring(endIndex, containingValue.Length - endIndex);
 
-                WriteSuggestion(containingValue, fix2, 0);
+                WriteSuggestion(spellingError, fix, 0);
 
                 if (TryReadSuggestion(out int index)
                     && index == 0)
@@ -389,23 +408,9 @@ namespace Roslynator.Spelling
         private void WriteSuggestion(
             SpellingError spellingError,
             string fix,
-            int suggestionIndex)
+            int index)
         {
-            Console.Write("    Fix suggestion");
-
-            if (Options.Interactive)
-            {
-                Console.Write($" ({suggestionIndex + 1}");
-
-                int num = suggestionIndex + 97;
-
-                if (num <= 122)
-                    Console.Write($" {(char)num}");
-
-                Console.Write(")");
-            }
-
-            Console.Write(": replace '");
+            Write("         replace '");
 
             string value = spellingError.Value;
             string containingValue = spellingError.ContainingValue;
@@ -414,34 +419,55 @@ namespace Roslynator.Spelling
 
             if (isContained)
             {
-                Console.Write(containingValue.Substring(0, spellingError.Index));
+                Write(containingValue.Remove(spellingError.Index));
                 Write(value, ConsoleColor.Green);
-                Console.WriteLine(containingValue.Substring(spellingError.EndIndex, containingValue.Length - spellingError.EndIndex));
+                Write(containingValue.Substring(spellingError.EndIndex, containingValue.Length - spellingError.EndIndex));
             }
             else
             {
-                Console.Write(value);
+                Write(value, ConsoleColor.Green);
             }
 
-            Console.Write("' with '");
+            WriteLine("'");
+            Write("    ");
+
+            if (Options.Interactive
+                && index >= 0)
+            {
+                Write('(');
+                Write(index + 1);
+
+                int num = index + 97;
+
+                if (num <= 122)
+                    Write((char)num);
+
+                Write(")    ");
+            }
+            else
+            {
+                Write("        ");
+            }
+
+            Write("with '");
 
             if (isContained)
             {
-                Console.Write(containingValue.Substring(0, spellingError.Index));
-                Console.Write(fix, ConsoleColor.Green);
-                Console.WriteLine(containingValue.Substring(spellingError.EndIndex, containingValue.Length - spellingError.EndIndex));
+                Write(containingValue.Remove(spellingError.Index));
+                Write(fix, ConsoleColor.Green);
+                Write(containingValue.Substring(spellingError.EndIndex, containingValue.Length - spellingError.EndIndex));
             }
             else
             {
-                Write(fix);
+                Write(fix, ConsoleColor.Green);
             }
 
-            Console.WriteLine("'");
+            WriteLine("'");
         }
 
         private static bool TryReadSuggestion(out int index)
         {
-            Console.Write("    Enter number of fix suggestion: ");
+            Console.Write("    Enter number/letter of a suggestion: ");
 
             string text = Console.ReadLine()?.Trim();
 
