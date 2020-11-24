@@ -83,7 +83,20 @@ namespace Roslynator.Spelling
                 ignoreList = ignoreList.AddValues(WordList.Load(filePath));
             }
 
-            return new SpellingData(wordList, ignoreList);
+            ImmutableDictionary<string, SpellingFix>.Builder fixList = ImmutableDictionary.CreateBuilder<string, SpellingFix>();
+
+            foreach (string filePath in Directory.EnumerateFiles(directoryPath, "*.fixlist", SearchOption.TopDirectoryOnly))
+            {
+                string input = Path.GetFileNameWithoutExtension(filePath);
+
+                if (!_wordListFileName.IsMatch(input))
+                    continue;
+
+                foreach (KeyValuePair<string, SpellingFix> kvp in FixList.Load(filePath))
+                    fixList[kvp.Key] = kvp.Value;
+            }
+
+            return new SpellingData(wordList, ignoreList, fixList.ToImmutableDictionary());
         }
     }
 }

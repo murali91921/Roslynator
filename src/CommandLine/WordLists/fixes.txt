@@ -1,2 +1,0 @@
-overrided=overridden
-shortname=ShortName

@@ -284,19 +284,12 @@ namespace Roslynator.Spelling
                     .GetSplitIndex(value.ToLowerInvariant(), SpellingData)
                     .Take(5))
                 {
-                    string fix;
-                    if (spellingError.Identifier.Parent != null)
-                    {
-                        fix = value
-                            .Remove(splitIndex, 1)
-                            .Insert(splitIndex, char.ToUpperInvariant(value[splitIndex]).ToString());
-                    }
-                    else
-                    {
-                        fix = value.Insert(splitIndex, " ");
-                    }
+                    fixes.Add(value
+                        .Remove(splitIndex, 1)
+                        .Insert(splitIndex, char.ToUpperInvariant(value[splitIndex]).ToString()));
 
-                    fixes.Add(fix);
+                    if (spellingError.Identifier.Parent == null)
+                        fixes.Add(value.Insert(splitIndex, " "));
                 }
             }
 
@@ -327,7 +320,7 @@ namespace Roslynator.Spelling
                     fixes[i] = fix;
                 }
 
-                WriteSuggestion(fix, i);
+                WriteSuggestion(value, fix, i);
             }
 
             if (Options.Interactive
@@ -335,7 +328,7 @@ namespace Roslynator.Spelling
                 && TryReadSuggestion(out int index)
                 && index < fixes.Count)
             {
-                return fixes[index - 1];
+                return fixes[index];
             }
 
             return null;
@@ -375,31 +368,36 @@ namespace Roslynator.Spelling
             if (!startsWith
                 && !endsWith)
             {
-                WriteSuggestion(fix, 1);
+                int endIndex = spellingError.Index + value.Length;
+
+                string fix2 = containingValue.Remove(spellingError.Index)
+                    + fix
+                    + containingValue.Substring(endIndex, containingValue.Length - endIndex);
+
+                WriteSuggestion(containingValue, fix2, 0);
 
                 if (TryReadSuggestion(out int index)
                     && index == 0)
                 {
-                    int endIndex = spellingError.Index + value.Length;
-
-                    fix = containingValue.Remove(spellingError.Index)
-                        + fix
-                        + containingValue.Substring(endIndex, containingValue.Length - endIndex);
+                    fix = fix2;
                 }
             }
 
             return fix;
         }
 
-        private void WriteSuggestion(string fix, int index)
+        private void WriteSuggestion(
+            SpellingError spellingError,
+            string fix,
+            int suggestionIndex)
         {
             Console.Write("    Fix suggestion");
 
             if (Options.Interactive)
             {
-                Console.Write($" ({index + 1}");
+                Console.Write($" ({suggestionIndex + 1}");
 
-                int num = index + 97;
+                int num = suggestionIndex + 97;
 
                 if (num <= 122)
                     Console.Write($" {(char)num}");
@@ -407,8 +405,38 @@ namespace Roslynator.Spelling
                 Console.Write(")");
             }
 
-            Console.Write(": ");
-            Console.WriteLine(fix);
+            Console.Write(": replace '");
+
+            string value = spellingError.Value;
+            string containingValue = spellingError.ContainingValue;
+
+            bool isContained = !string.Equals(value, containingValue, StringComparison.Ordinal);
+
+            if (isContained)
+            {
+                Console.Write(containingValue.Substring(0, spellingError.Index));
+                Write(value, ConsoleColor.Green);
+                Console.WriteLine(containingValue.Substring(spellingError.EndIndex, containingValue.Length - spellingError.EndIndex));
+            }
+            else
+            {
+                Console.Write(value);
+            }
+
+            Console.Write("' with '");
+
+            if (isContained)
+            {
+                Console.Write(containingValue.Substring(0, spellingError.Index));
+                Console.Write(fix, ConsoleColor.Green);
+                Console.WriteLine(containingValue.Substring(spellingError.EndIndex, containingValue.Length - spellingError.EndIndex));
+            }
+            else
+            {
+                Write(fix);
+            }
+
+            Console.WriteLine("'");
         }
 
         private static bool TryReadSuggestion(out int index)
@@ -425,7 +453,7 @@ namespace Roslynator.Spelling
                     && num <= 122)
                 {
                     index =  num - 97;
-                    return false;
+                    return true;
                 }
             }
 

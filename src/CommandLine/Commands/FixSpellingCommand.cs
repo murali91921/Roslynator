@@ -98,27 +98,12 @@ namespace Roslynator.CommandLine
 
             if (fixes.Count > 0)
             {
-                const string path = @"..\..\..\WordLists\fixes.txt";
-
-                IEnumerable<KeyValuePair<string, string>> items = Enumerable.Empty<KeyValuePair<string, string>>();
+                const string path = @"..\..\..\WordLists\roslynator.spelling.core.fixlist2";
 
                 if (File.Exists(path))
-                {
-                    items = File.ReadLines(path)
-                        .Where(f => !string.IsNullOrWhiteSpace(f))
-                        .Select(f =>
-                        {
-                            int index = f.IndexOf("=");
+                    fixes = fixes.SetItems(FixList.Load(path));
 
-                            return new KeyValuePair<string, string>(f.Remove(index), f.Substring(index + 1));
-                        });
-                }
-
-                items = items
-                    .Concat(fixes.Select(f => new KeyValuePair<string, string>(f.Key, f.Value.FixedValue)))
-                    .OrderBy(f => f.Key);
-
-                File.WriteAllText(path, string.Join(Environment.NewLine, items.Select(f => $"{f.Key}={f.Value}")));
+                FixList.Save(path, fixes);
             }
 
             return CommandResult.Success;

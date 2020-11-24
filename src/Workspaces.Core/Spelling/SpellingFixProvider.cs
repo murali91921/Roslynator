@@ -46,13 +46,6 @@ namespace Roslynator.Spelling
                     if (IsValidFix(s))
                         yield return s;
                 }
-                else
-                {
-                    string s = value.Remove(value.Length - 2);
-
-                    if (IsValidFix(s))
-                        yield return s;
-                }
             }
             else if (value.EndsWith("ial", StringComparison.OrdinalIgnoreCase))
             {
