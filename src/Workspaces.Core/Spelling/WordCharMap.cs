@@ -47,8 +47,20 @@ namespace Roslynator.Spelling
         public static WordCharMap CreateCharIndexMap(WordList wordList, bool reverse = false)
         {
             ImmutableDictionary<WordChar, ImmutableHashSet<string>> map = wordList.Values
-                .Select(f => (value: f, chars: ((reverse) ? f.Reverse() : f).Select((ch, i) => (ch, i))))
-                .SelectMany(f => f.chars.Select(g => (f.value, g.ch, g.i, key: new WordChar(g.ch, g.i))))
+                .Select(s =>
+                {
+                    return (
+                        value: s,
+                        chars: ((reverse) ? s.Reverse() : s).Select((ch, i) => (ch, i)));
+                })
+                .SelectMany(f => f.chars.Select(g =>
+                {
+                    return (
+                        f.value,
+                        g.ch,
+                        g.i,
+                        key: new WordChar(g.ch, g.i));
+                }))
                 .GroupBy(f => f.key)
                 .ToImmutableDictionary(
                     f => f.Key,
@@ -60,9 +72,14 @@ namespace Roslynator.Spelling
         public static WordCharMap CreateCharMap(WordList wordList)
         {
             ImmutableDictionary<WordChar, ImmutableHashSet<string>> map = wordList.Values
-                .SelectMany(f => f
+                .SelectMany(s => s
                     .GroupBy(ch => ch)
-                    .Select(g => (value: f, key: new WordChar(g.Key, g.Count()))))
+                    .Select(g =>
+                    {
+                        return (
+                            key: new WordChar(g.Key, g.Count()),
+                            value: s);
+                    }))
                 .GroupBy(f => f.key)
                 .ToImmutableDictionary(
                     f => f.Key,

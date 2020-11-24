@@ -38,10 +38,7 @@ namespace Roslynator.Spelling
                 && Index == other.Index;
         }
 
-        public override int GetHashCode()
-        {
-            return Hash.Combine(Value, Hash.Create(Index));
-        }
+        public override int GetHashCode() => Hash.Combine(Value, Hash.Create(Index));
 
         public static bool operator ==(WordChar left, WordChar right) => left.Equals(right);
 

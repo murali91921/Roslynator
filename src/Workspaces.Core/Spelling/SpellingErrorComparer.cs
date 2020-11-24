@@ -75,7 +75,9 @@ namespace Roslynator.Spelling
         {
             public override int Compare(SpellingError x, SpellingError y)
             {
-                int result = StringComparer.OrdinalIgnoreCase.Compare(x.Location.SourceTree?.FilePath, y.Location.SourceTree?.FilePath);
+                int result = StringComparer.OrdinalIgnoreCase.Compare(
+                    x.Location.SourceTree?.FilePath,
+                    y.Location.SourceTree?.FilePath);
 
                 if (result != 0)
                     return result;
@@ -85,7 +87,9 @@ namespace Roslynator.Spelling
 
             public override bool Equals(SpellingError x, SpellingError y)
             {
-                return StringComparer.OrdinalIgnoreCase.Equals(x.Location.SourceTree?.FilePath, y.Location.SourceTree?.FilePath)
+                return StringComparer.OrdinalIgnoreCase.Equals(
+                    x.Location.SourceTree?.FilePath,
+                    y.Location.SourceTree?.FilePath)
                     && x.Location.SourceSpan.Start == y.Location.SourceSpan.Start;
             }
 

@@ -49,11 +49,13 @@ namespace Roslynator.CSharp.Spelling
 
         private static readonly Regex _identifierToSkipRegex = new Regex(@"\A_*\p{Ll}{1,3}\d*\z");
 
-        private static readonly Regex _simpleIdentifierToSkipRegex = new Regex(@"(?<=\A_*)(\p{Ll}{3,}|\p{Lu}\p{Ll}{2,})(?=\d*\z)");
+        private static readonly Regex _simpleIdentifierToSkipRegex = new Regex(
+            @"(?<=\A_*)(\p{Ll}{3,}|\p{Lu}\p{Ll}{2,})(?=\d*\z)");
 
         private static readonly Regex _typeParameterLowercaseRegex = new Regex(@"(?<=\At)\p{Ll}{3,}\z");
 
-        private static readonly Regex _urlRegex = new Regex(@"\bhttps?://[^\s]+(?=\s|\z)", RegexOptions.IgnoreCase);
+        private static readonly Regex _urlRegex = new Regex(
+            @"\bhttps?://[^\s]+(?=\s|\z)", RegexOptions.IgnoreCase);
 
         public SpellingData SpellingData { get; }
 
@@ -71,12 +73,7 @@ namespace Roslynator.CSharp.Spelling
             CancellationToken = cancellationToken;
         }
 
-        private void CheckIdentifier(SyntaxToken identifier)
-        {
-            CheckValue(identifier.ValueText, identifier.SyntaxTree, identifier.Span, identifier);
-        }
-
-        private void CheckCommentValue(string value, SyntaxTree syntaxTree, TextSpan textSpan)
+        private void AnalyzeComment(string value, SyntaxTree syntaxTree, TextSpan textSpan)
         {
             int prevEnd = 0;
 
@@ -84,17 +81,22 @@ namespace Roslynator.CSharp.Spelling
 
             while (match.Success)
             {
-                CheckCommentValue(value, prevEnd, match.Index - prevEnd, syntaxTree, textSpan);
+                AnalyzeComment(value, prevEnd, match.Index - prevEnd, syntaxTree, textSpan);
 
                 prevEnd = match.Index + match.Length;
 
                 match = match.NextMatch();
             }
 
-            CheckCommentValue(value, prevEnd, value.Length - prevEnd, syntaxTree, textSpan);
+            AnalyzeComment(value, prevEnd, value.Length - prevEnd, syntaxTree, textSpan);
         }
 
-        private void CheckCommentValue(string value, int startIndex, int length, SyntaxTree syntaxTree, TextSpan textSpan)
+        private void AnalyzeComment(
+            string value,
+            int startIndex,
+            int length,
+            SyntaxTree syntaxTree,
+            TextSpan textSpan)
         {
             Match match = _wordInComment.Match(value, startIndex, length);
 
@@ -104,7 +106,7 @@ namespace Roslynator.CSharp.Spelling
                 {
                     foreach (SplitItem splitItem in SplitItemCollection.Create(_splitCommentWordRegex, match.Value))
                     {
-                        CheckValue(
+                        AnalyzeValue(
                             splitItem.Value,
                             match.Value,
                             splitItem.Index,
@@ -119,20 +121,25 @@ namespace Roslynator.CSharp.Spelling
             }
         }
 
-        private void CheckValue(string value, SyntaxTree syntaxTree, TextSpan textSpan, SyntaxToken identifier = default)
+        private void AnalyzeIdentifier(SyntaxToken identifier)
         {
-            CheckValue(value, null, syntaxTree, textSpan, identifier);
+            AnalyzeIdentifier(identifier.ValueText, identifier.SyntaxTree, identifier);
         }
 
-        private void CheckValue(
+        private void AnalyzeIdentifier(
+            string value,
+            SyntaxTree syntaxTree,
+            SyntaxToken identifier)
+        {
+            AnalyzeIdentifier(value, null, syntaxTree, identifier);
+        }
+
+        private void AnalyzeIdentifier(
             string value,
             string originalValue,
             SyntaxTree syntaxTree,
-            TextSpan textSpan,
             SyntaxToken identifier)
         {
-            Debug.Assert(identifier.Parent != null, value);
-
             if ((originalValue ?? value).Length <= 2)
                 return;
 
@@ -160,22 +167,21 @@ namespace Roslynator.CSharp.Spelling
             {
                 Debug.Assert(splitItem.Value.All(f => char.IsLetter(f)), splitItem.Value);
 
-                if (CheckValue(
+                if (AnalyzeValue(
                     splitItem.Value,
                     originalValue ?? value,
                     splitItem.Index,
                     syntaxTree,
-                    textSpan,
+                    new TextSpan(identifier.SpanStart + splitItem.Index, splitItem.Length),
                     identifier,
-                    isSimpleIdentifier: _simpleIdentifierToSkipRegex.IsMatch(value))
-                    && identifier.Parent != null)
+                    isSimpleIdentifier: _simpleIdentifierToSkipRegex.IsMatch(value)))
                 {
                     break;
                 }
             }
         }
 
-        private bool CheckValue(
+        private bool AnalyzeValue(
             string value,
             string containingValue,
             int index,
@@ -212,9 +218,7 @@ namespace Roslynator.CSharp.Spelling
             var spellingError = new SpellingError(
                 value,
                 containingValue,
-                (identifier.Parent != null)
-                    ? identifier.GetLocation()
-                    : Location.Create(syntaxTree, textSpan),
+                Location.Create(syntaxTree, textSpan),
                 index,
                 identifier);
 
@@ -223,6 +227,320 @@ namespace Roslynator.CSharp.Spelling
             (Errors ??= new List<SpellingError>()).Add(spellingError);
 
             return true;
+        }
+
+        public override void VisitTrivia(SyntaxTrivia trivia)
+        {
+            switch (trivia.Kind())
+            {
+                case SyntaxKind.SingleLineCommentTrivia:
+                case SyntaxKind.MultiLineCommentTrivia:
+                    {
+                        AnalyzeComment(trivia.ToString(), trivia.SyntaxTree, trivia.Span);
+                        break;
+                    }
+                case SyntaxKind.SingleLineDocumentationCommentTrivia:
+                case SyntaxKind.MultiLineDocumentationCommentTrivia:
+                case SyntaxKind.RegionDirectiveTrivia:
+                case SyntaxKind.EndRegionDirectiveTrivia:
+                    {
+                        base.VisitTrivia(trivia);
+                        break;
+                    }
+                case SyntaxKind.PreprocessingMessageTrivia:
+                    {
+                        AnalyzeComment(trivia.ToString(), trivia.SyntaxTree, trivia.Span);
+                        break;
+                    }
+            }
+        }
+
+        public override void VisitTupleType(TupleTypeSyntax node)
+        {
+            if (!Options.IncludeLocal
+                && node.IsParentKind(SyntaxKind.VariableDeclaration)
+                && node.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.UsingStatement))
+            {
+                return;
+            }
+
+            base.VisitTupleType(node);
+        }
+
+        public override void VisitTupleElement(TupleElementSyntax node)
+        {
+            if (node.Identifier.Parent != null)
+                AnalyzeIdentifier(node.Identifier);
+        }
+
+        public override void VisitArgument(ArgumentSyntax node)
+        {
+            if (node.Expression is DeclarationExpressionSyntax declarationExpression)
+                VisitDeclarationExpression(declarationExpression);
+        }
+
+        public override void VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
+        {
+            if (node.NameEquals != null)
+                AnalyzeIdentifier(node.NameEquals.Name.Identifier);
+        }
+
+        public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
+        {
+            AnalyzeIdentifier(node.Identifier);
+            base.VisitLocalFunctionStatement(node);
+        }
+
+        public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)
+        {
+            if (ShouldAnalyze(node))
+                AnalyzeIdentifier(node.Identifier);
+
+            base.VisitVariableDeclarator(node);
+
+            bool ShouldAnalyze(VariableDeclaratorSyntax node)
+            {
+                Debug.Assert(node.IsParentKind(SyntaxKind.VariableDeclaration), node.Parent.Kind().ToString());
+
+                if (node.IsParentKind(SyntaxKind.VariableDeclaration))
+                {
+                    Debug.Assert(
+                        node.Parent.IsParentKind(
+                            SyntaxKind.LocalDeclarationStatement,
+                            SyntaxKind.UsingStatement,
+                            SyntaxKind.ForStatement,
+                            SyntaxKind.FixedStatement,
+                            SyntaxKind.FieldDeclaration,
+                            SyntaxKind.EventFieldDeclaration),
+                        node.Parent.Parent.Kind().ToString());
+
+                    switch (node.Parent.Parent.Kind())
+                    {
+                        case SyntaxKind.LocalDeclarationStatement:
+                        case SyntaxKind.UsingStatement:
+                        case SyntaxKind.ForStatement:
+                        case SyntaxKind.FixedStatement:
+                            {
+                                if (!Options.IncludeLocal)
+                                    return false;
+
+                                if (ShouldBeSkipped(node.Identifier.ValueText))
+                                    return false;
+
+                                break;
+                            }
+                        case SyntaxKind.FieldDeclaration:
+                        case SyntaxKind.EventFieldDeclaration:
+                            {
+                                if (ShouldBeSkipped(node.Identifier.ValueText))
+                                    return false;
+
+                                break;
+                            }
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        public override void VisitSingleVariableDesignation(SingleVariableDesignationSyntax node)
+        {
+            if (Options.IncludeLocal)
+                AnalyzeIdentifier(node.Identifier);
+
+            base.VisitSingleVariableDesignation(node);
+        }
+
+        public override void VisitCatchDeclaration(CatchDeclarationSyntax node)
+        {
+            if (Options.IncludeLocal
+                && !ShouldBeSkipped(node.Identifier.ValueText))
+            {
+                AnalyzeIdentifier(node.Identifier);
+            }
+
+            base.VisitCatchDeclaration(node);
+        }
+
+        public override void VisitExternAliasDirective(ExternAliasDirectiveSyntax node)
+        {
+            AnalyzeIdentifier(node.Identifier);
+            base.VisitExternAliasDirective(node);
+        }
+
+        public override void VisitUsingDirective(UsingDirectiveSyntax node)
+        {
+            if (node.Alias != null)
+                AnalyzeIdentifier(node.Alias.Name.Identifier);
+        }
+
+        public override void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
+        {
+            VisitName(node.Name);
+            base.VisitNamespaceDeclaration(node);
+        }
+
+        private void VisitName(NameSyntax node)
+        {
+            switch (node)
+            {
+                case IdentifierNameSyntax identifierName:
+                    {
+                        AnalyzeIdentifier(identifierName.Identifier);
+                        break;
+                    }
+                case QualifiedNameSyntax qualifiedName:
+                    {
+                        VisitName(qualifiedName.Left);
+
+                        if (qualifiedName.Right is IdentifierNameSyntax identifierName)
+                            AnalyzeIdentifier(identifierName.Identifier);
+
+                        break;
+                    }
+            }
+        }
+
+        public override void VisitTypeParameter(TypeParameterSyntax node)
+        {
+            SyntaxToken identifier = node.Identifier;
+
+            string origValue = identifier.ValueText;
+            string value = origValue;
+
+            if (value.Length > 1)
+            {
+                if (value[0] == 'T'
+                    && char.IsUpper(value[1]))
+                {
+                    value = value.Substring(1);
+                }
+
+                AnalyzeIdentifier(value, origValue, identifier.SyntaxTree, identifier);
+            }
+
+            base.VisitTypeParameter(node);
+        }
+
+        public override void VisitClassDeclaration(ClassDeclarationSyntax node)
+        {
+            AnalyzeIdentifier(node.Identifier);
+            base.VisitClassDeclaration(node);
+        }
+
+        public override void VisitStructDeclaration(StructDeclarationSyntax node)
+        {
+            AnalyzeIdentifier(node.Identifier);
+            base.VisitStructDeclaration(node);
+        }
+
+        public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
+        {
+            SyntaxToken identifier = node.Identifier;
+
+            string origValue = identifier.ValueText;
+            string value = origValue;
+
+            if (value.Length > 1)
+            {
+                if (value[0] == 'I'
+                    && char.IsUpper(value[1]))
+                {
+                    value = value.Substring(1);
+                }
+
+                AnalyzeIdentifier(value, origValue, identifier.SyntaxTree, identifier);
+            }
+
+            base.VisitInterfaceDeclaration(node);
+        }
+
+        public override void VisitEnumDeclaration(EnumDeclarationSyntax node)
+        {
+            AnalyzeIdentifier(node.Identifier);
+            base.VisitEnumDeclaration(node);
+        }
+
+        public override void VisitDelegateDeclaration(DelegateDeclarationSyntax node)
+        {
+            AnalyzeIdentifier(node.Identifier);
+            base.VisitDelegateDeclaration(node);
+        }
+
+        public override void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
+        {
+            AnalyzeIdentifier(node.Identifier);
+            base.VisitEnumMemberDeclaration(node);
+        }
+
+        public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
+        {
+            AnalyzeIdentifier(node.Identifier);
+            base.VisitMethodDeclaration(node);
+        }
+
+        public override void VisitPropertyDeclaration(PropertyDeclarationSyntax node)
+        {
+            AnalyzeIdentifier(node.Identifier);
+            base.VisitPropertyDeclaration(node);
+        }
+
+        public override void VisitEventDeclaration(EventDeclarationSyntax node)
+        {
+            AnalyzeIdentifier(node.Identifier);
+            base.VisitEventDeclaration(node);
+        }
+
+        public override void VisitParameter(ParameterSyntax node)
+        {
+            string identifierText = node.Identifier.ValueText;
+
+            if (!ShouldBeSkipped(identifierText))
+                AnalyzeIdentifier(identifierText, node.SyntaxTree, node.Identifier);
+
+            base.VisitParameter(node);
+        }
+
+        public override void VisitXmlText(XmlTextSyntax node)
+        {
+            foreach (SyntaxToken token in node.TextTokens)
+            {
+                if (token.IsKind(SyntaxKind.XmlTextLiteralToken))
+                    AnalyzeComment(token.ValueText, node.SyntaxTree, token.Span);
+            }
+        }
+
+        private bool ShouldBeSkipped(string s)
+        {
+            return _identifierToSkipRegex.IsMatch(s);
+        }
+
+        private static bool IsLocalOrParameterOrField(SyntaxNode node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.CatchDeclaration:
+                case SyntaxKind.SingleVariableDesignation:
+                    {
+                        return true;
+                    }
+                case SyntaxKind.VariableDeclarator:
+                    {
+                        return node.IsParentKind(SyntaxKind.VariableDeclaration)
+                            && node.Parent.IsParentKind(
+                                SyntaxKind.LocalDeclarationStatement,
+                                SyntaxKind.UsingStatement,
+                                SyntaxKind.ForStatement,
+                                SyntaxKind.FixedStatement,
+                                SyntaxKind.FieldDeclaration,
+                                SyntaxKind.EventFieldDeclaration);
+                    }
+                default:
+                    {
+                        return false;
+                    }
+            }
         }
 
         private bool IsAllowedNonsensicalWord(string value)
@@ -277,320 +595,6 @@ namespace Roslynator.CSharp.Spelling
             }
 
             return true;
-        }
-
-        public override void VisitTrivia(SyntaxTrivia trivia)
-        {
-            switch (trivia.Kind())
-            {
-                case SyntaxKind.SingleLineCommentTrivia:
-                case SyntaxKind.MultiLineCommentTrivia:
-                    {
-                        CheckCommentValue(trivia.ToString(), trivia.SyntaxTree, trivia.Span);
-                        break;
-                    }
-                case SyntaxKind.SingleLineDocumentationCommentTrivia:
-                case SyntaxKind.MultiLineDocumentationCommentTrivia:
-                case SyntaxKind.RegionDirectiveTrivia:
-                case SyntaxKind.EndRegionDirectiveTrivia:
-                    {
-                        base.VisitTrivia(trivia);
-                        break;
-                    }
-                case SyntaxKind.PreprocessingMessageTrivia:
-                    {
-                        CheckCommentValue(trivia.ToString(), trivia.SyntaxTree, trivia.Span);
-                        break;
-                    }
-            }
-        }
-
-        public override void VisitTupleType(TupleTypeSyntax node)
-        {
-            if (!Options.IncludeLocal
-                && node.IsParentKind(SyntaxKind.VariableDeclaration)
-                && node.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.UsingStatement))
-            {
-                return;
-            }
-
-            base.VisitTupleType(node);
-        }
-
-        public override void VisitTupleElement(TupleElementSyntax node)
-        {
-            if (node.Identifier.Parent != null)
-                CheckIdentifier(node.Identifier);
-        }
-
-        public override void VisitArgument(ArgumentSyntax node)
-        {
-            if (node.Expression is DeclarationExpressionSyntax declarationExpression)
-                VisitDeclarationExpression(declarationExpression);
-        }
-
-        public override void VisitAnonymousObjectMemberDeclarator(AnonymousObjectMemberDeclaratorSyntax node)
-        {
-            if (node.NameEquals != null)
-                CheckIdentifier(node.NameEquals.Name.Identifier);
-        }
-
-        public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
-        {
-            CheckIdentifier(node.Identifier);
-            base.VisitLocalFunctionStatement(node);
-        }
-
-        public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)
-        {
-            if (ShouldAnalyze(node))
-                CheckIdentifier(node.Identifier);
-
-            base.VisitVariableDeclarator(node);
-
-            bool ShouldAnalyze(VariableDeclaratorSyntax node)
-            {
-                Debug.Assert(node.IsParentKind(SyntaxKind.VariableDeclaration), node.Parent.Kind().ToString());
-
-                if (node.IsParentKind(SyntaxKind.VariableDeclaration))
-                {
-                    Debug.Assert(
-                        node.Parent.IsParentKind(
-                            SyntaxKind.LocalDeclarationStatement,
-                            SyntaxKind.UsingStatement,
-                            SyntaxKind.ForStatement,
-                            SyntaxKind.FixedStatement,
-                            SyntaxKind.FieldDeclaration,
-                            SyntaxKind.EventFieldDeclaration),
-                        node.Parent.Parent.Kind().ToString());
-
-                    switch (node.Parent.Parent.Kind())
-                    {
-                        case SyntaxKind.LocalDeclarationStatement:
-                        case SyntaxKind.UsingStatement:
-                        case SyntaxKind.ForStatement:
-                        case SyntaxKind.FixedStatement:
-                            {
-                                if (!Options.IncludeLocal)
-                                    return false;
-
-                                if (ShouldBeSkipped(node.Identifier.ValueText))
-                                    return false;
-
-                                break;
-                            }
-                        case SyntaxKind.FieldDeclaration:
-                        case SyntaxKind.EventFieldDeclaration:
-                            {
-                                if (ShouldBeSkipped(node.Identifier.ValueText))
-                                    return false;
-
-                                break;
-                            }
-                    }
-                }
-
-                return true;
-            }
-        }
-
-        public override void VisitSingleVariableDesignation(SingleVariableDesignationSyntax node)
-        {
-            if (Options.IncludeLocal)
-                CheckIdentifier(node.Identifier);
-
-            base.VisitSingleVariableDesignation(node);
-        }
-
-        public override void VisitCatchDeclaration(CatchDeclarationSyntax node)
-        {
-            if (Options.IncludeLocal
-                && !ShouldBeSkipped(node.Identifier.ValueText))
-            {
-                CheckIdentifier(node.Identifier);
-            }
-
-            base.VisitCatchDeclaration(node);
-        }
-
-        public override void VisitExternAliasDirective(ExternAliasDirectiveSyntax node)
-        {
-            CheckIdentifier(node.Identifier);
-            base.VisitExternAliasDirective(node);
-        }
-
-        public override void VisitUsingDirective(UsingDirectiveSyntax node)
-        {
-            if (node.Alias != null)
-                CheckIdentifier(node.Alias.Name.Identifier);
-        }
-
-        public override void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
-        {
-            VisitName(node.Name);
-            base.VisitNamespaceDeclaration(node);
-        }
-
-        private void VisitName(NameSyntax node)
-        {
-            switch (node)
-            {
-                case IdentifierNameSyntax identifierName:
-                    {
-                        CheckIdentifier(identifierName.Identifier);
-                        break;
-                    }
-                case QualifiedNameSyntax qualifiedName:
-                    {
-                        VisitName(qualifiedName.Left);
-
-                        if (qualifiedName.Right is IdentifierNameSyntax identifierName)
-                            CheckIdentifier(identifierName.Identifier);
-
-                        break;
-                    }
-            }
-        }
-
-        public override void VisitTypeParameter(TypeParameterSyntax node)
-        {
-            SyntaxToken identifier = node.Identifier;
-
-            string origValue = identifier.ValueText;
-            string value = origValue;
-
-            if (value.Length > 1)
-            {
-                if (value[0] == 'T'
-                    && char.IsUpper(value[1]))
-                {
-                    value = value.Substring(1);
-                }
-
-                CheckValue(value, origValue, identifier.SyntaxTree, identifier.Span, identifier);
-            }
-
-            base.VisitTypeParameter(node);
-        }
-
-        public override void VisitClassDeclaration(ClassDeclarationSyntax node)
-        {
-            CheckIdentifier(node.Identifier);
-            base.VisitClassDeclaration(node);
-        }
-
-        public override void VisitStructDeclaration(StructDeclarationSyntax node)
-        {
-            CheckIdentifier(node.Identifier);
-            base.VisitStructDeclaration(node);
-        }
-
-        public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
-        {
-            SyntaxToken identifier = node.Identifier;
-
-            string origValue = identifier.ValueText;
-            string value = origValue;
-
-            if (value.Length > 1)
-            {
-                if (value[0] == 'I'
-                    && char.IsUpper(value[1]))
-                {
-                    value = value.Substring(1);
-                }
-
-                CheckValue(value, origValue, identifier.SyntaxTree, identifier.Span, identifier);
-            }
-
-            base.VisitInterfaceDeclaration(node);
-        }
-
-        public override void VisitEnumDeclaration(EnumDeclarationSyntax node)
-        {
-            CheckIdentifier(node.Identifier);
-            base.VisitEnumDeclaration(node);
-        }
-
-        public override void VisitDelegateDeclaration(DelegateDeclarationSyntax node)
-        {
-            CheckIdentifier(node.Identifier);
-            base.VisitDelegateDeclaration(node);
-        }
-
-        public override void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
-        {
-            CheckIdentifier(node.Identifier);
-            base.VisitEnumMemberDeclaration(node);
-        }
-
-        public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
-        {
-            CheckIdentifier(node.Identifier);
-            base.VisitMethodDeclaration(node);
-        }
-
-        public override void VisitPropertyDeclaration(PropertyDeclarationSyntax node)
-        {
-            CheckIdentifier(node.Identifier);
-            base.VisitPropertyDeclaration(node);
-        }
-
-        public override void VisitEventDeclaration(EventDeclarationSyntax node)
-        {
-            CheckIdentifier(node.Identifier);
-            base.VisitEventDeclaration(node);
-        }
-
-        public override void VisitParameter(ParameterSyntax node)
-        {
-            string identifierText = node.Identifier.ValueText;
-
-            if (!ShouldBeSkipped(identifierText))
-                CheckValue(identifierText, node.SyntaxTree, node.Span, node.Identifier);
-
-            base.VisitParameter(node);
-        }
-
-        public override void VisitXmlText(XmlTextSyntax node)
-        {
-            foreach (SyntaxToken token in node.TextTokens)
-            {
-                if (token.IsKind(SyntaxKind.XmlTextLiteralToken))
-                    CheckCommentValue(token.ValueText, node.SyntaxTree, token.Span);
-            }
-        }
-
-        private bool ShouldBeSkipped(string s)
-        {
-            return _identifierToSkipRegex.IsMatch(s);
-        }
-
-        private static bool IsLocalOrParameterOrField(SyntaxNode node)
-        {
-            switch (node.Kind())
-            {
-                case SyntaxKind.CatchDeclaration:
-                case SyntaxKind.SingleVariableDesignation:
-                    {
-                        return true;
-                    }
-                case SyntaxKind.VariableDeclarator:
-                    {
-                        return node.IsParentKind(SyntaxKind.VariableDeclaration)
-                            && node.Parent.IsParentKind(
-                                SyntaxKind.LocalDeclarationStatement,
-                                SyntaxKind.UsingStatement,
-                                SyntaxKind.ForStatement,
-                                SyntaxKind.FixedStatement,
-                                SyntaxKind.FieldDeclaration,
-                                SyntaxKind.EventFieldDeclaration);
-                    }
-                default:
-                    {
-                        return false;
-                    }
-            }
         }
     }
 }

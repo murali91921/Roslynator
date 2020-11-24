@@ -9,7 +9,7 @@ namespace Roslynator.Spelling
         public SpellingFixerOptions(
             bool includeLocal = true,
             bool includeGeneratedCode = false,
-            bool interactive = false)
+            bool interactive = true)
         {
             IncludeLocal = includeLocal;
             IncludeGeneratedCode = includeGeneratedCode;

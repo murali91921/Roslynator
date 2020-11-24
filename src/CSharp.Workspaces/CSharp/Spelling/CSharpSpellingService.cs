@@ -15,7 +15,11 @@ namespace Roslynator.CSharp.Spelling
     {
         public override ISyntaxFactsService SyntaxFacts => CSharpSyntaxFactsService.Instance;
 
-        public override SpellingAnalysisResult AnalyzeSpelling(SyntaxNode node, SpellingData spellingData,  SpellingFixerOptions options, CancellationToken cancellationToken)
+        public override SpellingAnalysisResult AnalyzeSpelling(
+            SyntaxNode node,
+            SpellingData spellingData,
+            SpellingFixerOptions options,
+            CancellationToken cancellationToken)
         {
             var walker = new CSharpSpellingWalker(spellingData, options, cancellationToken);
 

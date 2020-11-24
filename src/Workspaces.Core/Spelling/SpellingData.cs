@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -10,7 +9,8 @@ namespace Roslynator.Spelling
 {
     internal class SpellingData
     {
-        private static readonly Regex _wordListFileName = new Regex(@"\Aroslynator\.spelling(\.|\z)", RegexOptions.IgnoreCase);
+        private static readonly Regex _wordListFileName = new Regex(
+            @"\Aroslynator\.spelling(\.|\z)", RegexOptions.IgnoreCase);
 
         public static SpellingData Empty { get; } = new SpellingData(
             WordList.Default,
@@ -47,7 +47,9 @@ namespace Roslynator.Spelling
 
         public SpellingData AddFix(string error, string fix)
         {
-            return new SpellingData(List, IgnoreList, Fixes.Add(error, new SpellingFix(error, fix)));
+            return (!Fixes.ContainsKey(error))
+                ? new SpellingData(List, IgnoreList, Fixes.Add(error, new SpellingFix(error, fix)))
+                : this;
         }
 
         public SpellingData AddIgnoredValue(string value)

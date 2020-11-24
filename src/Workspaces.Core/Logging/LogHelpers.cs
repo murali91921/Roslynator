@@ -66,42 +66,9 @@ namespace Roslynator
             }
         }
 
-        public static void WriteSpellingErrors(
-            ImmutableArray<SpellingError> spellingErrors,
-            string baseDirectoryPath = null,
-            string indentation = null,
-            int maxCount = int.MaxValue,
-            Verbosity verbosity = Verbosity.None)
-        {
-            if (!spellingErrors.Any())
-                return;
-
-            if (!ShouldWrite(verbosity))
-                return;
-
-            int count = 0;
-
-            foreach (SpellingError spellingError in spellingErrors.OrderBy(f => f, SpellingErrorComparer.FilePathThenSpanStart))
-            {
-                WriteSpellingError(spellingError, baseDirectoryPath, indentation, verbosity);
-
-                count++;
-
-                if (count > maxCount)
-                {
-                    int remainingCount = spellingErrors.Length - count;
-
-                    if (remainingCount > 0)
-                    {
-                        Write(indentation, verbosity);
-                        WriteLine($"and {remainingCount} more spelling errors", verbosity);
-                    }
-                }
-            }
-        }
-
         public static void WriteSpellingError(
             SpellingError spellingError,
+            SourceText sourceText,
             string baseDirectoryPath,
             string indentation,
             Verbosity verbosity)
@@ -111,6 +78,17 @@ namespace Roslynator
             string text = DiagnosticFormatter.FormatSpellingError(spellingError, baseDirectoryPath);
 
             WriteLine(text, verbosity);
+            Write(indentation, verbosity);
+
+            TextSpan span = spellingError.Location.SourceSpan;
+            TextLine line = sourceText.Lines.GetLineFromPosition(span.Start);
+            int index = span.Start - line.Span.Start;
+
+            text = line.ToString();
+
+            Write(text.Substring(0, index), ConsoleColor.DarkGray, verbosity);
+            Write(spellingError.Value, ConsoleColor.Green, verbosity);
+            WriteLine(text.Substring(index + spellingError.Value.Length), ConsoleColor.DarkGray, verbosity);
         }
 
         public static void WriteAnalyzerExceptionDiagnostics(ImmutableArray<Diagnostic> diagnostics)
