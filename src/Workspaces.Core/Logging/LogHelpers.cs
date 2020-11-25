@@ -87,7 +87,7 @@ namespace Roslynator
 
             Write(text.Substring(0, index), ConsoleColor.DarkGray, verbosity);
             Write(spellingError.Value, ConsoleColor.Green, verbosity);
-            WriteLine(text.Substring(index + spellingError.Value.Length), ConsoleColor.DarkGray, verbosity);
+            WriteLine(text.Substring(index + spellingError.Length), ConsoleColor.DarkGray, verbosity);
         }
 
         public static void WriteAnalyzerExceptionDiagnostics(ImmutableArray<Diagnostic> diagnostics)

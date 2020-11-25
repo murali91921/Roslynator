@@ -7,17 +7,19 @@ namespace Roslynator.Spelling
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     internal readonly struct SpellingFix
     {
-        public SpellingFix(string originalValue, string fixedValue)
+        public SpellingFix(string value, SpellingFixKind kind)
         {
-            OriginalValue = originalValue;
-            FixedValue = fixedValue;
+            Value = value;
+            Kind = kind;
         }
 
-        public string OriginalValue { get; }
+        public string Value { get; }
 
-        public string FixedValue { get; }
+        public SpellingFixKind Kind { get; }
+
+        public SpellingFix WithValue(string value) => new SpellingFix(value, Kind);
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private string DebuggerDisplay => $"{OriginalValue}  {FixedValue}";
+        private string DebuggerDisplay => $"{Kind}  {Value}";
     }
 }

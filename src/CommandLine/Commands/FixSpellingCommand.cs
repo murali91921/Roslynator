@@ -31,6 +31,7 @@ namespace Roslynator.CommandLine
             var options = new SpellingFixerOptions(
                 includeLocal: false,
                 includeGeneratedCode: Options.IncludeGeneratedCode,
+                autoFix: true,
                 interactive: true);
 
             CultureInfo culture = (Options.Culture != null) ? CultureInfo.GetCultureInfo(Options.Culture) : null;

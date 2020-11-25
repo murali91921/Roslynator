@@ -7,8 +7,12 @@ using Microsoft.CodeAnalysis;
 namespace Roslynator.Spelling
 {
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    internal readonly struct SpellingError
+    internal class SpellingError
     {
+        private string _valueLower;
+        private bool? _isContained;
+        private TextCasing? _casing;
+
         public SpellingError(
             string value,
             string containingValue,
@@ -19,8 +23,8 @@ namespace Roslynator.Spelling
             Value = value;
             ContainingValue = containingValue;
             Location = location;
-            Identifier = identifier;
             Index = index;
+            Identifier = identifier;
         }
 
         public string Value { get; }
@@ -33,7 +37,17 @@ namespace Roslynator.Spelling
 
         public int Index { get; }
 
-        public int EndIndex => Index + Value.Length;
+        public bool IsIdentifier => Identifier.Parent != null;
+
+        public bool IsContained => _isContained ??= !string.Equals(Value, ContainingValue, StringComparison.Ordinal);
+
+        public string ValueLower => _valueLower ??= Value.ToLowerInvariant();
+
+        public TextCasing Casing => _casing ??= TextUtility.GetTextCasing(Value);
+
+        public int EndIndex => Index + Length;
+
+        public int Length => Value.Length;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay

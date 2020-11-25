@@ -9,16 +9,20 @@ namespace Roslynator.Spelling
         public SpellingFixerOptions(
             bool includeLocal = true,
             bool includeGeneratedCode = false,
+            bool autoFix = false,
             bool interactive = true)
         {
             IncludeLocal = includeLocal;
             IncludeGeneratedCode = includeGeneratedCode;
+            AutoFix = autoFix;
             Interactive = interactive;
         }
 
         public bool IncludeLocal { get; }
 
         public bool IncludeGeneratedCode { get; }
+
+        public bool AutoFix { get; }
 
         public bool Interactive { get; }
     }

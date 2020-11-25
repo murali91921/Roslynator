@@ -22,15 +22,13 @@ namespace Roslynator.Spelling
 
             if (length >= 4)
             {
-                string valueLower = value.ToLowerInvariant();
-
-                foreach (string match in MatchSwappedLetters(valueLower, spellingData))
+                foreach (string match in MatchSwappedLetters(spellingError.ValueLower, spellingData))
                 {
                     Debug.WriteLine($"match: {match}");
                     yield return match;
                 }
 
-                foreach (string match in FuzzyMatch(valueLower, spellingData))
+                foreach (string match in FuzzyMatch(spellingError.ValueLower, spellingData))
                 {
                     Debug.WriteLine($"match: {match}");
                     yield return match;
@@ -253,6 +251,20 @@ namespace Roslynator.Spelling
 
         public static IEnumerable<int> GetSplitIndex(string value, SpellingData spellingData)
         {
+            if (value.Length >= 4)
+            {
+                char ch = value[0];
+
+                if ((ch == 'I' || ch == 'T')
+                    && TextUtility.GetTextCasing(value) == TextCasing.FirstUpper)
+                {
+                    if (spellingData.List.Contains(value.Substring(1)))
+                    {
+                        yield return 1;
+                    }
+                }
+            }
+
             if (value.Length < 6)
                 yield break;
 
