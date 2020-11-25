@@ -554,52 +554,72 @@ namespace Roslynator.CSharp.Spelling
                 return false;
 
             int i = 0;
-            char ch = value[i];
+            char ch = value[0];
 
-            switch (ch)
+            if (ch == 'a'
+                || ch == 'A')
             {
-                case 'a':
-                    {
-                        i++;
-                        int num = 'a' + 1;
-                        while (i < value.Length)
-                        {
-                            if (value[i] != num)
-                                return false;
-
-                            num++;
-                            i++;
-                        }
-
-                        return true;
-                    }
-                case 'A':
-                    {
-                        i++;
-                        int num = 'A' + 1;
-                        while (i < value.Length)
-                        {
-                            if (value[i] != num)
-                                return false;
-
-                            num++;
-                            i++;
-                        }
-
-                        return true;
-                    }
+                if (IsSequence())
+                    return true;
             }
 
+            // aaa
             i = 1;
             while (i < value.Length)
             {
                 if (value[i] != ch)
-                    return false;
+                    return IsSequence2();
 
                 i++;
             }
 
             return true;
+
+            // abcd
+            bool IsSequence()
+            {
+                i++;
+                int num = ch + 1;
+                while (i < value.Length)
+                {
+                    if (value[i] != num)
+                        return false;
+
+                    num++;
+                    i++;
+                }
+
+                return true;
+            }
+
+            // aabbcc
+            bool IsSequence2()
+            {
+                if (i > 1
+                    && (ch == 'a' || ch == 'A')
+                    && value.Length >= 6
+                    && value.Length % i == 0)
+                {
+                    int length = i;
+                    int count = value.Length / i;
+
+                    for (int j = 0; j < count - 1; j++)
+                    {
+                        var ch2 = (char)(ch + j + 1);
+
+                        int start = i + j * length;
+                        int end = start + length;
+
+                        for (int k = i + (j * length); k < end; k++)
+                        {
+                            if (ch2 != value[k])
+                                return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
         }
     }
 }

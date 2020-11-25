@@ -18,8 +18,6 @@ namespace Roslynator.Spelling
 
             int length = value.Length;
 
-            Debug.WriteLine($"find fix for '{value}'");
-
             if (length >= 4)
             {
                 foreach (string match in MatchSwappedLetters(spellingError.ValueLower, spellingData))
@@ -249,24 +247,28 @@ namespace Roslynator.Spelling
             }
         }
 
-        public static IEnumerable<int> GetSplitIndex(string value, SpellingData spellingData)
+        public static IEnumerable<int> GetSplitIndex(SpellingError spellingError, SpellingData spellingData)
         {
+            string value = spellingError.Value;
+
             if (value.Length >= 4)
             {
                 char ch = value[0];
 
+                // Tvalue > TValue
+                // Ienumerable > IEnumerable
                 if ((ch == 'I' || ch == 'T')
-                    && TextUtility.GetTextCasing(value) == TextCasing.FirstUpper)
+                    && TextUtility.GetTextCasing(value) == TextCasing.FirstUpper
+                    && spellingData.List.Contains(value.Substring(1)))
                 {
-                    if (spellingData.List.Contains(value.Substring(1)))
-                    {
-                        yield return 1;
-                    }
+                    yield return 1;
                 }
             }
 
             if (value.Length < 6)
                 yield break;
+
+            value = spellingError.ValueLower;
 
             WordCharMap map = spellingData.List.CharIndexMap;
 

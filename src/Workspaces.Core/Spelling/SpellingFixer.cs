@@ -161,8 +161,7 @@ namespace Roslynator.Spelling
                         {
                             SpellingData = SpellingData.AddIgnoredValue(error.Value);
 
-                            if (errors.RemoveAll(f => SpellingData.IgnoreList.Comparer.Equals(f, error.Value))
-                                 > 0)
+                            if (errors.RemoveAll(f => SpellingData.IgnoreList.Comparer.Equals(f.Value, error.Value)) > 0)
                             {
                                 errorsRemoved = true;
                                 break;
@@ -252,7 +251,7 @@ namespace Roslynator.Spelling
                         {
                             SpellingData = SpellingData.AddIgnoredValue(error.Value);
 
-                            if (errors.RemoveAll(f => SpellingData.IgnoreList.Comparer.Equals(f, error.Value)) > 0)
+                            if (errors.RemoveAll(f => SpellingData.IgnoreList.Comparer.Equals(f.Value, error.Value)) > 0)
                             {
                                 errorsRemoved = true;
                                 break;
@@ -334,28 +333,37 @@ namespace Roslynator.Spelling
             SpellingError spellingError,
             List<SpellingFix> fixes)
         {
+            Debug.WriteLine($"find fix for '{spellingError.Value}'");
+
             string value = spellingError.Value;
 
             if (spellingError.Casing == TextCasing.Lower
                 || spellingError.Casing == TextCasing.FirstUpper)
             {
                 foreach (int splitIndex in SpellingFixProvider
-                    .GetSplitIndex(spellingError.ValueLower, SpellingData))
+                    .GetSplitIndex(spellingError, SpellingData))
                 {
+                    // foofooBar > fooBar
                     if (value.Length - splitIndex >= splitIndex
                         && string.Compare(value, 0, value, splitIndex, splitIndex, StringComparison.Ordinal) == 0)
                     {
                         fixes.Add(new SpellingFix(value.Remove(splitIndex, splitIndex), SpellingFixKind.Split));
                     }
 
+                    // foobar > fooBar
+                    // Tvalue > TValue
                     fixes.Add(new SpellingFix(
                         value
                             .Remove(splitIndex, 1)
                             .Insert(splitIndex, char.ToUpperInvariant(value[splitIndex]).ToString()),
                         SpellingFixKind.Split));
 
-                    if (!spellingError.IsIdentifier)
+                    // foobar > foo bar
+                    if (!spellingError.IsIdentifier
+                        && splitIndex > 1)
+                    {
                         fixes.Add(new SpellingFix(value.Insert(splitIndex, " "), SpellingFixKind.Split));
+                    }
                 }
             }
 
@@ -388,10 +396,16 @@ namespace Roslynator.Spelling
             if (fixes.Count == 1
                 && Options.AutoFix)
             {
-                Write($"    replace '{spellingError.Value}' with '{fixes[0].Value}'");
-                Write(fixes[0].Value, ConsoleColor.Green);
-                Write("'");
-                return fixes[0].Value;
+                SpellingFix fix = fixes[0];
+
+                if (fix.Kind == SpellingFixKind.Swap
+                    || fix.Kind == SpellingFixKind.Fuzzy)
+                {
+                    Write($"    replace '{spellingError.Value}' with '{fix.Value}'");
+                    Write(fix.Value, ConsoleColor.Green);
+                    Write("'");
+                    return fix.Value;
+                }
             }
 
             for (int i = 0; i < fixes.Count; i++)
