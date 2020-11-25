@@ -18,7 +18,7 @@ namespace Roslynator.Spelling
 
             int length = value.Length;
 
-            Debug.WriteLine($"find auto fix for '{value}'");
+            Debug.WriteLine($"find fix for '{value}'");
 
             if (length >= 4)
             {
@@ -106,6 +106,8 @@ namespace Roslynator.Spelling
         {
             int length = value.Length;
 
+            ImmutableDictionary<char, int> charMap = null;
+
             WordCharMap map = spellingData.List.CharIndexMap;
             WordCharMap reversedMap = spellingData.List.ReversedCharIndexMap;
 
@@ -173,31 +175,39 @@ namespace Roslynator.Spelling
 
                 int diff = j - i;
 
-                if (diff == 0
-                    || diff == -1)
+                if (Math.Abs(diff) <= 1)
                 {
-                    string value2 = values.SingleOrDefault(shouldThrow: false);
-
-                    if (value2 != null
-                        && Math.Abs(value2.Length - length) == 1)
-                    {
-                        yield return value2;
-                    }
-                }
-                else if (diff == 1)
-                {
-                    string value2 = values.SingleOrDefault(shouldThrow: false);
-
-                    if (value2 != null)
+                    foreach (string value2 in values)
                     {
                         int lengthDiff = value2.Length - length;
 
-                        if (lengthDiff == 0
-                            || lengthDiff == 1)
+                        if (Math.Abs(lengthDiff) <= 1)
                         {
-                            yield return value2;
+                            int charDiff = GetCharDiff(value2);
+
+                            if ((lengthDiff == 1 && charDiff == 0)
+                                || (lengthDiff <= 0 && charDiff == 1))
+                            {
+                                yield return value2;
+                            }
                         }
                     }
+                }
+
+                int GetCharDiff(string value2)
+                {
+                    if (charMap == null)
+                    {
+                        charMap = value
+                            .GroupBy(f => f)
+                            .ToImmutableDictionary(f => f.Key, f => f.Count());
+                    }
+
+                    int count = value2.GroupBy(f => f)
+                        .Join(charMap, f => f.Key, f => f.Key, (f, g) => Math.Min(f.Count(), g.Value))
+                        .Sum();
+
+                    return value.Length - count;
                 }
             }
         }
@@ -223,7 +233,22 @@ namespace Roslynator.Spelling
                     break;
             }
 
-            return values.Where(f => f.Length == value.Length);
+            foreach (string value2 in values)
+            {
+                if (value.Length == value2.Length)
+                {
+                    int matchCount = 0;
+
+                    for (int i = 0; i < value.Length; i++)
+                    {
+                        if (value[i] == value2[i])
+                            matchCount++;
+                    }
+
+                    if (matchCount >= value.Length - 3)
+                        yield return value2;
+                }
+            }
         }
 
         public static IEnumerable<int> GetSplitIndex(string value, SpellingData spellingData)

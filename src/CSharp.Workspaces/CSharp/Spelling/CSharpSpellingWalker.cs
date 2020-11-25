@@ -193,6 +193,13 @@ namespace Roslynator.CSharp.Spelling
             if (value.Length <= 1)
                 return false;
 
+            //TODO: 
+            if (value.Length < 3
+                && value.All(ch => char.IsUpper(ch)))
+            {
+                return false;
+            }
+
             if (IsAllowedNonsensicalWord(value))
                 return false;
 
@@ -221,8 +228,6 @@ namespace Roslynator.CSharp.Spelling
                 Location.Create(syntaxTree, textSpan),
                 index,
                 identifier);
-
-            Debug.Assert(identifier.Parent == null || identifier.ValueText.Length > 2, identifier.ValueText);
 
             (Errors ??= new List<SpellingError>()).Add(spellingError);
 

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -221,10 +222,6 @@ namespace Roslynator.Spelling
             string value = spellingError.Value;
             string containingValue = spellingError.ContainingValue;
 
-            if (value == "overrided")
-            {
-            }
-
             bool isContained = !string.Equals(value, containingValue, StringComparison.Ordinal);
 
             if (isContained
@@ -263,10 +260,17 @@ namespace Roslynator.Spelling
             if (fix == null
                 && textCasing != TextCasing.Mixed)
             {
+                //TODO: 
+                //if (fixes == null)
+                //{
+
                 fix = GetAutoFix(
                     spellingError,
                     (fixes?.Count > 1) ? fixes.ToList() : new List<string>(),
                     textCasing);
+
+                //}
+
             }
 
             if (fix != null
@@ -298,6 +302,12 @@ namespace Roslynator.Spelling
                 foreach (int splitIndex in SpellingFixProvider
                     .GetSplitIndex(value.ToLowerInvariant(), SpellingData))
                 {
+                    if (value.Length - splitIndex >= splitIndex
+                        && string.Compare(value, 0, value, splitIndex, splitIndex, StringComparison.Ordinal) == 0)
+                    {
+                        fixes.Add(value.Remove(splitIndex, splitIndex));
+                    }
+
                     fixes.Add(value
                         .Remove(splitIndex, 1)
                         .Insert(splitIndex, char.ToUpperInvariant(value[splitIndex]).ToString()));
@@ -315,8 +325,7 @@ namespace Roslynator.Spelling
                 {
                     fixes.Add(en.Current);
 
-                    while (en.MoveNext()
-                        && fixes.Count < 5)
+                    while (en.MoveNext())
                     {
                         if (!fixes.Contains(en.Current, StringComparer.CurrentCultureIgnoreCase))
                             fixes.Add(en.Current);
@@ -326,6 +335,7 @@ namespace Roslynator.Spelling
 
             fixes = fixes
                 .Distinct()
+                .Take(9)
                 .OrderBy(f => f)
                 .ToList();
 
@@ -372,14 +382,18 @@ namespace Roslynator.Spelling
 
             int length = spellingError.Index;
 
-            if (fix.Length > length)
+            if (length > 0
+                && fix.Length > length)
+            {
                 startsWith = string.CompareOrdinal(fix, 0, containingValue, 0, length) == 0;
+            }
 
             var endsWith = false;
 
             length = containingValue.Length - spellingError.EndIndex;
 
-            if (fix.Length > length)
+            if (length > 0
+                && fix.Length > length)
             {
                 endsWith = string.CompareOrdinal(fix, fix.Length - length, containingValue, spellingError.EndIndex, length) == 0;
             }
@@ -410,29 +424,32 @@ namespace Roslynator.Spelling
             string fix,
             int index)
         {
-            Write("         replace '");
-
             string value = spellingError.Value;
             string containingValue = spellingError.ContainingValue;
 
             bool isContained = !string.Equals(value, containingValue, StringComparison.Ordinal);
 
-            if (isContained)
+            if (index == 0)
             {
-                Write(containingValue.Remove(spellingError.Index));
-                Write(value, ConsoleColor.Green);
-                Write(containingValue.Substring(spellingError.EndIndex, containingValue.Length - spellingError.EndIndex));
-            }
-            else
-            {
-                Write(value, ConsoleColor.Green);
+                Write("         replace '");
+
+                if (isContained)
+                {
+                    Write(containingValue.Remove(spellingError.Index));
+                    Write(value);
+                    Write(containingValue.Substring(spellingError.EndIndex, containingValue.Length - spellingError.EndIndex));
+                }
+                else
+                {
+                    Write(value, ConsoleColor.Green);
+                }
+
+                WriteLine("'");
             }
 
-            WriteLine("'");
             Write("    ");
 
-            if (Options.Interactive
-                && index >= 0)
+            if (Options.Interactive)
             {
                 Write('(');
                 Write(index + 1);
@@ -478,12 +495,16 @@ namespace Roslynator.Spelling
                 if (num >= 97
                     && num <= 122)
                 {
-                    index =  num - 97;
+                    index = num - 97;
                     return true;
                 }
             }
 
-            if (int.TryParse(text, out index)
+            if (int.TryParse(
+                text,
+                NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite,
+                CultureInfo.CurrentCulture,
+                out index)
                 && index > 0)
             {
                 index--;

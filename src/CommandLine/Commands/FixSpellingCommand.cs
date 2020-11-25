@@ -121,8 +121,8 @@ namespace Roslynator.CommandLine
                     fixes = dic.ToImmutableDictionary(
                         f => f.Key,
                         f => f.Value
-                            .Distinct(StringComparer.CurrentCulture)
-                            .ToImmutableHashSet(StringComparer.CurrentCulture));
+                            .Distinct(WordList.DefaultComparer)
+                            .ToImmutableHashSet(WordList.DefaultComparer));
                 }
 
                 FixList.Save(path, fixes);

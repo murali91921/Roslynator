@@ -354,6 +354,8 @@ intersector
 intrinsics
 introspecting
 invariants
+inversion
+inversions
 invocable
 iterable
 iterables
@@ -413,6 +415,7 @@ metacharacter
 metadata
 metaphone
 metaphones
+middlewares
 milli
 millimetre
 minimalistic
@@ -430,6 +433,7 @@ monotonically
 monotonicity
 moped
 motorway
+multiblock
 multiline
 multipage
 multiplicative
@@ -445,6 +449,7 @@ natively
 negateable
 newline
 newlines
+no
 nonbacktracking
 noncapturing
 nondeterminism

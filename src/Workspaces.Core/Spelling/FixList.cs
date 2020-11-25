@@ -45,7 +45,7 @@ namespace Roslynator.Spelling
             }
             else
             {
-                fixes = ImmutableHashSet.Create<string>(fix);
+                fixes = ImmutableHashSet.Create<string>(WordList.DefaultComparer, fix);
 
                 ImmutableDictionary<string, ImmutableHashSet<string>> map = Items.Add(key, fixes);
 
@@ -55,7 +55,7 @@ namespace Roslynator.Spelling
 
         public static FixList Load(string path)
         {
-            var dic = new Dictionary<string, HashSet<string>>();
+            var dic = new Dictionary<string, HashSet<string>>(WordList.DefaultComparer);
 
             foreach ((string key, string value) in File.ReadLines(path)
                 .Where(f => !string.IsNullOrWhiteSpace(f))
@@ -76,7 +76,7 @@ namespace Roslynator.Spelling
                 }
                 else
                 {
-                    dic[key] = new HashSet<string>(StringComparer.CurrentCulture) { value };
+                    dic[key] = new HashSet<string>(WordList.DefaultComparer) { value };
                 }
             }
 
@@ -84,7 +84,7 @@ namespace Roslynator.Spelling
                 = dic.ToImmutableDictionary(
                     f => f.Key,
                     f => f.Value
-                        .ToImmutableHashSet(StringComparer.CurrentCulture),
+                        .ToImmutableHashSet(WordList.DefaultComparer),
                     WordList.DefaultComparer);
 
             return new FixList(items);
