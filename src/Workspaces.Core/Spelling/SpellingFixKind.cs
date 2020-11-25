@@ -6,9 +6,9 @@ namespace Roslynator.Spelling
     {
         None = 0,
         List = 1,
-        Split = 2,
-        Swap = 3,
-        Fuzzy = 4,
+        Swap = 2,
+        Fuzzy = 3,
+        Split = 4,
         User = 5,
     }
 }

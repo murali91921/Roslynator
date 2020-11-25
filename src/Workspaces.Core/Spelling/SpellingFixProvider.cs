@@ -1,107 +1,22 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 
 namespace Roslynator.Spelling
 {
     internal static class SpellingFixProvider
     {
-        public static IEnumerable<string> GetFixes(
-            SpellingError spellingError,
-            SpellingData spellingData)
-        {
-            string value = spellingError.Value;
-
-            int length = value.Length;
-
-            if (length >= 4)
-            {
-                foreach (string match in MatchSwappedLetters(spellingError.ValueLower, spellingData))
-                {
-                    Debug.WriteLine($"match: {match}");
-                    yield return match;
-                }
-
-                foreach (string match in FuzzyMatch(spellingError.ValueLower, spellingData))
-                {
-                    Debug.WriteLine($"match: {match}");
-                    yield return match;
-                }
-            }
-
-            if (value.EndsWith("ed", StringComparison.OrdinalIgnoreCase))
-            {
-                if (value.EndsWith("tted", StringComparison.OrdinalIgnoreCase))
-                {
-                    string s = value.Remove(value.Length - 3);
-
-                    if (IsValidFix(s))
-                        yield return s;
-                }
-            }
-            else if (value.EndsWith("ial", StringComparison.OrdinalIgnoreCase))
-            {
-                string s = value.Remove(value.Length - 3);
-
-                if (IsValidFix(s))
-                    yield return s;
-            }
-            else if (value.EndsWith("ical", StringComparison.OrdinalIgnoreCase))
-            {
-                string s = value.Remove(value.Length - 2);
-
-                if (IsValidFix(s))
-                    yield return s;
-            }
-
-            int i = 0;
-            for (; i < length; i++)
-            {
-                char ch = value[i];
-
-                // readonlyly > readonly
-                // sensititive > sensitive
-                if (i < length - 3)
-                {
-                    char ch2 = Peek();
-
-                    if (ch2 != ch
-                        && ch == Peek(2)
-                        && ch2 == Peek(3))
-                    {
-                        string s = value.Remove(i, 2);
-
-                        if (IsValidFix(s))
-                            yield return s;
-                    }
-                }
-            }
-
-            char Peek(int offset = 1)
-            {
-                if (i < length - offset)
-                    return value[i + offset];
-
-                return default;
-            }
-
-            bool IsValidFix(string value)
-            {
-                return spellingData.List.Contains(value)
-                    && !spellingData.IgnoreList.Contains(value);
-            }
-        }
-
-        private static IEnumerable<string> FuzzyMatch(
+        public static ImmutableArray<string> FuzzyMatches(
             string value,
             SpellingData spellingData)
         {
             int length = value.Length;
 
+            ImmutableArray<(string, int, int)>.Builder fixes = null;
+            ImmutableHashSet<string> values;
+            ImmutableHashSet<string> valuesAllButLast = ImmutableHashSet<string>.Empty;
             ImmutableDictionary<char, int> charMap = null;
 
             WordCharMap map = spellingData.List.CharIndexMap;
@@ -109,7 +24,6 @@ namespace Roslynator.Spelling
 
             int max = length;
             int i;
-            ImmutableHashSet<string> values;
 
             for (; max >= 0; max = i - 1)
             {
@@ -132,6 +46,12 @@ namespace Roslynator.Spelling
                         break;
 
                     //Debug.WriteLine($"left  {i,2}  {value[i]} {intersect.Count,5}");
+
+                    if (i == length - 2
+                        && max == length)
+                    {
+                        valuesAllButLast = intersect;
+                    }
 
                     values = intersect;
                     min = i;
@@ -172,51 +92,72 @@ namespace Roslynator.Spelling
                 int diff = j - i;
 
                 if (Math.Abs(diff) <= 1)
+                    ProcessValues(values);
+            }
+
+            ProcessValues(valuesAllButLast);
+
+            return (fixes == null)
+                ? ImmutableArray<string>.Empty
+                : fixes
+                    .OrderBy(f => f.Item2)
+                    .ThenBy(f => f.Item3)
+                    .Select(f => f.Item1)
+                    .Distinct(WordList.DefaultComparer)
+                    .ToImmutableArray();
+
+            void ProcessValues(ImmutableHashSet<string> values)
+            {
+                foreach (string value2 in values)
                 {
-                    foreach (string value2 in values)
+                    int lengthDiff = length - value2.Length;
+
+                    if (Math.Abs(lengthDiff) <= 1
+                        || (lengthDiff == -2 && length >= 6))
                     {
-                        int lengthDiff = value2.Length - length;
+                        int charDiff = GetCharDiff(value2);
 
-                        if (Math.Abs(lengthDiff) <= 1)
+                        if ((lengthDiff == -1 && charDiff == 0)
+                            || (lengthDiff == -1 && charDiff == 1 && length >= 6)
+                            || (lengthDiff == 0 && charDiff == 1)
+                            || (lengthDiff == 1 && charDiff == 1)
+                            || (lengthDiff == -2 && charDiff == 0))
                         {
-                            int charDiff = GetCharDiff(value2);
-
-                            if ((lengthDiff == 1 && charDiff == 0)
-                                || (lengthDiff <= 0 && charDiff == 1))
-                            {
-                                yield return value2;
-                            }
+                            (fixes ??= ImmutableArray.CreateBuilder<(string, int, int)>())
+                                .Add((value2, lengthDiff, charDiff));
                         }
                     }
                 }
+            }
 
-                int GetCharDiff(string value2)
+            int GetCharDiff(string value2)
+            {
+                if (charMap == null)
                 {
-                    if (charMap == null)
-                    {
-                        charMap = value
-                            .GroupBy(f => f)
-                            .ToImmutableDictionary(f => f.Key, f => f.Count());
-                    }
-
-                    int count = value2.GroupBy(f => f)
-                        .Join(charMap, f => f.Key, f => f.Key, (f, g) => Math.Min(f.Count(), g.Value))
-                        .Sum();
-
-                    return value.Length - count;
+                    charMap = value
+                        .GroupBy(ch => ch)
+                        .ToImmutableDictionary(g => g.Key, g => g.Count());
                 }
+
+                int count = value2.GroupBy(ch => ch)
+                    .Join(charMap, g => g.Key, kvp => kvp.Key, (g, kvp) => Math.Min(g.Count(), kvp.Value))
+                    .Sum();
+
+                return value.Length - count;
             }
         }
 
-        private static IEnumerable<string> MatchSwappedLetters(
+        public static ImmutableArray<string> SwapMatches(
             string value,
             SpellingData spellingData)
         {
+            ImmutableArray<string>.Builder fixes = null;
+
             ImmutableHashSet<string> values = ImmutableHashSet<string>.Empty;
 
             foreach (WordChar wordChar in value
-                .GroupBy(f => f)
-                .Select(f => new WordChar(f.Key, f.Count())))
+                .GroupBy(ch => ch)
+                .Select(g => new WordChar(g.Key, g.Count())))
             {
                 if (!spellingData.List.CharMap.TryGetValue(wordChar, out ImmutableHashSet<string> values2))
                     break;
@@ -241,15 +182,19 @@ namespace Roslynator.Spelling
                             matchCount++;
                     }
 
-                    if (matchCount >= value.Length - 3)
-                        yield return value2;
+                    if (matchCount >= Math.Max(2, value.Length - 3))
+                        (fixes ??= ImmutableArray.CreateBuilder<string>()).Add(value2);
                 }
             }
+
+            return fixes?.ToImmutableArray() ?? ImmutableArray<string>.Empty;
         }
 
-        public static IEnumerable<int> GetSplitIndex(SpellingError spellingError, SpellingData spellingData)
+        public static ImmutableArray<int> GetSplitIndexes(SpellingError spellingError, SpellingData spellingData)
         {
             string value = spellingError.Value;
+
+            ImmutableArray<int>.Builder splitIndexes = null;
 
             if (value.Length >= 4)
             {
@@ -261,12 +206,12 @@ namespace Roslynator.Spelling
                     && TextUtility.GetTextCasing(value) == TextCasing.FirstUpper
                     && spellingData.List.Contains(value.Substring(1)))
                 {
-                    yield return 1;
+                    (splitIndexes ??= ImmutableArray.CreateBuilder<int>()).Add(1);
                 }
             }
 
             if (value.Length < 6)
-                yield break;
+                return splitIndexes?.ToImmutableArray() ?? ImmutableArray<int>.Empty;
 
             value = spellingError.ValueLower;
 
@@ -310,13 +255,15 @@ namespace Roslynator.Spelling
                         if (value3.Length != value.Length - i - 1)
                             continue;
 
-                        yield return i + 1;
+                        (splitIndexes ??= ImmutableArray.CreateBuilder<int>()).Add(i + 1);
                         break;
                     }
 
                     break;
                 }
             }
+
+            return splitIndexes?.ToImmutableArray() ?? ImmutableArray<int>.Empty;
         }
     }
 }

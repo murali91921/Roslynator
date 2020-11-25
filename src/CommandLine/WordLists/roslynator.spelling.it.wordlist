@@ -1,11 +1,3 @@
-nomodule
-preinit
-kvp
-kvps
-dto
-dtos
-vm
-ns
 acosh
 addon
 addons
@@ -119,6 +111,7 @@ dotnet
 dotvvm
 downshift
 dto
+dtos
 dvd
 editorconfig
 elif
@@ -199,6 +192,8 @@ js
 json
 keydown
 keyup
+kvp
+kvps
 langword
 laplace
 lcid
@@ -235,8 +230,10 @@ netframework
 netstandard
 newtonsoft
 nginx
+nomodule
 noop
 nrefactory
+ns
 nswag
 nuget
 num
@@ -263,6 +260,7 @@ pkgdef
 png
 pos
 pragma
+preinit
 prev
 proc
 procs
@@ -344,6 +342,7 @@ vbproj
 verilog
 vim
 virt
+vm
 vsixmanifest
 webcam
 webforms

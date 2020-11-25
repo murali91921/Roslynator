@@ -346,8 +346,7 @@ namespace Roslynator.Spelling
             if (spellingError.Casing == TextCasing.Lower
                 || spellingError.Casing == TextCasing.FirstUpper)
             {
-                foreach (int splitIndex in SpellingFixProvider
-                    .GetSplitIndex(spellingError, SpellingData))
+                foreach (int splitIndex in SpellingFixProvider.GetSplitIndexes(spellingError, SpellingData))
                 {
                     // foofooBar > fooBar
                     if (value.Length - splitIndex >= splitIndex
@@ -373,16 +372,16 @@ namespace Roslynator.Spelling
                 }
             }
 
-            using (IEnumerator<string> en = SpellingFixProvider
-                .GetFixes(spellingError, SpellingData)
-                .GetEnumerator())
+            if (spellingError.Length >= 4)
             {
-                if (en.MoveNext())
+                foreach (string match in SpellingFixProvider.SwapMatches(spellingError.ValueLower, SpellingData))
                 {
-                    fixes.Add(new SpellingFix(en.Current, SpellingFixKind.Fuzzy));
+                    fixes.Add(new SpellingFix(match, SpellingFixKind.Swap));
+                }
 
-                    while (en.MoveNext())
-                        fixes.Add(new SpellingFix(en.Current, SpellingFixKind.Fuzzy));
+                foreach (string match in SpellingFixProvider.FuzzyMatches(spellingError.ValueLower, SpellingData))
+                {
+                    fixes.Add(new SpellingFix(match, SpellingFixKind.Fuzzy));
                 }
             }
 
@@ -396,10 +395,11 @@ namespace Roslynator.Spelling
 
                     return fix;
                 })
-                .OrderBy(f => f.Value)
+                .OrderBy(f => f.Kind)
                 .ToList();
 
             if (fixes.Count == 1
+                && !spellingError.IsSymbol
                 && Options.AutoFix)
             {
                 SpellingFix fix = fixes[0];
@@ -521,19 +521,11 @@ namespace Roslynator.Spelling
 
             if (Options.Interactive)
             {
-                Write('(');
-                Write(index + 1);
-
-                int num = index + 97;
-
-                if (num <= 122)
-                    Write((char)num);
-
-                Write(") ");
+                Write($"({index + 1}) ");
             }
             else
             {
-                Write("     ");
+                Write("   ");
             }
 
             Write("with '");
@@ -549,12 +541,17 @@ namespace Roslynator.Spelling
                 Write(fix.Value, ConsoleColor.Green);
             }
 
-            WriteLine("'");
+            Write("'");
+
+            if (Options.Interactive)
+                Write($" ({index + 1})");
+
+            WriteLine();
         }
 
         private static bool TryReadSuggestion(out int index)
         {
-            Console.Write("    Enter number/letter of a suggestion: ");
+            Console.Write("    Enter number of a suggestion: ");
 
             string text = Console.ReadLine()?.Trim();
 
