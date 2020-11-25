@@ -104,12 +104,10 @@ namespace Roslynator.Spelling
                 if (!errors.Any())
                     return default;
 
-                List<SpellingError> commentErrors = errors.Where(f => !f.IsIdentifier).ToList();
+                List<SpellingError> commentErrors = errors.Where(f => !f.IsSymbol).ToList();
+                List<SpellingError> identifierErrors = errors.Where(f => f.IsSymbol).ToList();
 
                 await FixCommentsAsync(project, commentErrors, cancellationToken).ConfigureAwait(false);
-
-                List<SpellingError> identifierErrors = errors.Where(f => f.IsIdentifier).ToList();
-
                 await FixIdentifiersAsync(project, identifierErrors, cancellationToken).ConfigureAwait(false);
 
                 project = CurrentSolution.GetProject(project.Id);
@@ -156,6 +154,8 @@ namespace Roslynator.Spelling
                             (textChanges ??= new List<TextChange>()).Add(new TextChange(error.Location.SourceSpan, fix));
 
                             ProcessFix(error, fix);
+
+                            errors.Remove(error);
                         }
                         else
                         {
@@ -277,7 +277,10 @@ namespace Roslynator.Spelling
                 string singleFix = fixes.First();
 
                 if (string.Equals(containingValue, singleFix, StringComparison.Ordinal))
+                {
+                    WriteAutoFix(spellingError, singleFix);
                     return singleFix;
+                }
             }
 
             string fix = null;
@@ -301,6 +304,9 @@ namespace Roslynator.Spelling
                         fix = TextUtility.SetTextCasing(fix, textCasing);
                     }
                 }
+
+                if (fix != null)
+                    WriteAutoFix(spellingError, fix);
             }
 
             if (fix == null
@@ -359,7 +365,7 @@ namespace Roslynator.Spelling
                         SpellingFixKind.Split));
 
                     // foobar > foo bar
-                    if (!spellingError.IsIdentifier
+                    if (!spellingError.IsSymbol
                         && splitIndex > 1)
                     {
                         fixes.Add(new SpellingFix(value.Insert(splitIndex, " "), SpellingFixKind.Split));
@@ -381,7 +387,7 @@ namespace Roslynator.Spelling
             }
 
             fixes = fixes
-                .Distinct()
+                .Distinct(SpellingFixComparer.Value)
                 .Take(9)
                 .Select(fix =>
                 {
@@ -401,9 +407,7 @@ namespace Roslynator.Spelling
                 if (fix.Kind == SpellingFixKind.Swap
                     || fix.Kind == SpellingFixKind.Fuzzy)
                 {
-                    Write($"    replace '{spellingError.Value}' with '{fix.Value}'");
-                    Write(fix.Value, ConsoleColor.Green);
-                    Write("'");
+                    WriteAutoFix(spellingError, fix.Value);
                     return fix.Value;
                 }
             }
@@ -424,7 +428,7 @@ namespace Roslynator.Spelling
 
         private string GetUserFix(SpellingError spellingError)
         {
-            Console.Write("    Enter fixed value: ");
+            Console.Write("    Enter fix: ");
 
             string fix = Console.ReadLine()?.Trim();
 
@@ -478,6 +482,15 @@ namespace Roslynator.Spelling
             return fix;
         }
 
+        private static void WriteAutoFix(SpellingError spellingError, string fix)
+        {
+            Write("    Replace '", ConsoleColor.Green);
+            Write(spellingError.Value, ConsoleColor.Green);
+            Write("' with '", ConsoleColor.Green);
+            Write(fix, ConsoleColor.Green);
+            WriteLine("'", ConsoleColor.Green);
+        }
+
         private void WriteSuggestion(
             SpellingError spellingError,
             SpellingFix fix,
@@ -488,7 +501,7 @@ namespace Roslynator.Spelling
 
             if (index == 0)
             {
-                Write("         replace '");
+                Write("    Replace   '");
 
                 if (spellingError.IsContained)
                 {
@@ -516,11 +529,11 @@ namespace Roslynator.Spelling
                 if (num <= 122)
                     Write((char)num);
 
-                Write(")    ");
+                Write(") ");
             }
             else
             {
-                Write("        ");
+                Write("     ");
             }
 
             Write("with '");

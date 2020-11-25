@@ -88,11 +88,11 @@ namespace Roslynator
 
             sb.Append("'");
 
-            if (spellingError.IsIdentifier
+            if (spellingError.IsSymbol
                 && !string.Equals(spellingError.Value, spellingError.Identifier.ValueText, StringComparison.Ordinal))
             {
                 sb.Append(" in '");
-                sb.Append((spellingError.IsIdentifier)
+                sb.Append((spellingError.IsSymbol)
                     ? spellingError.Identifier.ValueText
                     : spellingError.Value);
                 sb.Append("'");

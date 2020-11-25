@@ -75,6 +75,15 @@ namespace Roslynator.Spelling
         {
             public override int Compare(SpellingError x, SpellingError y)
             {
+                if (object.ReferenceEquals(x, y))
+                    return 0;
+
+                if (x == null)
+                    return -1;
+
+                if (y == null)
+                    return 1;
+
                 int result = StringComparer.OrdinalIgnoreCase.Compare(
                     x.Location.SourceTree?.FilePath,
                     y.Location.SourceTree?.FilePath);
@@ -87,6 +96,15 @@ namespace Roslynator.Spelling
 
             public override bool Equals(SpellingError x, SpellingError y)
             {
+                if (object.ReferenceEquals(x, y))
+                    return true;
+
+                if (x == null)
+                    return false;
+
+                if (y == null)
+                    return false;
+
                 return StringComparer.OrdinalIgnoreCase.Equals(
                     x.Location.SourceTree?.FilePath,
                     y.Location.SourceTree?.FilePath)
@@ -95,6 +113,9 @@ namespace Roslynator.Spelling
 
             public override int GetHashCode(SpellingError obj)
             {
+                if (obj == null)
+                    throw new ArgumentNullException(nameof(obj));
+
                 return Hash.Combine(
                     StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Location.SourceTree?.FilePath),
                     obj.Location.SourceSpan.Start);

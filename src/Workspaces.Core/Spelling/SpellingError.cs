@@ -37,7 +37,7 @@ namespace Roslynator.Spelling
 
         public int Index { get; }
 
-        public bool IsIdentifier => Identifier.Parent != null;
+        public bool IsSymbol => Identifier.Parent != null;
 
         public bool IsContained => _isContained ??= !string.Equals(Value, ContainingValue, StringComparison.Ordinal);
 

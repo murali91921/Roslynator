@@ -607,7 +607,7 @@ namespace Roslynator.CSharp.Spelling
                     {
                         var ch2 = (char)(ch + j + 1);
 
-                        int start = i + j * length;
+                        int start = i + (j * length);
                         int end = start + length;
 
                         for (int k = i + (j * length); k < end; k++)
@@ -616,9 +616,11 @@ namespace Roslynator.CSharp.Spelling
                                 return false;
                         }
                     }
+
+                    return true;
                 }
 
-                return true;
+                return false;
             }
         }
     }
