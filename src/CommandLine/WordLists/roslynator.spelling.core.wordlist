@@ -135,6 +135,7 @@ actings
 action
 actionable
 actions
+activatable
 activate
 activated
 activates
@@ -673,6 +674,7 @@ backend
 backfill
 backfilled
 background
+backgrounded
 backing
 backoff
 backpack
@@ -1036,6 +1038,7 @@ buyer
 by
 bye
 byte
+bytecode
 bytes
 bytewise
 cab
@@ -1471,6 +1474,7 @@ compact
 companies
 company
 comparable
+comparables
 comparand
 compare
 compared
@@ -1771,6 +1775,8 @@ covariance
 covariant
 cover
 coverage
+coverlet
+coverlets
 cow
 crack
 cracker
@@ -1904,6 +1910,10 @@ dear
 death
 debate
 debit
+debounce
+debounced
+debounces
+debouncing
 debt
 debug
 debugger
@@ -1993,6 +2003,7 @@ deflation
 degenerate
 degree
 delay
+delayable
 delegate
 delegates
 deletable
@@ -2863,6 +2874,8 @@ fertilizing
 festival
 fetch
 fetched
+fetcher
+fetchers
 fetus
 fever
 few
@@ -4562,6 +4575,10 @@ million
 millisec
 milliseconds
 millisecs
+mimick
+mimicked
+mimicking
+mimicks
 min
 mind
 mine
@@ -4880,6 +4897,8 @@ null
 nullability
 nullable
 nullables
+nulled
+nulling
 nulls
 number
 numbered
@@ -5282,6 +5301,7 @@ permit
 permits
 permitted
 persist
+persistable
 persisted
 persistent
 person
@@ -5929,6 +5949,8 @@ recursivelly
 recursively
 recycle
 recycled
+recycler
+recyclers
 recycling
 red
 redeclare
@@ -6184,6 +6206,10 @@ restricted
 restriction
 restrictions
 restrictive
+resubscribe
+resubscribed
+resubscribes
+resubscribing
 result
 resulting
 results
@@ -6242,6 +6268,7 @@ rid
 ride
 rider
 rifle
+rigamarole
 right
 rightmost
 rights
@@ -6284,6 +6311,7 @@ roughly
 round
 roundabout
 rounded
+routable
 route
 router
 routers
@@ -6615,6 +6643,8 @@ sight
 sightseeing
 sign
 signal
+signaller
+signallers
 signature
 signatures
 signed
@@ -6997,6 +7027,8 @@ string
 stringification
 stringifications
 stringified
+stringifier
+stringifiers
 stringifies
 stringify
 stringifying
@@ -7468,6 +7500,8 @@ tokens
 told
 toll
 tomato
+tombstoned
+tombstoning
 tomorrow
 tone
 tongs
@@ -7702,6 +7736,10 @@ unconstrained
 unconverted
 undeclared
 undecoded
+undefer
+undeferred
+undeferring
+undefers
 undefined
 undelete
 under
@@ -7839,7 +7877,9 @@ unpatched
 unpatches
 unpatching
 unpause
+unpaused
 unpauses
+unpausing
 unpleasant
 unpositioned
 unpredicted
@@ -8027,6 +8067,7 @@ violet
 violin
 virgin
 virtual
+virtualizing
 virtually
 virtue
 virus

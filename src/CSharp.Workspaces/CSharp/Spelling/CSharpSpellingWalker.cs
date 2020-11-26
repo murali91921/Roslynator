@@ -133,24 +133,25 @@ namespace Roslynator.CSharp.Spelling
             SyntaxTree syntaxTree,
             SyntaxToken identifier)
         {
-            AnalyzeIdentifier(value, null, syntaxTree, identifier);
+            AnalyzeIdentifier(value, null, 0, syntaxTree, identifier);
         }
 
         private void AnalyzeIdentifier(
             string value,
-            string originalValue,
+            string containingValue,
+            int index,
             SyntaxTree syntaxTree,
             SyntaxToken identifier)
         {
-            if ((originalValue ?? value).Length <= 2)
+            if ((containingValue ?? value).Length <= 2)
                 return;
 
-            if (originalValue != null)
+            if (containingValue != null)
             {
-                if (SpellingData.IgnoreList.Contains(originalValue))
+                if (SpellingData.IgnoreList.Contains(containingValue))
                     return;
 
-                if (SpellingData.List.Contains(originalValue))
+                if (SpellingData.List.Contains(containingValue))
                     return;
             }
 
@@ -171,10 +172,10 @@ namespace Roslynator.CSharp.Spelling
 
                 if (AnalyzeValue(
                     splitItem.Value,
-                    originalValue ?? value,
+                    containingValue ?? value,
                     splitItem.Index,
                     syntaxTree,
-                    new TextSpan(identifier.SpanStart + splitItem.Index, splitItem.Length),
+                    new TextSpan(identifier.SpanStart + splitItem.Index + index, splitItem.Length),
                     identifier,
                     isSimpleIdentifier: _simpleIdentifierToSkipRegex.IsMatch(value)))
                 {
@@ -192,15 +193,8 @@ namespace Roslynator.CSharp.Spelling
             SyntaxToken identifier,
             bool isSimpleIdentifier)
         {
-            if (value.Length <= 1)
+            if (value.Length < 3)
                 return false;
-
-            //TODO: 
-            if (value.Length < 3
-                && value.All(ch => char.IsUpper(ch)))
-            {
-                return false;
-            }
 
             if (IsAllowedNonsensicalWord(value))
                 return false;
@@ -413,8 +407,8 @@ namespace Roslynator.CSharp.Spelling
         {
             SyntaxToken identifier = node.Identifier;
 
-            string origValue = identifier.ValueText;
-            string value = origValue;
+            string containingValue = identifier.ValueText;
+            string value = containingValue;
 
             if (value.Length > 1)
             {
@@ -424,7 +418,7 @@ namespace Roslynator.CSharp.Spelling
                     value = value.Substring(1);
                 }
 
-                AnalyzeIdentifier(value, origValue, identifier.SyntaxTree, identifier);
+                AnalyzeIdentifier(value, containingValue, 1, identifier.SyntaxTree, identifier);
             }
 
             base.VisitTypeParameter(node);
@@ -446,8 +440,8 @@ namespace Roslynator.CSharp.Spelling
         {
             SyntaxToken identifier = node.Identifier;
 
-            string origValue = identifier.ValueText;
-            string value = origValue;
+            string containingValue = identifier.ValueText;
+            string value = containingValue;
 
             if (value.Length > 1)
             {
@@ -457,7 +451,7 @@ namespace Roslynator.CSharp.Spelling
                     value = value.Substring(1);
                 }
 
-                AnalyzeIdentifier(value, origValue, identifier.SyntaxTree, identifier);
+                AnalyzeIdentifier(value, containingValue, -1, identifier.SyntaxTree, identifier);
             }
 
             base.VisitInterfaceDeclaration(node);
@@ -555,18 +549,13 @@ namespace Roslynator.CSharp.Spelling
             if (value.Length < 3)
                 return false;
 
-            int i = 0;
-            char ch = value[0];
+            if (IsSequence())
+                return true;
 
-            if (ch == 'a'
-                || ch == 'A')
-            {
-                if (IsSequence())
-                    return true;
-            }
+            char ch = value[0];
+            int i = 1;
 
             // aaa
-            i = 1;
             while (i < value.Length)
             {
                 if (value[i] != ch)
@@ -577,18 +566,44 @@ namespace Roslynator.CSharp.Spelling
 
             return true;
 
-            // abcd
+            // abc, Abc, ABC
             bool IsSequence()
             {
-                i++;
-                int num = ch + 1;
-                while (i < value.Length)
+                int num = 0;
+
+                if (value[0] == 'a')
+                {
+                    if (value[1] == 'b')
+                    {
+                        num = 'c';
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else if (value[0] == 'A')
+                {
+                    if (value[1] == 'B')
+                    {
+                        num = 'C';
+                    }
+                    else if (value[1] == 'b')
+                    {
+                        num = 'c';
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                for (int i = 2; i < value.Length; i++)
                 {
                     if (value[i] != num)
                         return false;
 
                     num++;
-                    i++;
                 }
 
                 return true;

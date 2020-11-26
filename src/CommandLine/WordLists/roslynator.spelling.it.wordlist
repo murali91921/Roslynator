@@ -1,3 +1,6 @@
+jni
+funcs
+tizen
 acklam
 acosh
 addon
@@ -9,6 +12,7 @@ agg
 algo
 alloc
 allocs
+amd
 api
 app
 arg
@@ -27,6 +31,7 @@ atlassian
 attr
 attrs
 auth
+autofac
 aux
 axapta
 azure
@@ -68,6 +73,7 @@ consts
 coord
 coords
 corefx
+corlib
 cosh
 cosine
 cpp
@@ -153,6 +159,7 @@ firefox
 fixme
 flg
 flickr
+fody
 foo
 foobar
 foobaz
@@ -205,6 +212,7 @@ intelli
 interop
 ints
 io
+ioc
 ip
 ipod
 ips
@@ -269,11 +277,13 @@ netframework
 netstandard
 newtonsoft
 nginx
+ninject
 njs
 nlog
 nomodule
 noop
 npgsql
+npm
 nrefactory
 ns
 nswag
@@ -328,6 +338,7 @@ regexps
 repo
 repos
 resharper
+resx
 ret
 rfc
 rgb
@@ -382,6 +393,7 @@ tls
 tmp
 todo
 tooltip
+tpl
 trie
 tsl
 tsql
@@ -405,6 +417,7 @@ unix
 upn
 uri
 urls
+usb
 ushort
 usings
 utc

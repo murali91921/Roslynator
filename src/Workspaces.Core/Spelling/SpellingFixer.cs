@@ -244,6 +244,8 @@ namespace Roslynator.Spelling
                                 }
                             }
 
+                            WriteLine($"    Rename '{identifier.ValueText}' to '{fix}'");
+
                             Solution newSolution = await Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(
                                 CurrentSolution,
                                 symbol,
@@ -294,7 +296,7 @@ namespace Roslynator.Spelling
 
                 if (string.Equals(containingValue, singleFix, StringComparison.Ordinal))
                 {
-                    WriteAutoFix(spellingError, singleFix);
+                    WriteFix(spellingError, singleFix);
                     return singleFix;
                 }
             }
@@ -320,9 +322,6 @@ namespace Roslynator.Spelling
                         fix = TextUtility.SetTextCasing(fix, textCasing);
                     }
                 }
-
-                if (fix != null)
-                    WriteAutoFix(spellingError, fix);
             }
 
             if (fix == null
@@ -341,15 +340,19 @@ namespace Roslynator.Spelling
                 fix = GetUserFix();
             }
 
-            if (fix != null
-                && spellingError.IsContained
-                && spellingError.IsSymbol)
+            if (fix != null)
             {
-                int endIndex = spellingError.Index + value.Length;
+                WriteFix(spellingError, fix);
 
-                fix = containingValue.Remove(spellingError.Index)
-                    + fix
-                    + containingValue.Substring(endIndex, containingValue.Length - endIndex);
+                if (spellingError.IsContained
+                    && spellingError.IsSymbol)
+                {
+                    int endIndex = spellingError.Index + value.Length;
+
+                    fix = containingValue.Remove(spellingError.Index)
+                        + fix
+                        + containingValue.Substring(endIndex, containingValue.Length - endIndex);
+                }
             }
 
             return fix;
@@ -435,7 +438,6 @@ namespace Roslynator.Spelling
                     if (fix.Kind == SpellingFixKind.Swap
                         || fix.Kind == SpellingFixKind.Fuzzy)
                     {
-                        WriteAutoFix(spellingError, fix.Value);
                         return fix.Value;
                     }
                 }
@@ -465,13 +467,9 @@ namespace Roslynator.Spelling
             return (!string.IsNullOrEmpty(fix)) ? fix : null;
         }
 
-        private static void WriteAutoFix(SpellingError spellingError, string fix)
+        private static void WriteFix(SpellingError spellingError, string fix)
         {
-            Write("    Replace '", ConsoleColor.Green);
-            Write(spellingError.Value, ConsoleColor.Green);
-            Write("' with '", ConsoleColor.Green);
-            Write(fix, ConsoleColor.Green);
-            WriteLine("'", ConsoleColor.Green);
+            WriteLine($"    Replace '{spellingError.Value}' with '{fix}'", ConsoleColor.Green);
         }
 
         private void WriteSuggestion(
@@ -494,7 +492,7 @@ namespace Roslynator.Spelling
                 }
                 else
                 {
-                    Write(value, ConsoleColor.Green);
+                    Write(value, ConsoleColor.Cyan);
                 }
 
                 WriteLine("'");
@@ -516,12 +514,12 @@ namespace Roslynator.Spelling
             if (spellingError.IsContained)
             {
                 Write(containingValue.Remove(spellingError.Index));
-                Write(fix.Value, ConsoleColor.Green);
+                Write(fix.Value, ConsoleColor.Cyan);
                 Write(containingValue.Substring(spellingError.EndIndex, containingValue.Length - spellingError.EndIndex));
             }
             else
             {
-                Write(fix.Value, ConsoleColor.Green);
+                Write(fix.Value, ConsoleColor.Cyan);
             }
 
             Write("'");
