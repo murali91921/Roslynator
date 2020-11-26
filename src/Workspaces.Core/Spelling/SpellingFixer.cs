@@ -108,7 +108,7 @@ namespace Roslynator.Spelling
                 List<SpellingError> identifierErrors = errors.Where(f => f.IsSymbol).ToList();
 
                 await FixCommentsAsync(project, commentErrors, cancellationToken).ConfigureAwait(false);
-                await FixIdentifiersAsync(project, identifierErrors, cancellationToken).ConfigureAwait(false);
+                await FixSymbolsAsync(project, identifierErrors, cancellationToken).ConfigureAwait(false);
 
                 project = CurrentSolution.GetProject(project.Id);
             }
@@ -142,9 +142,6 @@ namespace Roslynator.Spelling
                     foreach (SpellingError error in grouping.OrderBy(f => f.Location.SourceSpan.Start))
                     {
                         LogHelpers.WriteSpellingError(error, sourceText, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
-
-                        if (SpellingData.IgnoreList.Contains(error.Value))
-                            continue;
 
                         string fix = GetFix(error);
 
@@ -194,7 +191,7 @@ namespace Roslynator.Spelling
             }
         }
 
-        private async Task FixIdentifiersAsync(
+        private async Task FixSymbolsAsync(
             Project project,
             List<SpellingError> errors,
             CancellationToken cancellationToken)
@@ -212,9 +209,6 @@ namespace Roslynator.Spelling
                         SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                         LogHelpers.WriteSpellingError(error, sourceText, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
-
-                        if (SpellingData.IgnoreList.Contains(error.Value))
-                            continue;
 
                         string identifierText = error.Identifier.ValueText;
 

@@ -1,3 +1,4 @@
+acklam
 acosh
 addon
 addons
@@ -31,6 +32,7 @@ azure
 bayes
 bernoulli
 bin
+bitcoin
 blazor
 blowfish
 bom
@@ -51,6 +53,7 @@ cdn
 chars
 cli
 clojure
+cls
 cmd
 cnt
 coeff
@@ -126,6 +129,7 @@ eof
 eol
 erlang
 err
+ethereum
 euler
 eval
 exe
@@ -139,6 +143,7 @@ filterpriority
 firefox
 fixme
 flg
+flickr
 foo
 foobar
 foobaz
@@ -178,14 +183,18 @@ img
 impl
 ini
 init
+instapayment
 int
+intelli
 interop
+ints
 io
 ipod
 jarray
 javascript
 jit
 jobj
+jpeg
 jpg
 jquery
 js
@@ -204,10 +213,13 @@ linkedin
 linq
 linux
 lisp
+litecoin
 localhost
+lorem
 lparam
 lru
 lua
+luhn
 macintosh
 macintoshes
 mathematica
@@ -220,6 +232,7 @@ mkdir
 mkdirs
 moq
 mozilla
+mpf
 msbuild
 mutex
 mvc
@@ -247,6 +260,7 @@ orig
 owin
 para
 param
+paramref
 params
 paren
 parens
@@ -278,6 +292,7 @@ repo
 repos
 resharper
 ret
+rgb
 roboconf
 roslyn
 rtl
@@ -288,6 +303,7 @@ sbytes
 scala
 scilab
 selenium
+semver
 servlet
 shebang
 sid
@@ -308,6 +324,7 @@ structs
 sub
 subdir
 subdirs
+svg
 swagger
 swashbuckle
 temp
@@ -317,6 +334,7 @@ todo
 tooltip
 trie
 tsql
+twitter
 txt
 typelib
 typeof
@@ -344,8 +362,11 @@ vim
 virt
 vm
 vsixmanifest
+vssdk
+vsthrd
 webcam
 webforms
+webp
 wifi
 winform
 winforms
