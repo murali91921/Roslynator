@@ -363,6 +363,7 @@ am
 amazed
 amazing
 ambassador
+ambiently
 ambiguity
 ambiguous
 ambition
@@ -386,6 +387,7 @@ analogy
 analyse
 analysis
 analyst
+analyzable
 analyze
 analyzer
 analyzers
@@ -457,6 +459,8 @@ append
 appendable
 appendage
 appended
+appender
+appenders
 appending
 appendix
 appends
@@ -723,6 +727,8 @@ banners
 bar
 barbar
 barbecue
+barcode
+barcodes
 barely
 bark
 barrel
@@ -1271,6 +1277,7 @@ christian
 christmas
 chrome
 chromosome
+chunked
 church
 cigarette
 cinema
@@ -1409,6 +1416,10 @@ colonial
 colons
 colony
 color
+colorize
+colorized
+colorizes
+colorizing
 colors
 colour
 colourful
@@ -1500,6 +1511,8 @@ compliant
 complicated
 component
 components
+composabilities
+composability
 compose
 composite
 composition
@@ -1846,6 +1859,7 @@ cycle
 cyclic
 cycling
 cyclist
+cymru
 cyrillic
 dad
 daily
@@ -1871,6 +1885,8 @@ data
 database
 datacenter
 datacenters
+datagram
+datagrams
 dataset
 datasets
 date
@@ -2037,8 +2053,14 @@ depressed
 depression
 depth
 deputy
+dequeue
+dequeued
+dequeues
+dequeuing
 dereference
 dereferenced
+dereferences
+dereferencing
 derivation
 derivational
 derive
@@ -2078,6 +2100,10 @@ destroy
 destruction
 destructor
 destructors
+destructure
+destructured
+destructures
+destructuring
 detach
 detail
 detailed
@@ -2118,6 +2144,7 @@ dialogs
 dialogue
 diameter
 diary
+diatric
 dictator
 dictionary
 did
@@ -2506,9 +2533,17 @@ enhanced
 enjoy
 enormous
 enough
+enqueue
+enqueued
+enqueues
+enqueuing
 enquiry
 ensure
 ensures
+entail
+entailed
+entailing
+entails
 enter
 entered
 entering
@@ -2645,6 +2680,7 @@ excluding
 exclusive
 excuse
 executable
+executables
 execute
 executed
 executes
@@ -2758,6 +2794,8 @@ fair
 fairly
 faith
 fake
+fakeable
+fakeables
 faker
 fakes
 fall
@@ -2814,8 +2852,10 @@ fees
 feet
 fellow
 female
+fen
 fence
 fenced
+fens
 ferment
 ferry
 fertile
@@ -3106,6 +3146,7 @@ gas
 gasworks
 gate
 gather
+gaussian
 gave
 gay
 gaze
@@ -3313,6 +3354,7 @@ handler
 handlers
 handles
 handling
+handlings
 handsome
 handwriting
 hang
@@ -3553,6 +3595,9 @@ icy
 i'd
 idea
 ideal
+idempotent
+idempotention
+idempotently
 identical
 identification
 identified
@@ -3731,6 +3776,7 @@ inhibit
 inhibition
 initial
 initialise
+initialises
 initialization
 initialize
 initialized
@@ -3782,6 +3828,7 @@ inspection
 inspire
 inspired
 install
+installable
 instance
 instances
 instantiable
@@ -3791,6 +3838,8 @@ instantiates
 instantiating
 instantiation
 instantiations
+instantiator
+instantiators
 instead
 instep
 institute
@@ -3885,6 +3934,7 @@ invent
 invention
 inverse
 inversion
+inversions
 invert
 inverted
 inverter
@@ -3898,9 +3948,13 @@ invitation
 invite
 invocable
 invocation
+invocator
+invocators
 invoice
 invoke
 invoked
+invoker
+invokers
 invokes
 invoking
 involve
@@ -3910,6 +3964,7 @@ iraqi
 irish
 iron
 ironing
+irrespectively
 is
 islamic
 island
@@ -3996,6 +4051,8 @@ kangaroo
 katakana
 keen
 keep
+keepalive
+keepalives
 keeper
 keeps
 kennel
@@ -4095,6 +4152,7 @@ lawyer
 lay
 layer
 layout
+layoutable
 lazy
 lead
 leader
@@ -4264,6 +4322,8 @@ looked
 looking
 looks
 loop
+loopback
+loopbacks
 loose
 lord
 lorry
@@ -4484,6 +4544,7 @@ microwave
 midday
 middle
 middleware
+middlewares
 midnight
 might
 migrate
@@ -4497,7 +4558,9 @@ mill
 milli
 millimetre
 million
+millisec
 milliseconds
+millisecs
 min
 mind
 mine
@@ -4581,6 +4644,8 @@ monotonic
 monotonical
 monotonically
 monotonicity
+monotonous
+monotonously
 month
 months
 monument
@@ -4623,6 +4688,7 @@ much
 mud
 mug
 multi
+multiblock
 multicast
 multiline
 multimedia
@@ -4763,6 +4829,7 @@ nondeterministic
 none
 nonetheless
 nonexisting
+nonsensical
 nonspacing
 nonstandard
 nonvowel
@@ -4795,6 +4862,8 @@ notepaper
 nothing
 notice
 noticeboard
+notifier
+notifiers
 notify
 notion
 notwithstanding
@@ -4807,7 +4876,9 @@ nowhere
 nuclear
 nucleus
 null
+nullability
 nullable
+nullables
 nulls
 number
 numbered
@@ -4979,6 +5050,7 @@ outlier
 outline
 outlook
 output
+outputting
 outside
 outskirts
 outstretched
@@ -4995,6 +5067,9 @@ overcount
 overdo
 overdressed
 overflow
+overflowed
+overflowing
+overflows
 overfull
 overhang
 overhanging
@@ -5084,6 +5159,8 @@ paraffin
 paragraph
 paragraphs
 parallel
+parallelization
+parallelizations
 parallelize
 parameter
 parameterless
@@ -5388,6 +5465,10 @@ postmark
 postmaster
 postoffice
 postpone
+postprocess
+postprocessed
+postprocesses
+postprocessing
 pot
 potash
 potato
@@ -5409,10 +5490,19 @@ practitioners
 praise
 pray
 prayer
+preallocate
+preallocated
+preallocates
+preallocating
 preamble
 prebuilding
 prebuilt
+precalculate
 precalculated
+precalculates
+precalculating
+precalculation
+precalculations
 precede
 preceded
 precedence
@@ -5447,9 +5537,14 @@ prefetch
 prefetched
 prefetches
 prefetching
+prefilled
 prefix
 prefixed
 prefixes
+preformat
+preformats
+preformatted
+preformatting
 pregnancy
 pregnant
 preliminary
@@ -5490,6 +5585,10 @@ pressure
 presume
 presumption
 pretend
+pretest
+pretested
+pretesting
+pretests
 pretty
 prevent
 prevents
@@ -5668,6 +5767,7 @@ quarterback
 queen
 query
 queryable
+queryables
 question
 questionnaire
 questions
@@ -5719,6 +5819,8 @@ random
 randomish
 randomize
 randomized
+randomizer
+randomizers
 randomizes
 randomizing
 randomly
@@ -5808,6 +5910,7 @@ recompresses
 recomputation
 recompute
 recomputing
+reconfig
 record
 recording
 records
@@ -5834,6 +5937,7 @@ redirecting
 redirection
 redirections
 redirects
+redistributions
 redo
 redoing
 redraw
@@ -5843,6 +5947,10 @@ reduced
 reduction
 redundancy
 redundant
+reenable
+reenabled
+reenables
+reenabling
 refactor
 refactored
 refactoring
@@ -5929,6 +6037,7 @@ reluctant
 rely
 remain
 remainder
+remainders
 remaining
 remains
 remake
@@ -5966,6 +6075,7 @@ reordered
 repair
 reparse
 repeat
+repeatably
 repeated
 repeatedly
 repeater
@@ -6053,6 +6163,7 @@ resort
 resource
 resources
 respect
+respectively
 respond
 respondent
 response
@@ -6082,6 +6193,7 @@ retained
 retake
 retard
 rethrow
+rethrowing
 rethrown
 rethrows
 retire
@@ -6104,6 +6216,8 @@ revenue
 reverse
 reversed
 reversible
+reverter
+reverters
 review
 revise
 revision
@@ -6189,6 +6303,7 @@ ruin
 rule
 ruler
 rules
+rulesets
 rum
 run
 runaway
@@ -6257,6 +6372,8 @@ saw
 say
 says
 scalability
+scalar
+scalars
 scale
 scan
 scandal
@@ -6428,6 +6545,7 @@ shan
 shan't
 shape
 shapes
+sharable
 share
 shared
 shareware
@@ -6568,6 +6686,10 @@ skull
 sky
 slash
 slashes
+slashified
+slashifies
+slashify
+slashifying
 slate
 slave
 sleep
@@ -6585,6 +6707,10 @@ slots
 slow
 slowish
 slowly
+slugified
+slugifies
+slugify
+slugifying
 slurp
 slurped
 slurps
@@ -6657,6 +6783,7 @@ sorted
 sorter
 sorters
 sorting
+sortings
 sorts
 sought
 soul
@@ -6866,8 +6993,12 @@ strictly
 strike
 strikethrough
 string
+stringification
+stringifications
 stringified
 stringifies
+stringify
+stringifying
 strings
 strip
 stripe
@@ -6909,6 +7040,8 @@ subgraphs
 subhierarchies
 subhierarchy
 subject
+subkey
+subkeys
 submarine
 submit
 submitted
@@ -7166,6 +7299,7 @@ tell
 tells
 temperature
 template
+templated
 templates
 templating
 temporary
@@ -7293,7 +7427,10 @@ time
 timeout
 timer
 times
+timespan
+timespans
 timestamp
+timestamps
 timetable
 timezone
 timezones
@@ -7340,6 +7477,8 @@ took
 tool
 toolbar
 toolbars
+toolchain
+toolchains
 tools
 tooth
 toothache
@@ -7421,6 +7560,7 @@ transliterate
 transliterates
 transliteration
 transliterator
+transliterators
 transmission
 transmit
 transparent
@@ -7516,6 +7656,7 @@ typesafe
 typical
 typically
 typing
+typings
 typist
 typographic
 tyre
@@ -7533,9 +7674,14 @@ unauthenticated
 unauthorized
 unbalanced
 unbelievable
+unbook
+unbooked
+unbooking
+unbooks
 unboxed
 unboxes
 unboxing
+unbuffered
 uncache
 uncached
 uncaught
@@ -7610,10 +7756,18 @@ unfit
 unfixable
 unfixed
 unforgettable
+unformat
+unformats
+unformatted
+unformatting
 unfortunately
 unfriendly
 unhandled
 unhappy
+unhash
+unhashed
+unhashes
+unhashing
 unhealthy
 unhyphenate
 unhyphenated
@@ -7627,6 +7781,12 @@ unindexed
 unindexes
 unindexing
 uninitialized
+uninstall
+uninstallation
+uninstallations
+uninstalled
+uninstalling
+uninstalls
 uninterested
 uninteresting
 uninvert
@@ -7691,6 +7851,10 @@ unreachable
 unread
 unrecognized
 unreferenced
+unregister
+unregistered
+unregistering
+unregisters
 unresolved
 unsafe
 unscale
@@ -7703,16 +7867,28 @@ unsigned
 unsorted
 unspecified
 unstored
+unstringified
+unstringifies
+unstringify
+unstringifying
 unsubscribe
 unsuccess
 unsupported
 unsynced
 untabify
+untag
+untagged
+untagging
+untags
 until
 untokenized
 untyped
 unused
 unusual
+unwatch
+unwatched
+unwatches
+unwatching
 unwell
 unwrap
 unwrapped
@@ -7916,6 +8092,7 @@ wasn't
 waste
 wasted
 watch
+watchable
 watcher
 water
 waterfall
@@ -8008,6 +8185,7 @@ wilcard
 wilcards
 wild
 wildcard
+wildcards
 wildlife
 will
 willing
@@ -8120,6 +8298,8 @@ zebra
 zero
 zinc
 zip
+zipcode
+zipcodes
 zone
 zoo
 zookeeper

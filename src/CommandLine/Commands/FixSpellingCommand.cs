@@ -81,16 +81,16 @@ namespace Roslynator.CommandLine
 
             if (ignoreList.Count > 0)
             {
-                var oldWordList = new WordList("roslynator.spelling.ignore.wordlist", StringComparer.CurrentCulture, null);
+                var oldIgnoreList = new WordList(@"..\..\..\WordLists\roslynator.spelling.core.ignorelist", StringComparer.CurrentCulture, null);
 
-                if (File.Exists(oldWordList.Path))
+                if (File.Exists(oldIgnoreList.Path))
                 {
-                    oldWordList = WordList.Load(oldWordList.Path, oldWordList.Comparer);
+                    oldIgnoreList = WordList.Load(oldIgnoreList.Path, oldIgnoreList.Comparer);
                 }
 
-                var wordList = new WordList(oldWordList.Path + ".new", oldWordList.Comparer, ignoreList.Values);
+                var wordList = new WordList(oldIgnoreList.Path + "2", oldIgnoreList.Comparer, ignoreList.Values);
 
-                wordList = wordList.Except(oldWordList);
+                wordList = wordList.Except(oldIgnoreList);
 
                 wordList.Save();
             }
@@ -120,9 +120,9 @@ namespace Roslynator.CommandLine
                     }
 
                     fixes = dic.ToImmutableDictionary(
-                        f => f.Key.ToLowerInvariant(),
+                        f => f.Key,
                         f => f.Value
-                            .Select(f => f.ToLowerInvariant())
+                            .Select(f => f)
                             .Distinct(WordList.DefaultComparer)
                             .ToImmutableHashSet(WordList.DefaultComparer));
                 }

@@ -15,6 +15,7 @@ arg
 arglist
 args
 arr
+asax
 asc
 asinh
 asp
@@ -83,12 +84,14 @@ csv
 ctor
 ctors
 ctrl
+curr
 cz
 db
 dbg
 ddl
 def
 delphi
+deps
 desc
 dest
 dev
@@ -204,6 +207,7 @@ io
 ip
 ipod
 ips
+ipv
 jarray
 javascript
 jit
@@ -229,6 +233,7 @@ linux
 lisp
 litecoin
 localhost
+logon
 lorem
 lparam
 lru
@@ -244,6 +249,7 @@ millis
 mime
 mkdir
 mkdirs
+modernizr
 moq
 mozilla
 mpf
@@ -262,6 +268,7 @@ netframework
 netstandard
 newtonsoft
 nginx
+njs
 nlog
 nomodule
 noop
@@ -289,11 +296,13 @@ paramref
 params
 paren
 parens
+pcl
 pdb
 peachpie
 perf
 perl
 php
+pkce
 pkg
 pkgdef
 png
@@ -325,6 +334,7 @@ roboconf
 roslyn
 rtl
 ruleset
+rxjs
 sass
 sbyte
 sbytes
@@ -347,6 +357,7 @@ sqlserver
 sqrt
 src
 ssl
+ssv
 stackalloc
 stackoverflow
 stderr
@@ -362,6 +373,7 @@ subdirs
 svg
 swagger
 swashbuckle
+sys
 tcp
 temp
 thisobj
@@ -372,6 +384,7 @@ tooltip
 trie
 tsl
 tsql
+tsv
 twitter
 txt
 typelib
@@ -380,6 +393,7 @@ typescript
 udp
 ui
 uint
+uis
 uitest
 ulong
 uml
@@ -418,6 +432,7 @@ winform
 winforms
 wparam
 wpf
+wss
 www
 xamarin
 xaml

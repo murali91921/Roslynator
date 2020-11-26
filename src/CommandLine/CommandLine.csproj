@@ -70,10 +70,7 @@
     <None Update="WordLists\roslynator.spelling.acronyms.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="WordLists\roslynator.spelling.big1.wordlist">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="WordLists\roslynator.spelling.big2.wordlist">
+    <None Update="WordLists\roslynator.spelling.big.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="WordLists\roslynator.spelling.core.fixlist">
