@@ -223,6 +223,22 @@ namespace Roslynator.Spelling
 
                             ISymbol symbol = semanticModel.GetDeclaredSymbol(error.Identifier.Parent, cancellationToken);
 
+                            if (symbol == null)
+                                symbol = semanticModel.GetSymbol(error.Identifier.Parent, cancellationToken);
+
+                            Debug.Assert(symbol != null, error.Identifier.ToString());
+
+                            if (symbol == null)
+                            {
+                                SpellingData = SpellingData.AddIgnoredValue(error.Value);
+
+                                if (errors.RemoveAll(f => SpellingData.IgnoreList.Comparer.Equals(f.Value, error.Value)) > 0)
+                                {
+                                    errorsRemoved = true;
+                                    break;
+                                }
+                            }
+
                             Solution newSolution = await Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(
                                 CurrentSolution,
                                 symbol,
@@ -313,6 +329,9 @@ namespace Roslynator.Spelling
                         : new List<SpellingFix>());
             }
 
+            if (fix == null)
+                fix = GetUserFix();
+
             if (fix != null
                 && spellingError.IsContained)
             {
@@ -322,9 +341,6 @@ namespace Roslynator.Spelling
                     + fix
                     + containingValue.Substring(endIndex, containingValue.Length - endIndex);
             }
-
-            if (fix == null)
-                fix = GetUserFix(spellingError);
 
             return fix;
         }
@@ -381,6 +397,12 @@ namespace Roslynator.Spelling
 
             fixes = fixes
                 .Distinct(SpellingFixComparer.Value)
+                .Where(f =>
+                {
+                    //TODO: is valid identifier
+                    return !spellingError.IsSymbol
+                        || (!f.Value.Contains('\'') && !f.Value.Contains('-'));
+                })
                 .Take(9)
                 .Select(fix =>
                 {
@@ -420,60 +442,13 @@ namespace Roslynator.Spelling
             return null;
         }
 
-        private string GetUserFix(SpellingError spellingError)
+        private string GetUserFix()
         {
             Console.Write("    Enter fix: ");
 
             string fix = Console.ReadLine()?.Trim();
 
-            if (string.IsNullOrEmpty(fix))
-                return null;
-
-            string value = spellingError.Value;
-            string containingValue = spellingError.ContainingValue;
-
-            if (string.Equals(value, containingValue, StringComparison.Ordinal))
-                return fix;
-
-            var startsWith = false;
-
-            int length = spellingError.Index;
-
-            if (length > 0
-                && fix.Length > length)
-            {
-                startsWith = string.CompareOrdinal(fix, 0, containingValue, 0, length) == 0;
-            }
-
-            var endsWith = false;
-
-            length = containingValue.Length - spellingError.EndIndex;
-
-            if (length > 0
-                && fix.Length > length)
-            {
-                endsWith = string.CompareOrdinal(fix, fix.Length - length, containingValue, spellingError.EndIndex, length) == 0;
-            }
-
-            if (!startsWith
-                && !endsWith)
-            {
-                int endIndex = spellingError.Index + value.Length;
-
-                string fix2 = containingValue.Remove(spellingError.Index)
-                    + fix
-                    + containingValue.Substring(endIndex, containingValue.Length - endIndex);
-
-                WriteSuggestion(spellingError, new SpellingFix(fix, SpellingFixKind.User), 0);
-
-                if (TryReadSuggestion(out int index)
-                    && index == 0)
-                {
-                    fix = fix2;
-                }
-            }
-
-            return fix;
+            return (!string.IsNullOrEmpty(fix)) ? fix : null;
         }
 
         private static void WriteAutoFix(SpellingError spellingError, string fix)

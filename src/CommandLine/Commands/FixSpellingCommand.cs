@@ -120,8 +120,9 @@ namespace Roslynator.CommandLine
                     }
 
                     fixes = dic.ToImmutableDictionary(
-                        f => f.Key,
+                        f => f.Key.ToLowerInvariant(),
                         f => f.Value
+                            .Select(f => f.ToLowerInvariant())
                             .Distinct(WordList.DefaultComparer)
                             .ToImmutableHashSet(WordList.DefaultComparer));
                 }

@@ -14,6 +14,8 @@ using Roslynator.Spelling;
 
 namespace Roslynator.CSharp.Spelling
 {
+    //TODO: decode html entity?
+    //TODO: parse email address
     internal class CSharpSpellingWalker : CSharpSyntaxWalker
     {
         private static readonly Regex _splitIdentifierRegex = new Regex(
