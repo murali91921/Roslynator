@@ -14,6 +14,7 @@ namespace Roslynator.CommandLine
             WordList core = WordList.Load(basePath + "core.wordlist").SaveAndLoad();
             WordList it = WordList.Load(basePath + "it.wordlist").Except(core).SaveAndLoad();
             WordList misc = WordList.Load(basePath + "misc.wordlist").Except(core).Except(it).SaveAndLoad();
+            WordList acronyms = WordList.Load(basePath + "acronyms.wordlist").Except(core).Except(it).SaveAndLoad();
             //WordList big2 = WordList.Load(basePath + "big2.wordlist").Except(core).SaveAndLoad();
         }
     }

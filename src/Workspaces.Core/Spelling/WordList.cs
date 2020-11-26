@@ -181,7 +181,7 @@ namespace Roslynator.Spelling
         {
             IEnumerable<string> values = wordList.Values
                 .Where(f => !string.IsNullOrWhiteSpace(f))
-                .Select(f => f.Trim().ToLower())
+                .Select(f => f.Trim())
                 .Distinct(wordList.Comparer)
                 .OrderBy(f => f, StringComparer.InvariantCulture);
 
