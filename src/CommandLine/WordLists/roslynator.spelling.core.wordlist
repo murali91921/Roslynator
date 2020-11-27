@@ -168,6 +168,8 @@ adapting
 adapts
 add
 added
+addend
+addends
 addendum
 adder
 adders
@@ -564,6 +566,7 @@ assessment
 asset
 assets
 assign
+assignability
 assignable
 assignation
 assigned
@@ -590,6 +593,7 @@ asterisks
 astronaut
 astronomy
 asylum
+asynchronicity
 asynchronous
 asynchronously
 at
@@ -694,6 +698,7 @@ backslashed
 backslashes
 backspace
 backtick
+backticks
 backtrace
 backtraced
 backtraces
@@ -1198,6 +1203,7 @@ certain
 certainly
 certificate
 chain
+chainable
 chained
 chaining
 chair
@@ -1400,6 +1406,8 @@ codepoints
 codes
 coefficient
 coercible
+coercion
+coercions
 coffee
 cognac
 cognitive
@@ -1445,6 +1453,8 @@ combinations
 combinator
 combine
 combined
+combiner
+combiners
 combines
 combining
 combo
@@ -1532,6 +1542,7 @@ compose
 composite
 composition
 compound
+compoundings
 compounds
 comprehensive
 compress
@@ -1686,6 +1697,7 @@ contradict
 contradiction
 contrary
 contrast
+contravariance
 contribute
 contribution
 control
@@ -1961,7 +1973,10 @@ decompress
 decompressed
 decompressor
 deconstruct
+deconstructed
+deconstructing
 deconstruction
+deconstructs
 decorate
 decorated
 decorates
@@ -2047,6 +2062,7 @@ demonstration
 demystified
 demystifier
 denominator
+denominators
 denormalize
 denormalized
 denote
@@ -2085,6 +2101,12 @@ dereference
 dereferenced
 dereferences
 dereferencing
+deregister
+deregistered
+deregistering
+deregisters
+deregistration
+deregistrations
 derivation
 derivational
 derive
@@ -2093,15 +2115,18 @@ derives
 descend
 descendant
 descendants
+descended
 descending
+descends
 describe
 description
 descriptions
 descriptive
 descriptor
 descriptors
-deserialised
+deserializability
 deserialization
+deserializations
 deserialize
 deserialized
 deserializer
@@ -2110,6 +2135,9 @@ deserializes
 deserializing
 desert
 deserve
+deserved
+deserves
+deserving
 design
 designation
 designations
@@ -2247,6 +2275,8 @@ discount
 discourse
 discover
 discovered
+discoverer
+discoverers
 discovers
 discovery
 discrete
@@ -3783,6 +3813,8 @@ industrial
 industry
 inefficent
 inequality
+inequivalence
+inequivalences
 inevitable
 inevitably
 inexist
@@ -3918,6 +3950,8 @@ intention
 interact
 interaction
 intercept
+interceptabilities
+interceptability
 interceptable
 interchange
 interest
@@ -4373,6 +4407,8 @@ lookbehinds
 looked
 looking
 looks
+lookup
+lookups
 loop
 loopback
 loopbacks
@@ -4601,6 +4637,7 @@ middleware
 middlewares
 midnight
 might
+might've
 migrate
 migration
 mild
@@ -4646,12 +4683,18 @@ minutes
 miracle
 mirror
 miscellaneous
+misconfiguration
+misconfigurations
 miserable
 misformat
 misformats
 misformatted
 misformatting
 mismatch
+misrecognize
+misrecognized
+misrecognizes
+misrecognizing
 miss
 missed
 missile
@@ -4665,6 +4708,7 @@ mixture
 mob
 mobile
 mock
+mockable
 mode
 model
 models
@@ -4879,6 +4923,8 @@ noise
 noisy
 nominate
 nomination
+nominator
+nominators
 non
 nonbacktracking
 noncapturing
@@ -5071,6 +5117,8 @@ orbit
 orchestra
 order
 ordered
+orderer
+orderers
 ordering
 orderings
 orderness
@@ -5157,6 +5205,8 @@ overnight
 overridable
 overridden
 override
+overrider
+overriders
 overrides
 overriding
 overseas
@@ -5231,11 +5281,25 @@ parallel
 parallelization
 parallelizations
 parallelize
+parallelized
+parallelizes
+parallelizing
 parameter
+parameterization
+parameterizations
+parameterize
+parameterized
+parameterizes
+parameterizing
 parameterless
 parameters
 parametric
+parametrization
+parametrizations
+parametrize
 parametrized
+parametrizes
+parametrizing
 parcel
 pardon
 parent
@@ -5534,6 +5598,7 @@ postcard
 posted
 poster
 postfix
+postfixes
 postman
 postmark
 postmaster
@@ -5926,6 +5991,8 @@ ray
 razor
 re
 reach
+reachabilities
+reachability
 reachable
 reached
 reaches
@@ -5989,6 +6056,8 @@ recomputation
 recompute
 recomputing
 reconfig
+reconstructability
+reconstructable
 record
 recording
 records
@@ -6083,6 +6152,10 @@ regularly
 regulate
 regulation
 regulations
+reimplement
+reimplemented
+reimplementing
+reimplements
 reinforce
 reinforced
 reinforcement
@@ -6167,6 +6240,7 @@ replaced
 replacement
 replacements
 replacer
+replacers
 replaces
 replacing
 replicator
@@ -6603,8 +6677,10 @@ sephardic
 september
 sequence
 sequences
+serializability
 serializable
 serialization
+serializations
 serialize
 serialized
 serializer
@@ -7216,6 +7292,7 @@ suffer
 sufficient
 suffix
 suffixed
+suffixes
 suffixing
 sugar
 suggest
@@ -7339,9 +7416,14 @@ sympathy
 symptom
 sync
 synced
+synchronicity
 synchronization
+synchronizations
 synchronize
+synchronized
 synchronizer
+synchronizes
+synchronizing
 synchronous
 synchronously
 syncing
@@ -8393,6 +8475,7 @@ worth
 worthless
 would
 wouldn't
+would've
 wound
 wow
 wrap

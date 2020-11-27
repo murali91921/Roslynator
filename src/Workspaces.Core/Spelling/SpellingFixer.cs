@@ -90,6 +90,8 @@ namespace Roslynator.Spelling
         {
             project = CurrentSolution.GetProject(project.Id);
 
+            var commentsFixed = false;
+
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -97,7 +99,9 @@ namespace Roslynator.Spelling
                 SpellingAnalysisResult spellingAnalysisResult = await SpellingAnalyzer.AnalyzeSpellingAsync(
                     project,
                     SpellingData,
-                    new SpellingFixerOptions(includeLocal: false),
+                    new SpellingFixerOptions(
+                        includeComments: !commentsFixed,
+                        includeLocal: false),
                     cancellationToken)
                     .ConfigureAwait(false);
 
@@ -106,7 +110,11 @@ namespace Roslynator.Spelling
 
                 List<SpellingError> errors = spellingAnalysisResult.Errors.ToList();
 
-                await FixCommentsAsync(project, errors, cancellationToken).ConfigureAwait(false);
+                if (!commentsFixed)
+                {
+                    await FixCommentsAsync(project, errors, cancellationToken).ConfigureAwait(false);
+                    commentsFixed = true;
+                }
 
                 await FixSymbolsAsync(project, errors, cancellationToken).ConfigureAwait(false);
 
@@ -147,7 +155,7 @@ namespace Roslynator.Spelling
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        LogHelpers.WriteSpellingError(error, sourceText, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
+                        LogHelpers.WriteSpellingError(error, Options, sourceText, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
 
                         string fix = GetFix(error, cancellationToken);
 
@@ -205,89 +213,117 @@ namespace Roslynator.Spelling
             List<SpellingError> errors,
             CancellationToken cancellationToken)
         {
-            List<SpellingError> symbolErrors = errors.Where(f => f.IsSymbol).ToList();
+            List<(SpellingError error, DocumentId documentId)> symbolErrors = errors
+                .Where(f => f.IsSymbol)
+                .Select(f => (error: f, documentId: project.GetDocument(f.Location.SourceTree).Id))
+                .OrderBy(f => f.documentId.Id)
+                .ThenByDescending(f => f.error.Location.SourceSpan.Start)
+                .ToList();
 
-            var errorsRemoved = false;
-
-            while (symbolErrors.Count > 0)
+            for (int i = 0; i < symbolErrors.Count; i++)
             {
-                foreach (SpellingError error in symbolErrors)
+                cancellationToken.ThrowIfCancellationRequested();
+
+                (SpellingError error, DocumentId documentId) = symbolErrors[i];
+
+                if (error == null)
+                    continue;
+
+                Document document = project.GetDocument(documentId);
+
+                Debug.Assert(document != null, error.Location.ToString());
+
+                if (document == null)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    SpellingData = SpellingData.AddIgnoredValue(error.Value);
+                    continue;
+                }
 
-                    Document document = project.GetDocument(error.Location.SourceTree);
+                SyntaxNode root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                    if (document != null)
+                SyntaxToken identifier = error.Identifier;
+
+                SyntaxToken identifier2 = root.FindToken(error.Location.SourceSpan.Start, findInsideTrivia: false);
+
+                if (identifier.Span != identifier2.Span
+                    || identifier.RawKind != identifier2.RawKind
+                    || !string.Equals(identifier2.ValueText, identifier2.ValueText, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                LogHelpers.WriteSpellingError(error, Options, sourceText, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
+
+                string fix = GetFix(error, cancellationToken);
+
+                if (fix == null
+                    || string.Equals(fix, identifier.ValueText, StringComparison.Ordinal))
+                {
+                    SpellingData = SpellingData.AddIgnoredValue(error.Value);
+
+                    for (int j = 0; j < symbolErrors.Count; j++)
                     {
-                        SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-                        LogHelpers.WriteSpellingError(error, sourceText, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
-
-                        SyntaxToken identifier = error.Identifier;
-
-                        string fix = GetFix(error, cancellationToken);
-
-                        Debug.Assert(fix != "");
-
-                        if (fix != null
-                            && !string.Equals(fix, identifier.ValueText, StringComparison.Ordinal))
+                        if (symbolErrors[j].error != null
+                            && SpellingData.IgnoreList.Comparer.Equals(symbolErrors[j].error.Value, error.Value))
                         {
-                            project = CurrentSolution.GetProject(project.Id);
-
-                            SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                            ISymbol symbol = semanticModel.GetDeclaredSymbol(identifier.Parent, cancellationToken)
-                                ?? semanticModel.GetSymbol(identifier.Parent, cancellationToken);
-
-                            Debug.Assert(symbol != null, identifier.ToString());
-
-                            if (symbol == null)
-                            {
-                                SpellingData = SpellingData.AddIgnoredValue(error.Value);
-
-                                if (symbolErrors.RemoveAll(f => SpellingData.IgnoreList.Comparer.Equals(f.Value, error.Value)) > 0)
-                                {
-                                    errorsRemoved = true;
-                                    break;
-                                }
-                            }
-
-                            WriteLine($"    Rename '{identifier.ValueText}' to '{fix}'");
-
-                            Solution newSolution = await Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(
-                                CurrentSolution,
-                                symbol,
-                                fix,
-                                default(Microsoft.CodeAnalysis.Options.OptionSet),
-                                cancellationToken)
-                                .ConfigureAwait(false);
-
-                            if (!Workspace.TryApplyChanges(newSolution))
-                            {
-                                Debug.Fail($"Cannot apply changes to solution '{newSolution.FilePath}'");
-                                WriteLine($"Cannot apply changes to solution '{newSolution.FilePath}'", ConsoleColor.Yellow, Verbosity.Diagnostic);
-                                return;
-                            }
-
-                            ProcessFix(error, fix);
-                            return;
-                        }
-                        else
-                        {
-                            SpellingData = SpellingData.AddIgnoredValue(error.Value);
-
-                            if (symbolErrors.RemoveAll(f => SpellingData.IgnoreList.Comparer.Equals(f.Value, error.Value)) > 0)
-                            {
-                                errors.RemoveAll(f => SpellingData.IgnoreList.Comparer.Equals(f.Value, error.Value));
-                                errorsRemoved = true;
-                                break;
-                            }
+                            symbolErrors[j] = default;
                         }
                     }
 
-                    if (errorsRemoved)
-                        break;
+                    continue;
                 }
+
+                project = CurrentSolution.GetProject(project.Id);
+
+                SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                ISymbol symbol = semanticModel.GetDeclaredSymbol(identifier2.Parent, cancellationToken)
+                    ?? semanticModel.GetSymbol(identifier2.Parent, cancellationToken);
+
+                Debug.Assert(symbol != null, identifier.ToString());
+
+                if (symbol == null)
+                {
+                    SpellingData = SpellingData.AddIgnoredValue(error.Value);
+                    continue;
+                }
+
+                WriteLine($"    Rename '{identifier.ValueText}' to '{fix}'", Verbosity.Minimal);
+
+                Solution newSolution = null;
+                try
+                {
+                    newSolution = await Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(
+                    CurrentSolution,
+                    symbol,
+                    fix,
+                    default(Microsoft.CodeAnalysis.Options.OptionSet),
+                    cancellationToken)
+                    .ConfigureAwait(false);
+                }
+                catch (InvalidOperationException ex)
+                {
+#if DEBUG
+                    WriteLine(document.FilePath);
+                    WriteLine(identifier.Text);
+                    WriteLine(ex.ToString());
+#endif
+                    SpellingData = SpellingData.AddIgnoredValue(error.Value);
+                    continue;
+                }
+
+                if (!Workspace.TryApplyChanges(newSolution))
+                {
+                    Debug.Fail($"Cannot apply changes to solution '{newSolution.FilePath}'");
+                    WriteLine($"Cannot apply changes to solution '{newSolution.FilePath}'", ConsoleColor.Yellow, Verbosity.Diagnostic);
+
+                    SpellingData = SpellingData.AddIgnoredValue(error.Value);
+                    continue;
+                }
+
+                ProcessFix(error, fix);
             }
         }
 
@@ -446,7 +482,7 @@ namespace Roslynator.Spelling
             if (fixes.Count > 0)
             {
                 if (fixes.Count == 1
-                    && !spellingError.IsSymbol
+                    //&& !spellingError.IsSymbol
                     && Options.AutoFix)
                 {
                     SpellingFix fix = fixes[0];
@@ -476,7 +512,7 @@ namespace Roslynator.Spelling
 
         private string GetUserFix()
         {
-            Console.Write("    Enter fix: ");
+            Write("    Enter fix: ");
 
             string fix = Console.ReadLine()?.Trim();
 
@@ -485,7 +521,7 @@ namespace Roslynator.Spelling
 
         private static void WriteFix(SpellingError spellingError, string fix)
         {
-            WriteLine($"    Replace '{spellingError.Value}' with '{fix}'", ConsoleColor.Green);
+            WriteLine($"    Replace '{spellingError.Value}' with '{fix}'", ConsoleColor.Green, Verbosity.Minimal);
         }
 
         private void WriteSuggestion(
@@ -548,11 +584,11 @@ namespace Roslynator.Spelling
 
         private static bool TryReadSuggestion(out int index)
         {
-            Console.Write("    Enter number of a suggestion: ");
+            Write("    Enter number of a suggestion: ");
 
             string text = Console.ReadLine()?.Trim();
 
-            if (text.Length == 1)
+            if (text?.Length == 1)
             {
                 int num = text[0];
 

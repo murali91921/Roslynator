@@ -32,6 +32,7 @@ attr
 attrs
 auth
 autofac
+automapper
 aux
 axapta
 azure
@@ -49,6 +50,7 @@ bom
 bool
 bools
 brainfuck
+bsd
 bson
 bstr
 bugfix
@@ -124,6 +126,7 @@ dll
 dlls
 dml
 dns
+dnx
 doc
 docker
 docs
@@ -139,6 +142,7 @@ dtd
 dto
 dtos
 dvd
+ecma
 editorconfig
 elif
 elses
@@ -172,6 +176,7 @@ fody
 foo
 foobar
 foobaz
+foos
 foreach
 formfeed
 fortran
@@ -204,15 +209,21 @@ html
 http
 https
 hypertext
+icollection
+icollections
 icsharpcode
 id
 ids
+idx
 ienumerable
+ienumerables
 iframe
 ifs
 iife
 iis
 ildasm
+ilist
+ilists
 img
 impl
 inheritdoc
@@ -302,6 +313,7 @@ nomodule
 noop
 npgsql
 npm
+nre
 nrefactory
 ns
 nswag
@@ -412,8 +424,10 @@ swashbuckle
 sys
 tcp
 temp
+tfm
 thisobj
 tizen
+tlbimp
 tls
 tmp
 todo

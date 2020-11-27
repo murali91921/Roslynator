@@ -40,12 +40,14 @@ namespace Roslynator.CSharp.Spelling
             @"
 \b
 \p{L}{2,}
+(-\p{L}{2,})*
+\p{L}*
 (
     (?='s\b)
 |
     ('(d|ll|m|re|t|ve)\b)
 |
-    \b
+\b
 )",
             RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
@@ -225,11 +227,19 @@ namespace Roslynator.CSharp.Spelling
                 case SyntaxKind.SingleLineCommentTrivia:
                 case SyntaxKind.MultiLineCommentTrivia:
                     {
-                        AnalyzeComment(trivia.ToString(), trivia.SyntaxTree, trivia.Span);
+                        if (Options.IncludeComments)
+                            AnalyzeComment(trivia.ToString(), trivia.SyntaxTree, trivia.Span);
+
                         break;
                     }
                 case SyntaxKind.SingleLineDocumentationCommentTrivia:
                 case SyntaxKind.MultiLineDocumentationCommentTrivia:
+                    {
+                        if (Options.IncludeComments)
+                            base.VisitTrivia(trivia);
+
+                        break;
+                    }
                 case SyntaxKind.RegionDirectiveTrivia:
                 case SyntaxKind.EndRegionDirectiveTrivia:
                     {
@@ -483,10 +493,13 @@ namespace Roslynator.CSharp.Spelling
 
         public override void VisitXmlText(XmlTextSyntax node)
         {
-            foreach (SyntaxToken token in node.TextTokens)
+            if (Options.IncludeComments)
             {
-                if (token.IsKind(SyntaxKind.XmlTextLiteralToken))
-                    AnalyzeComment(token.ValueText, node.SyntaxTree, token.Span);
+                foreach (SyntaxToken token in node.TextTokens)
+                {
+                    if (token.IsKind(SyntaxKind.XmlTextLiteralToken))
+                        AnalyzeComment(token.ValueText, node.SyntaxTree, token.Span);
+                }
             }
         }
 
