@@ -2,7 +2,9 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 
 namespace Roslynator.Spelling
 {
@@ -10,7 +12,8 @@ namespace Roslynator.Spelling
     {
         public static ImmutableArray<string> FuzzyMatches(
             string value,
-            SpellingData spellingData)
+            SpellingData spellingData,
+            CancellationToken cancellationToken = default)
         {
             int length = value.Length;
 
@@ -27,6 +30,8 @@ namespace Roslynator.Spelling
 
             for (; max >= 0; max = i - 1)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 //Debug.WriteLine($"\r\nmax: {max}");
 
                 values = ImmutableHashSet<string>.Empty;
@@ -97,14 +102,31 @@ namespace Roslynator.Spelling
 
             ProcessValues(valuesAllButLast);
 
-            return (fixes == null)
-                ? ImmutableArray<string>.Empty
-                : fixes
-                    .OrderBy(f => f.Item2)
-                    .ThenBy(f => f.Item3)
-                    .Select(f => f.Item1)
-                    .Distinct(WordList.DefaultComparer)
-                    .ToImmutableArray();
+            if (fixes == null)
+                return ImmutableArray<string>.Empty;
+
+            fixes.Sort((x, y) =>
+            {
+                int a = (x.Item2 < 0) ? -x.Item2 : x.Item2;
+                int b = (y.Item2 < 0) ? -y.Item2 : y.Item2;
+
+                int diff = a.CompareTo(b);
+
+                if (diff != 0)
+                    return diff;
+
+                diff = x.Item3.CompareTo(y.Item3);
+
+                if (diff! != 0)
+                    return diff;
+
+                return StringComparer.CurrentCulture.Compare(x.Item1, y.Item1);
+            });
+
+            return fixes
+                .Select(f => f.Item1)
+                .Distinct(WordList.DefaultComparer)
+                .ToImmutableArray();
 
             void ProcessValues(ImmutableHashSet<string> values)
             {
@@ -149,7 +171,8 @@ namespace Roslynator.Spelling
 
         public static ImmutableArray<string> SwapMatches(
             string value,
-            SpellingData spellingData)
+            SpellingData spellingData,
+            CancellationToken cancellationToken = default)
         {
             ImmutableArray<string>.Builder fixes = null;
 
@@ -159,6 +182,8 @@ namespace Roslynator.Spelling
                 .GroupBy(ch => ch)
                 .Select(g => new WordChar(g.Key, g.Count())))
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (!spellingData.List.CharMap.TryGetValue(wordChar, out ImmutableHashSet<string> values2))
                     break;
 
@@ -170,19 +195,27 @@ namespace Roslynator.Spelling
                     break;
             }
 
+            int maxDiff = (value.Length <= 6) ? 2 : 3;
+
             foreach (string value2 in values)
             {
                 if (value.Length == value2.Length)
                 {
-                    int matchCount = 0;
+                    int diff = 0;
 
                     for (int i = 0; i < value.Length; i++)
                     {
-                        if (value[i] == value2[i])
-                            matchCount++;
+                        if (value[i] != value2[i])
+                            diff++;
+
+                        if (i > 1
+                            && diff > maxDiff)
+                        {
+                            break;
+                        }
                     }
 
-                    if (matchCount >= Math.Max(2, value.Length - 3))
+                    if (diff <= maxDiff)
                         (fixes ??= ImmutableArray.CreateBuilder<string>()).Add(value2);
                 }
             }
@@ -190,7 +223,10 @@ namespace Roslynator.Spelling
             return fixes?.ToImmutableArray() ?? ImmutableArray<string>.Empty;
         }
 
-        public static ImmutableArray<int> GetSplitIndexes(SpellingError spellingError, SpellingData spellingData)
+        public static ImmutableArray<int> GetSplitIndexes(
+            SpellingError spellingError,
+            SpellingData spellingData,
+            CancellationToken cancellationToken = default)
         {
             string value = spellingError.Value;
 
@@ -221,6 +257,8 @@ namespace Roslynator.Spelling
 
             for (int i = 0; i < value.Length - 3; i++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (!map.TryGetValue(value, i, out ImmutableHashSet<string> values2))
                     break;
 

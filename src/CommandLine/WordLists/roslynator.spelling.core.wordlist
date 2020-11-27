@@ -643,6 +643,8 @@ automate
 automatic
 automatically
 automobile
+autoproperties
+autoproperty
 autumn
 availability
 available
@@ -1288,6 +1290,8 @@ circle
 circuit
 circuiting
 circular
+circularities
+circularity
 circulation
 circumference
 circumfix
@@ -1390,6 +1394,7 @@ codepoint
 codepoints
 codes
 coefficient
+coercible
 coffee
 cognac
 cognitive
@@ -1470,6 +1475,7 @@ communicate
 communication
 communications
 community
+commutative
 compact
 companies
 company
@@ -1790,6 +1796,7 @@ crawler
 crawlers
 crazy
 cream
+creatable
 create
 created
 creates
@@ -2090,6 +2097,8 @@ descriptors
 deserialization
 deserialize
 deserialized
+deserializer
+deserializers
 deserializes
 deserializing
 desert
@@ -3758,7 +3767,11 @@ inefficent
 inequality
 inevitable
 inevitably
+inexist
+inexisted
 inexistence
+inexisting
+inexists
 infant
 infect
 infection
@@ -3887,6 +3900,7 @@ intention
 interact
 interaction
 intercept
+interceptable
 interchange
 interest
 interested
@@ -4080,6 +4094,8 @@ keyed
 keyphrase
 keyphrases
 keys
+keyset
+keysets
 keyword
 keywords
 kick
@@ -4255,6 +4271,10 @@ limestone
 limit
 limitation
 limited
+limpen
+limpened
+limpening
+limpens
 line
 linear
 linebreak
@@ -4447,6 +4467,8 @@ markup
 marriage
 married
 marry
+marshaler
+marshalers
 marvellous
 mask
 mass
@@ -4842,11 +4864,14 @@ nomination
 non
 nonbacktracking
 noncapturing
+noncolliding
+noncreatable
 nondeterminism
 nondeterministic
 none
 nonetheless
 nonexisting
+nongeneric
 nonsensical
 nonspacing
 nonstandard
@@ -4983,6 +5008,8 @@ online
 onlooker
 only
 onto
+opcode
+opcodes
 open
 opening
 opera
@@ -5730,6 +5757,8 @@ provision
 proxied
 proxies
 proxy
+proxyable
+proxying
 pseudorandom
 pseudorandomly
 psychological
@@ -6139,6 +6168,10 @@ reprojections
 republican
 repulsion
 reputation
+requeried
+requeries
+requery
+requerying
 request
 requested
 requesting
@@ -6149,6 +6182,10 @@ requirement
 requirements
 requires
 requiring
+reroute
+rerouted
+reroutes
+rerouting
 rescan
 rescanned
 rescanning
@@ -6214,6 +6251,10 @@ result
 resulting
 results
 resume
+resync
+resynced
+resynces
+resyncing
 retail
 retain
 retained
@@ -6311,6 +6352,10 @@ roughly
 round
 roundabout
 rounded
+roundtrip
+roundtripped
+roundtripping
+roundtrips
 routable
 route
 router
@@ -6531,6 +6576,7 @@ serialization
 serialize
 serialized
 serializer
+serializers
 serializes
 serializing
 series
@@ -7008,6 +7054,7 @@ strategy
 straw
 strawberry
 stream
+streamable
 streaming
 streams
 street
@@ -7038,6 +7085,7 @@ stripe
 stroke
 strong
 strongly
+strongnamed
 structure
 structured
 struggle
@@ -7078,6 +7126,8 @@ subkeys
 submarine
 submit
 submitted
+subnode
+subnodes
 subordinate
 subpattern
 subpatterns
@@ -7085,6 +7135,8 @@ subprocess
 subprocesses
 subqueries
 subquery
+subscope
+subscopes
 subscribe
 subscript
 subscripts
@@ -7713,6 +7765,7 @@ unbook
 unbooked
 unbooking
 unbooks
+unbox
 unboxed
 unboxes
 unboxing
@@ -7886,6 +7939,7 @@ unpredicted
 unprefixed
 unprotect
 unprotected
+unproxied
 unqueried
 unquoted
 unreachable
@@ -7993,6 +8047,7 @@ validating
 validation
 validations
 validator
+validators
 validity
 valley
 valuable

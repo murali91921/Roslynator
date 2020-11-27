@@ -86,7 +86,7 @@ namespace Roslynator
             text = line.ToString();
 
             Write(text.Substring(0, index), ConsoleColor.DarkGray, verbosity);
-            Write(spellingError.Value, ConsoleColor.Green, verbosity);
+            Write(spellingError.Value, ConsoleColor.Cyan, verbosity);
             WriteLine(text.Substring(index + spellingError.Length), ConsoleColor.DarkGray, verbosity);
         }
 

@@ -92,6 +92,8 @@ namespace Roslynator.Spelling
 
             while (true)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 SpellingAnalysisResult spellingAnalysisResult = await SpellingAnalyzer.AnalyzeSpellingAsync(
                     project,
                     SpellingData,
@@ -131,6 +133,8 @@ namespace Roslynator.Spelling
                 foreach (IGrouping<SyntaxTree, SpellingError> grouping in commentErrors
                     .GroupBy(f => f.Location.SourceTree))
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     document = project.GetDocument(grouping.Key);
 
                     SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -141,9 +145,11 @@ namespace Roslynator.Spelling
 
                     foreach (SpellingError error in grouping.OrderBy(f => f.Location.SourceSpan.Start))
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         LogHelpers.WriteSpellingError(error, sourceText, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
 
-                        string fix = GetFix(error);
+                        string fix = GetFix(error, cancellationToken);
 
                         Debug.Assert(fix != "");
 
@@ -207,6 +213,8 @@ namespace Roslynator.Spelling
             {
                 foreach (SpellingError error in symbolErrors)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     Document document = project.GetDocument(error.Location.SourceTree);
 
                     if (document != null)
@@ -217,7 +225,7 @@ namespace Roslynator.Spelling
 
                         SyntaxToken identifier = error.Identifier;
 
-                        string fix = GetFix(error);
+                        string fix = GetFix(error, cancellationToken);
 
                         Debug.Assert(fix != "");
 
@@ -283,7 +291,7 @@ namespace Roslynator.Spelling
             }
         }
 
-        private string GetFix(SpellingError spellingError)
+        private string GetFix(SpellingError spellingError, CancellationToken cancellationToken)
         {
             string value = spellingError.Value;
             string containingValue = spellingError.ContainingValue;
@@ -331,7 +339,8 @@ namespace Roslynator.Spelling
                     spellingError,
                     (fixes?.Count > 1)
                         ? fixes.Select(f => new SpellingFix(f, SpellingFixKind.List)).ToList()
-                        : new List<SpellingFix>());
+                        : new List<SpellingFix>(),
+                    cancellationToken);
             }
 
             if (fix == null
@@ -360,7 +369,8 @@ namespace Roslynator.Spelling
 
         private string GetAutoFix(
             SpellingError spellingError,
-            List<SpellingFix> fixes)
+            List<SpellingFix> fixes,
+            CancellationToken cancellationToken)
         {
             Debug.WriteLine($"find fix for '{spellingError.Value}'");
 
@@ -397,12 +407,18 @@ namespace Roslynator.Spelling
 
             if (spellingError.Length >= 4)
             {
-                foreach (string match in SpellingFixProvider.SwapMatches(spellingError.ValueLower, SpellingData))
+                foreach (string match in SpellingFixProvider.SwapMatches(
+                    spellingError.ValueLower,
+                    SpellingData,
+                    cancellationToken))
                 {
                     fixes.Add(new SpellingFix(match, SpellingFixKind.Swap));
                 }
 
-                foreach (string match in SpellingFixProvider.FuzzyMatches(spellingError.ValueLower, SpellingData))
+                foreach (string match in SpellingFixProvider.FuzzyMatches(
+                    spellingError.ValueLower,
+                    SpellingData,
+                    cancellationToken))
                 {
                     fixes.Add(new SpellingFix(match, SpellingFixKind.Fuzzy));
                 }
@@ -416,7 +432,6 @@ namespace Roslynator.Spelling
                     return !spellingError.IsSymbol
                         || (!f.Value.Contains('\'') && !f.Value.Contains('-'));
                 })
-                .Take(9)
                 .Select(fix =>
                 {
                     if (TextUtility.GetTextCasing(fix.Value) != TextCasing.Mixed)
@@ -425,6 +440,7 @@ namespace Roslynator.Spelling
                     return fix;
                 })
                 .OrderBy(f => f.Kind)
+                .Take(9)
                 .ToList();
 
             if (fixes.Count > 0)

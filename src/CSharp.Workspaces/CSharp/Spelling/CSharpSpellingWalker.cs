@@ -83,22 +83,22 @@ namespace Roslynator.CSharp.Spelling
 
             while (match.Success)
             {
-                AnalyzeComment(value, prevEnd, match.Index - prevEnd, syntaxTree, textSpan);
+                AnalyzeComment(value, prevEnd, match.Index - prevEnd, textSpan, syntaxTree);
 
                 prevEnd = match.Index + match.Length;
 
                 match = match.NextMatch();
             }
 
-            AnalyzeComment(value, prevEnd, value.Length - prevEnd, syntaxTree, textSpan);
+            AnalyzeComment(value, prevEnd, value.Length - prevEnd, textSpan, syntaxTree);
         }
 
         private void AnalyzeComment(
             string value,
             int startIndex,
             int length,
-            SyntaxTree syntaxTree,
-            TextSpan textSpan)
+            TextSpan textSpan,
+            SyntaxTree syntaxTree)
         {
             Match match = _wordInComment.Match(value, startIndex, length);
 
@@ -112,9 +112,9 @@ namespace Roslynator.CSharp.Spelling
                             splitItem.Value,
                             match.Value,
                             splitItem.Index,
-                            syntaxTree,
                             new TextSpan(textSpan.Start + match.Index + splitItem.Index, splitItem.Value.Length),
                             default(SyntaxToken),
+                            syntaxTree,
                             isSimpleIdentifier: false);
                     }
                 }
@@ -123,46 +123,34 @@ namespace Roslynator.CSharp.Spelling
             }
         }
 
-        private void AnalyzeIdentifier(SyntaxToken identifier)
-        {
-            AnalyzeIdentifier(identifier.ValueText, identifier.SyntaxTree, identifier);
-        }
-
         private void AnalyzeIdentifier(
-            string value,
-            SyntaxTree syntaxTree,
-            SyntaxToken identifier)
+            SyntaxToken identifier,
+            int prefixLength = 0)
         {
-            AnalyzeIdentifier(value, null, 0, syntaxTree, identifier);
-        }
+            string value = identifier.ValueText;
 
-        private void AnalyzeIdentifier(
-            string value,
-            string containingValue,
-            int index,
-            SyntaxTree syntaxTree,
-            SyntaxToken identifier)
-        {
-            if ((containingValue ?? value).Length <= 2)
+            if (value.Length < 3)
                 return;
 
-            if (containingValue != null)
-            {
-                if (SpellingData.IgnoreList.Contains(containingValue))
-                    return;
-
-                if (SpellingData.List.Contains(containingValue))
-                    return;
-            }
-
-            SplitItemCollection splitItems = SplitItemCollection.Create(_splitIdentifierRegex, value);
-
-            if (splitItems.Count > 1)
+            if (prefixLength > 0)
             {
                 if (SpellingData.IgnoreList.Contains(value))
                     return;
 
                 if (SpellingData.List.Contains(value))
+                    return;
+            }
+
+            string value2 = (prefixLength > 0) ? value.Substring(prefixLength) : value;
+
+            SplitItemCollection splitItems = SplitItemCollection.Create(_splitIdentifierRegex, value2);
+
+            if (splitItems.Count > 1)
+            {
+                if (SpellingData.IgnoreList.Contains(value2))
+                    return;
+
+                if (SpellingData.List.Contains(value2))
                     return;
             }
 
@@ -172,12 +160,12 @@ namespace Roslynator.CSharp.Spelling
 
                 if (AnalyzeValue(
                     splitItem.Value,
-                    containingValue ?? value,
+                    value,
                     splitItem.Index,
-                    syntaxTree,
-                    new TextSpan(identifier.SpanStart + splitItem.Index + index, splitItem.Length),
+                    new TextSpan(identifier.SpanStart + splitItem.Index + prefixLength, splitItem.Length),
                     identifier,
-                    isSimpleIdentifier: _simpleIdentifierToSkipRegex.IsMatch(value)))
+                    identifier.SyntaxTree,
+                    isSimpleIdentifier: _simpleIdentifierToSkipRegex.IsMatch(value2)))
                 {
                     break;
                 }
@@ -188,9 +176,9 @@ namespace Roslynator.CSharp.Spelling
             string value,
             string containingValue,
             int index,
-            SyntaxTree syntaxTree,
             TextSpan textSpan,
             SyntaxToken identifier,
+            SyntaxTree syntaxTree,
             bool isSimpleIdentifier)
         {
             if (value.Length < 3)
@@ -406,21 +394,17 @@ namespace Roslynator.CSharp.Spelling
         public override void VisitTypeParameter(TypeParameterSyntax node)
         {
             SyntaxToken identifier = node.Identifier;
+            string value = identifier.ValueText;
 
-            string containingValue = identifier.ValueText;
-            string value = containingValue;
-
-            if (value.Length > 1)
+            int prefixLength = 0;
+            if (value.Length > 1
+                && value[0] == 'T'
+                && char.IsUpper(value[1]))
             {
-                if (value[0] == 'T'
-                    && char.IsUpper(value[1]))
-                {
-                    value = value.Substring(1);
-                }
-
-                AnalyzeIdentifier(value, containingValue, 1, identifier.SyntaxTree, identifier);
+                prefixLength = 1;
             }
 
+            AnalyzeIdentifier(identifier, prefixLength: prefixLength);
             base.VisitTypeParameter(node);
         }
 
@@ -439,21 +423,17 @@ namespace Roslynator.CSharp.Spelling
         public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
         {
             SyntaxToken identifier = node.Identifier;
+            string value = identifier.ValueText;
 
-            string containingValue = identifier.ValueText;
-            string value = containingValue;
-
-            if (value.Length > 1)
+            int prefixLength = 0;
+            if (value.Length > 1
+                && value[0] == 'I'
+                && char.IsUpper(value[1]))
             {
-                if (value[0] == 'I'
-                    && char.IsUpper(value[1]))
-                {
-                    value = value.Substring(1);
-                }
-
-                AnalyzeIdentifier(value, containingValue, -1, identifier.SyntaxTree, identifier);
+                prefixLength = 1;
             }
 
+            AnalyzeIdentifier(identifier, prefixLength: prefixLength);
             base.VisitInterfaceDeclaration(node);
         }
 
@@ -495,10 +475,8 @@ namespace Roslynator.CSharp.Spelling
 
         public override void VisitParameter(ParameterSyntax node)
         {
-            string identifierText = node.Identifier.ValueText;
-
-            if (!ShouldBeSkipped(identifierText))
-                AnalyzeIdentifier(identifierText, node.SyntaxTree, node.Identifier);
+            if (!ShouldBeSkipped(node.Identifier.ValueText))
+                AnalyzeIdentifier(node.Identifier);
 
             base.VisitParameter(node);
         }
