@@ -555,6 +555,7 @@ assemblies
 assembly
 assert
 asserter
+asserters
 assertion
 assertions
 asserts
@@ -638,6 +639,10 @@ autobus
 autocommit
 autocommits
 autocomplete
+autocompleted
+autocompletes
+autocompleting
+autocompletion
 autodetecting
 automate
 automatic
@@ -1937,6 +1942,7 @@ decision
 deck
 declaration
 declarations
+declaratively
 declarator
 declarators
 declare
@@ -2094,6 +2100,7 @@ descriptions
 descriptive
 descriptor
 descriptors
+deserialised
 deserialization
 deserialize
 deserialized
@@ -2558,6 +2565,12 @@ enqueued
 enqueues
 enqueuing
 enquiry
+enrich
+enriched
+enricher
+enrichers
+enriches
+enriching
 ensure
 ensures
 entail
@@ -2611,6 +2624,8 @@ erase
 erode
 erosion
 error
+errored
+erroring
 errors
 eruption
 escapable
@@ -3195,6 +3210,8 @@ genitive
 gentle
 gentleman
 gently
+geocode
+geocoder
 geography
 geology
 geometric
@@ -3206,6 +3223,7 @@ german
 germinating
 gesture
 get
+getable
 gets
 getter
 getting
@@ -4872,6 +4890,7 @@ none
 nonetheless
 nonexisting
 nongeneric
+noninfringement
 nonsensical
 nonspacing
 nonstandard
@@ -4951,6 +4970,8 @@ observe
 observed
 observer
 obsolete
+obsoletion
+obsoletions
 obtain
 obtained
 obtaining
@@ -4968,6 +4989,7 @@ occurrence
 occurrences
 occurs
 ocean
+octal
 october
 odd
 odds
@@ -5402,6 +5424,8 @@ place
 placed
 placeholder
 placeholders
+placemark
+placemarks
 placement
 places
 plain
@@ -5494,6 +5518,8 @@ pose
 posed
 position
 positional
+positionally
+positionals
 positions
 positive
 possess
@@ -5604,7 +5630,9 @@ prepare
 prepared
 prepares
 prepend
+prepended
 prepending
+prepends
 prepopulate
 prepopulated
 preprocess
@@ -6003,6 +6031,8 @@ reenable
 reenabled
 reenables
 reenabling
+reentrancies
+reentrancy
 refactor
 refactored
 refactoring
@@ -6144,6 +6174,8 @@ replicators
 reply
 report
 reported
+reportee
+reportees
 reporter
 reporting
 reports
@@ -6659,6 +6691,7 @@ short
 shortcut
 shortcuts
 shorthand
+shortie
 shortly
 shorts
 shot
@@ -7123,6 +7156,8 @@ subhierarchy
 subject
 subkey
 subkeys
+sublocation
+sublocations
 submarine
 submit
 submitted
@@ -7308,8 +7343,11 @@ synchronization
 synchronize
 synchronizer
 synchronous
+synchronously
 syncing
 synopsis
+syntactic
+syntactically
 syntax
 syntaxes
 synthesized
@@ -7635,6 +7673,8 @@ transformers
 transforms
 transit
 transition
+transitive
+transitively
 translatable
 translate
 translated
@@ -7868,6 +7908,9 @@ uniform
 unify
 unimportant
 unindent
+unindented
+unindenting
+unindents
 unindex
 unindexed
 unindexes
@@ -7913,6 +7956,10 @@ unmark
 unmarked
 unmarking
 unmarks
+unmarshal
+unmarshaled
+unmarshaling
+unmarshals
 unmatched
 unmodifiable
 unmodified

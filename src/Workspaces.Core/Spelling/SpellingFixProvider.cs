@@ -37,30 +37,35 @@ namespace Roslynator.Spelling
                 values = ImmutableHashSet<string>.Empty;
 
                 int min = -1;
-                i = 0;
-                while (i < max)
+                i = -1;
+
+                if (max > 0)
                 {
-                    if (!map.TryGetValue(value, i, out ImmutableHashSet<string> values2))
-                        break;
-
-                    ImmutableHashSet<string> intersect = (i == 0)
-                        ? values2
-                        : values.Intersect(values2);
-
-                    if (intersect.Count == 0)
-                        break;
-
-                    //Debug.WriteLine($"left  {i,2}  {value[i]} {intersect.Count,5}");
-
-                    if (i == length - 2
-                        && max == length)
-                    {
-                        valuesAllButLast = intersect;
-                    }
-
-                    values = intersect;
-                    min = i;
                     i++;
+                    while (i < max)
+                    {
+                        if (!map.TryGetValue(value, i, out ImmutableHashSet<string> values2))
+                            break;
+
+                        ImmutableHashSet<string> intersect = (i == 0)
+                            ? values2
+                            : values.Intersect(values2);
+
+                        if (intersect.Count == 0)
+                            break;
+
+                        //Debug.WriteLine($"left  {i,2}  {value[i]} {intersect.Count,5}");
+
+                        if (i == length - 2
+                            && max == length)
+                        {
+                            valuesAllButLast = intersect;
+                        }
+
+                        values = intersect;
+                        min = i;
+                        i++;
+                    }
                 }
 
                 int j = length - 1;

@@ -57,6 +57,7 @@ bugzilla
 builtin
 byref
 byval
+callvirt
 captcha
 captchas
 cdata
@@ -127,12 +128,14 @@ doc
 docker
 docs
 doctype
+docx
 dom
 dos
 dothtml
 dotnet
 dotvvm
 downshift
+dtd
 dto
 dtos
 dvd
@@ -215,9 +218,11 @@ impl
 inheritdoc
 ini
 init
+initobj
 instapayment
 int
 intelli
+intellitrace
 interop
 ints
 io
@@ -342,6 +347,7 @@ prop
 props
 protobuf
 ptr
+pwd
 quicksort
 qwerty
 readme
@@ -384,7 +390,9 @@ sqlite
 sqlserver
 sqrt
 src
+ssd
 ssl
+sso
 ssv
 stackalloc
 stackoverflow
@@ -472,6 +480,8 @@ xamarin
 xaml
 xap
 xhtml
+xls
+xlsx
 xml
 xmldoc
 xmlns

@@ -1,6 +1,7 @@
 abstractcontroller
 actiontype
 addrange
+altid
 apidescriptions
 appdomain
 appdomains
@@ -22,6 +23,7 @@ canbenull
 cancellationtoken
 checkdigit
 checkdigits
+childnodes
 classname
 clearcache
 codebuilder
@@ -36,11 +38,14 @@ controllerstyleisabstract
 controllerstyleispartial
 controllertarget
 copyto
+datatable
 dateformat
 datetime
 dbtype
 dirname
+dotall
 dropdown
+econtext
 emptystring
 endusers
 fieldbuilder
@@ -52,6 +57,7 @@ fileload
 filemask
 filemasks
 filepath
+firstname
 formatstring
 friendlyname
 frombody
@@ -59,7 +65,9 @@ fromheader
 fromtarget
 fromuri
 fullname
+fullstop
 getdocument
+givenname
 hashid
 hashids
 hashset
@@ -75,6 +83,8 @@ isnot
 isoformat
 langchar
 langchars
+lastname
+latebound
 layoutrender
 layoutrenderer
 ldind
@@ -116,14 +126,18 @@ modopts
 modreq
 modreqs
 modulescope
+multibyte
+mybool
 mydefault
 mydomain
 mylogger
 mysetting
+nametable
 newguid
 newslot
 nextbase
 nosubkey
+notequals
 notnull
 notset
 objecttype
@@ -133,6 +147,7 @@ onhasproperties
 openapi
 operationid
 pagesize
+parameterinfo
 partialcontroller
 picsum
 placeimg
@@ -166,7 +181,9 @@ stopchar
 stopchars
 strictmode
 stringvalue
+stringwriter
 subname
+subprop
 subview
 subviews
 superview
@@ -192,6 +209,8 @@ usecancellationtokenistrue
 usecancellationtokenparameter
 usercontrol
 usesystemdefault
+valuetype
+videogame
 viewmodel
 weaknamed
 webservice
