@@ -235,6 +235,7 @@ namespace Roslynator.Spelling
 
                 if (document == null)
                 {
+                    WriteLine($"Cannot find document for'{error.Identifier.ValueText}'", ConsoleColor.Yellow, Verbosity.Detailed);
                     SpellingData = SpellingData.AddIgnoredValue(error.Value);
                     continue;
                 }
@@ -256,6 +257,20 @@ namespace Roslynator.Spelling
 
                 LogHelpers.WriteSpellingError(error, Options, sourceText, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
 
+                SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+                ISymbol symbol = semanticModel.GetDeclaredSymbol(identifier2.Parent, cancellationToken)
+                    ?? semanticModel.GetSymbol(identifier2.Parent, cancellationToken);
+
+                Debug.Assert(symbol != null, identifier.ToString());
+
+                if (symbol == null)
+                {
+                    WriteLine($"Cannot find symbol for '{identifier.ValueText}'", ConsoleColor.Yellow, Verbosity.Detailed);
+                    SpellingData = SpellingData.AddIgnoredValue(error.Value);
+                    continue;
+                }
+
                 string fix = GetFix(error, cancellationToken);
 
                 if (fix == null
@@ -275,36 +290,22 @@ namespace Roslynator.Spelling
                     continue;
                 }
 
-                project = CurrentSolution.GetProject(project.Id);
-
-                SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-                ISymbol symbol = semanticModel.GetDeclaredSymbol(identifier2.Parent, cancellationToken)
-                    ?? semanticModel.GetSymbol(identifier2.Parent, cancellationToken);
-
-                Debug.Assert(symbol != null, identifier.ToString());
-
-                if (symbol == null)
-                {
-                    SpellingData = SpellingData.AddIgnoredValue(error.Value);
-                    continue;
-                }
-
                 WriteLine($"    Rename '{identifier.ValueText}' to '{fix}'", Verbosity.Minimal);
 
                 Solution newSolution = null;
                 try
                 {
                     newSolution = await Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(
-                    CurrentSolution,
-                    symbol,
-                    fix,
-                    default(Microsoft.CodeAnalysis.Options.OptionSet),
-                    cancellationToken)
-                    .ConfigureAwait(false);
+                        CurrentSolution,
+                        symbol,
+                        fix,
+                        default(Microsoft.CodeAnalysis.Options.OptionSet),
+                        cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 catch (InvalidOperationException ex)
                 {
+                    WriteLine($"Cannot rename '{symbol.Name}'", ConsoleColor.Yellow, Verbosity.Normal);
 #if DEBUG
                     WriteLine(document.FilePath);
                     WriteLine(identifier.Text);
@@ -322,6 +323,8 @@ namespace Roslynator.Spelling
                     SpellingData = SpellingData.AddIgnoredValue(error.Value);
                     continue;
                 }
+
+                project = CurrentSolution.GetProject(project.Id);
 
                 ProcessFix(error, fix);
             }
@@ -534,7 +537,7 @@ namespace Roslynator.Spelling
 
             if (index == 0)
             {
-                Write("    Replace   '");
+                Write("    Replace  '");
 
                 if (spellingError.IsContained)
                 {

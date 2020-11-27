@@ -40,6 +40,19 @@ namespace Roslynator.CSharp.Spelling
             @"
 \b
 \p{L}{2,}
+(
+    (?='s\b)
+|
+    ('(d|ll|m|re|t|ve)\b)
+|
+\b
+)",
+            RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
+
+        private static readonly Regex _compoundWordInComment = new Regex(
+            @"
+\b
+\p{L}{2,}
 (-\p{L}{2,})*
 \p{L}*
 (
@@ -102,7 +115,8 @@ namespace Roslynator.CSharp.Spelling
             TextSpan textSpan,
             SyntaxTree syntaxTree)
         {
-            Match match = _wordInComment.Match(value, startIndex, length);
+            Match match = ((Options.EnableCompoundWords) ? _compoundWordInComment : _wordInComment)
+                .Match(value, startIndex, length);
 
             while (match.Success)
             {
@@ -163,7 +177,7 @@ namespace Roslynator.CSharp.Spelling
                 if (AnalyzeValue(
                     splitItem.Value,
                     value,
-                    splitItem.Index,
+                    splitItem.Index + prefixLength,
                     new TextSpan(identifier.SpanStart + splitItem.Index + prefixLength, splitItem.Length),
                     identifier,
                     identifier.SyntaxTree,

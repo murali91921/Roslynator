@@ -64,6 +64,9 @@
   <ItemGroup>
     <None Include="..\..\images\icon.png" Pack="true" PackagePath="\" Visible="false" />
     <None Remove="_._" />
+    <None Update="WordLists\roslynator.spelling.core2.wordlist">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="WordLists\roslynator.spelling.compound.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

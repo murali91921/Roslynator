@@ -1,3 +1,10 @@
+rollback
+rollbacks
+truncate
+truncates
+truncated
+truncating
+unmatching
 abandon
 abandoned
 abandonment
@@ -374,6 +381,7 @@ ambulance
 amend
 amendment
 american
+americans
 ammonia
 ammunition
 among
@@ -652,6 +660,7 @@ automate
 automatic
 automatically
 automobile
+automocked
 autoproperties
 autoproperty
 autumn
@@ -1092,6 +1101,7 @@ campsite
 campus
 can
 canadian
+canadians
 canal
 cancel
 cancelable
@@ -1290,6 +1300,7 @@ choose
 chorus
 chosen
 christian
+christians
 christmas
 chrome
 chromosome
@@ -2056,6 +2067,7 @@ demo
 democracy
 democrat
 democratic
+democrats
 demonstrate
 demonstrates
 demonstration
@@ -2384,6 +2396,8 @@ down
 downcase
 downcases
 downcasing
+downcasted
+downcasting
 downfall
 download
 downloading
@@ -2681,6 +2695,7 @@ ethics
 ethnic
 euro
 european
+europeans
 evaluable
 evaluate
 evaluated
@@ -2962,6 +2977,7 @@ filters
 fin
 final
 finalising
+finality
 finalizer
 finally
 finance
@@ -3243,6 +3259,8 @@ gently
 geocode
 geocoder
 geography
+geolocation
+geolocations
 geology
 geometric
 geometry
@@ -3250,6 +3268,7 @@ georgia
 geospatial
 germ
 german
+germans
 germinating
 gesture
 get
@@ -3403,6 +3422,7 @@ hack
 hacker
 hackerish
 hackers
+hackish
 had
 hadn
 hadn't
@@ -3442,6 +3462,7 @@ hard
 hardcode
 hardcoded
 harddisk
+hardlinked
 hardly
 hardware
 harm
@@ -3797,6 +3818,7 @@ indexer
 indexers
 indexes
 indian
+indians
 indicate
 indicates
 indicating
@@ -3852,8 +3874,6 @@ inherits
 inhibit
 inhibition
 initial
-initialise
-initialises
 initialization
 initialize
 initialized
@@ -3880,6 +3900,7 @@ inlines
 inlining
 inner
 innermost
+inners
 innocent
 innovate
 innovation
@@ -4041,6 +4062,7 @@ involve
 involved
 involvement
 iraqi
+iraqis
 irish
 iron
 ironing
@@ -4052,10 +4074,12 @@ isn't
 isolate
 isolated
 israeli
+israelis
 issue
 issues
 it
 italian
+italians
 italic
 it'd
 item
@@ -4093,6 +4117,7 @@ jewel
 jeweller
 jewelry
 jewish
+jews
 job
 jobs
 jockey
@@ -4221,6 +4246,8 @@ latency
 later
 latest
 latin
+latino
+latinos
 latitude
 latter
 laugh
@@ -4628,6 +4655,7 @@ methods
 metre
 metrics
 mexican
+mexicans
 micro
 microscope
 microwave
@@ -4813,6 +4841,7 @@ music
 musical
 musician
 muslim
+muslims
 must
 mustn
 mustn't
@@ -4930,9 +4959,13 @@ nonbacktracking
 noncapturing
 noncolliding
 noncreatable
+nondelegate
+nondelegates
 nondeterminism
 nondeterministic
 none
+nonequal
+nonequals
 nonetheless
 nonexisting
 nongeneric
@@ -4940,6 +4973,7 @@ noninfringement
 nonsensical
 nonspacing
 nonstandard
+nontransitive
 nonvowel
 nonwhitespace
 noon
@@ -5167,6 +5201,8 @@ outlier
 outline
 outlook
 output
+outputs
+outputted
 outputting
 outside
 outskirts
@@ -5242,6 +5278,8 @@ packet
 packing
 pad
 padded
+padder
+padders
 padding
 page
 pageable
@@ -5264,6 +5302,7 @@ palatalization
 palatalizes
 pale
 palestinian
+palestinians
 palm
 pan
 panel
@@ -5595,6 +5634,8 @@ post
 postback
 postbacks
 postcard
+postcode
+postcodes
 posted
 poster
 postfix
@@ -6080,6 +6121,9 @@ recyclers
 recycling
 red
 redeclare
+redeclared
+redeclares
+redeclaring
 redirect
 redirected
 redirecting
@@ -6159,7 +6203,6 @@ reimplements
 reinforce
 reinforced
 reinforcement
-reinitialise
 reinitialize
 reinitializes
 reject
@@ -6272,6 +6315,7 @@ reproduction
 reprojection
 reprojections
 republican
+republicans
 repulsion
 reputation
 requeried
@@ -6496,6 +6540,7 @@ runtimes
 rural
 rush
 russian
+russians
 rust
 sabotage
 sac
@@ -6798,11 +6843,15 @@ sight
 sightseeing
 sign
 signal
-signaller
-signallers
+signaled
+signaler
+signalers
+signaling
+signals
 signature
 signatures
 signed
+signedness
 significance
 significant
 significantly
@@ -6935,6 +6984,7 @@ society
 sock
 sofa
 soft
+softlinked
 software
 soil
 solar
@@ -7199,6 +7249,8 @@ structure
 structured
 struggle
 stub
+stubbed
+stubbing
 stubs
 student
 students
@@ -7632,6 +7684,8 @@ time
 timeout
 timer
 times
+timesheet
+timesheets
 timespan
 timespans
 timestamp
@@ -7969,6 +8023,10 @@ unfinished
 unfit
 unfixable
 unfixed
+unflatten
+unflattened
+unflattening
+unflattens
 unforgettable
 unformat
 unformats
@@ -7989,6 +8047,10 @@ unified
 uniform
 unify
 unimportant
+uninclude
+unincluded
+unincludes
+unincluding
 unindent
 unindented
 unindenting
@@ -8010,6 +8072,7 @@ uninvert
 uninverted
 uninverting
 uninverts
+uninvocable
 union
 unique
 uniquely
@@ -8042,7 +8105,9 @@ unmarshal
 unmarshaled
 unmarshaling
 unmarshals
+unmatchable
 unmatched
+unmockable
 unmodifiable
 unmodified
 unnamed
@@ -8090,12 +8155,18 @@ unsetting
 unsigned
 unsorted
 unspecified
+unstarted
 unstored
 unstringified
 unstringifies
 unstringify
 unstringifying
 unsubscribe
+unsubscribed
+unsubscribes
+unsubscribing
+unsubscription
+unsubscriptions
 unsuccess
 unsupported
 unsynced
@@ -8120,6 +8191,8 @@ unwrapping
 unwraps
 unwritten
 up
+upcasted
+upcasting
 updatable
 update
 updated

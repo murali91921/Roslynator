@@ -14,7 +14,8 @@ namespace Roslynator.Spelling
             bool includeLocal = true,
             bool includeGeneratedCode = false,
             bool autoFix = false,
-            bool interactive = true)
+            bool interactive = true,
+            bool enableCompoundWords = false)
         {
             if (codeContext < 0)
                 throw new ArgumentOutOfRangeException(nameof(codeContext), codeContext, "");
@@ -25,6 +26,7 @@ namespace Roslynator.Spelling
             IncludeGeneratedCode = includeGeneratedCode;
             AutoFix = autoFix;
             Interactive = interactive;
+            EnableCompoundWords = enableCompoundWords;
         }
 
         public int CodeContext { get; }
@@ -38,5 +40,7 @@ namespace Roslynator.Spelling
         public bool AutoFix { get; }
 
         public bool Interactive { get; }
+
+        public bool EnableCompoundWords { get; }
     }
 }

@@ -88,15 +88,13 @@ namespace Roslynator
 
             sb.Append("'");
 
-            if (spellingError.IsSymbol
-                && !string.Equals(spellingError.Value, spellingError.Identifier.ValueText, StringComparison.Ordinal))
-            {
-                sb.Append(" in '");
-                sb.Append((spellingError.IsSymbol)
-                    ? spellingError.Identifier.ValueText
-                    : spellingError.Value);
-                sb.Append("'");
-            }
+            //if (spellingError.IsSymbol
+            //    && !string.Equals(spellingError.Value, spellingError.Identifier.ValueText, StringComparison.Ordinal))
+            //{
+            //    sb.Append(" in '");
+            //    sb.Append(spellingError.Identifier.ValueText);
+            //    sb.Append("'");
+            //}
 
             return StringBuilderCache.GetStringAndFree(sb);
         }
