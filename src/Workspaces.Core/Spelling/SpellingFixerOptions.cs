@@ -13,7 +13,7 @@ namespace Roslynator.Spelling
             bool includeComments = true,
             bool includeLocal = true,
             bool includeGeneratedCode = false,
-            bool autoFix = false,
+            bool autoFix = true,
             bool interactive = true,
             bool enableCompoundWords = false)
         {

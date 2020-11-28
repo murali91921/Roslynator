@@ -31,7 +31,6 @@ namespace Roslynator.CommandLine
             var options = new SpellingFixerOptions(
                 includeLocal: false,
                 includeGeneratedCode: Options.IncludeGeneratedCode,
-                autoFix: true,
                 interactive: true,
                 enableCompoundWords: false);
 
@@ -98,35 +97,36 @@ namespace Roslynator.CommandLine
                     .Save();
             }
 
-            ImmutableDictionary<string, ImmutableHashSet<string>> fixes
+            ImmutableDictionary<string, ImmutableHashSet<SpellingFix>> fixes
                 = spellingFixer.SpellingData.FixList.Items;
 
             if (fixes.Count > 0)
             {
                 const string path = @"..\..\..\WordLists\roslynator.spelling.core.fixlist";
+                string path2 = path + 2;
 
-                if (File.Exists(path + 2))
+                if (File.Exists(path2))
                 {
-                    Dictionary<string, List<string>> dic = fixes
+                    Dictionary<string, List<SpellingFix>> dic = fixes
                         .ToDictionary(f => f.Key, f => f.Value.ToList());
 
-                    foreach (KeyValuePair<string, ImmutableHashSet<string>> item in FixList.Load(path + 2).Items)
+                    foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in FixList.Load(path2).Items)
                     {
-                        if (dic.TryGetValue(item.Key, out List<string> list))
+                        if (dic.TryGetValue(kvp.Key, out List<SpellingFix> list))
                         {
-                            list.AddRange(item.Value);
+                            list.AddRange(kvp.Value);
                         }
                         else
                         {
-                            dic[item.Key] = item.Value.ToList();
+                            dic[kvp.Key] = kvp.Value.ToList();
                         }
                     }
 
-                    foreach (KeyValuePair<string, ImmutableHashSet<string>> kvp in FixList.Load(path).Items)
+                    foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in FixList.Load(path).Items)
                     {
-                        if (dic.TryGetValue(kvp.Key, out List<string> list))
+                        if (dic.TryGetValue(kvp.Key, out List<SpellingFix> list))
                         {
-                            list.RemoveAll(f => kvp.Value.Contains(f));
+                            list.RemoveAll(f => kvp.Value.Contains(f, SpellingFixComparer.Default));
 
                             if (list.Count == 0)
                                 dic.Remove(kvp.Key);
@@ -136,12 +136,11 @@ namespace Roslynator.CommandLine
                     fixes = dic.ToImmutableDictionary(
                         f => f.Key,
                         f => f.Value
-                            .Select(f => f)
-                            .Distinct(WordList.DefaultComparer)
-                            .ToImmutableHashSet(WordList.DefaultComparer));
+                            .Distinct(SpellingFixComparer.Default)
+                            .ToImmutableHashSet(SpellingFixComparer.Default));
                 }
 
-                FixList.Save(path, fixes);
+                FixList.Save(path2, fixes);
             }
 
             return CommandResult.Success;

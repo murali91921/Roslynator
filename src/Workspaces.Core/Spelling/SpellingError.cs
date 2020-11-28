@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslynator.Spelling
 {
+    //TODO: add SpellingError.IsApplicableFix
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     internal class SpellingError
     {

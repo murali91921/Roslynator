@@ -505,6 +505,7 @@ namespace Roslynator.CSharp.Spelling
             base.VisitParameter(node);
         }
 
+        //TODO: skip <code> element
         public override void VisitXmlText(XmlTextSyntax node)
         {
             if (Options.IncludeComments)

@@ -36,15 +36,15 @@ namespace Roslynator.CommandLine
 
             FixList fixList = FixList.Load(fixListPath);
 
-            foreach (KeyValuePair<string, ImmutableHashSet<string>> kvp in fixList.Items)
+            foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in fixList.Items)
             {
                 if (all.Contains(kvp.Key))
                     Debug.Fail(kvp.Key);
 
-                foreach (string fix in kvp.Value)
+                foreach (SpellingFix fix in kvp.Value)
                 {
-                    if (!all.Contains(fix))
-                        Debug.Fail(fix);
+                    if (!all.Contains(fix.Value))
+                        Debug.Fail(fix.Value);
                 }
             }
 

@@ -12,43 +12,53 @@ namespace Roslynator.Spelling
     internal class FixList
     {
         public static FixList Empty { get; }
-            = new FixList(ImmutableDictionary.Create<string, ImmutableHashSet<string>>(
+            = new FixList(ImmutableDictionary.Create<string, ImmutableHashSet<SpellingFix>>(
                 WordList.DefaultComparer));
 
-        public FixList(ImmutableDictionary<string, ImmutableHashSet<string>> values)
+        public FixList(ImmutableDictionary<string, ImmutableHashSet<SpellingFix>> values)
         {
             Items = values;
         }
 
-        public ImmutableDictionary<string, ImmutableHashSet<string>> Items { get; }
+        public ImmutableDictionary<string, ImmutableHashSet<SpellingFix>> Items { get; }
 
         public int Count => Items.Count;
 
         public bool ContainsKey(string key) => Items.ContainsKey(key);
 
-        public bool TryGetValue(string key, out ImmutableHashSet<string> value)
+        public bool TryGetValue(string key, out ImmutableHashSet<SpellingFix> value)
         {
             return Items.TryGetValue(key, out value);
         }
 
-        public FixList Add(string key, string fix)
+        public bool TryGetKey(string equalKey, out string actualKey)
         {
-            if (Items.TryGetValue(key, out ImmutableHashSet<string> fixes))
+            return Items.TryGetKey(equalKey, out actualKey);
+        }
+
+        public FixList Add(string key, string fix, SpellingFixKind kind)
+        {
+            return Add(key, new SpellingFix(fix, kind));
+        }
+
+        public FixList Add(string key, SpellingFix spellingFix)
+        {
+            if (Items.TryGetValue(key, out ImmutableHashSet<SpellingFix> fixes))
             {
-                if (fixes.Contains(fix))
+                if (fixes.Contains(spellingFix))
                     return this;
 
-                fixes = fixes.Add(fix);
+                fixes = fixes.Add(spellingFix);
 
-                ImmutableDictionary<string, ImmutableHashSet<string>> values = Items.SetItem(key, fixes);
+                ImmutableDictionary<string, ImmutableHashSet<SpellingFix>> values = Items.SetItem(key, fixes);
 
                 return new FixList(values);
             }
             else
             {
-                fixes = ImmutableHashSet.Create<string>(WordList.DefaultComparer, fix);
+                fixes = ImmutableHashSet.Create<SpellingFix>(SpellingFixComparer.Default, spellingFix);
 
-                ImmutableDictionary<string, ImmutableHashSet<string>> map = Items.Add(key, fixes);
+                ImmutableDictionary<string, ImmutableHashSet<SpellingFix>> map = Items.Add(key, fixes);
 
                 return new FixList(map);
             }
@@ -88,11 +98,12 @@ namespace Roslynator.Spelling
                 }
             }
 
-            ImmutableDictionary<string, ImmutableHashSet<string>> items
+            ImmutableDictionary<string, ImmutableHashSet<SpellingFix>> items
                 = dic.ToImmutableDictionary(
                     f => f.Key,
                     f => f.Value
-                        .ToImmutableHashSet(WordList.DefaultComparer),
+                        .Select(f => new SpellingFix(f, SpellingFixKind.List))
+                        .ToImmutableHashSet(SpellingFixComparer.Default),
                     WordList.DefaultComparer);
 
             return new FixList(items);
@@ -105,7 +116,7 @@ namespace Roslynator.Spelling
 
         public static void Save(
             string path,
-            IEnumerable<KeyValuePair<string, ImmutableHashSet<string>>> values)
+            IEnumerable<KeyValuePair<string, ImmutableHashSet<SpellingFix>>> values)
         {
             File.WriteAllText(
                 path,

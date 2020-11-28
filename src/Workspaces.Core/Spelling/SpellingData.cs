@@ -47,9 +47,14 @@ namespace Roslynator.Spelling
             return new SpellingData(List.AddValue(value), IgnoreList, FixList);
         }
 
-        public SpellingData AddFix(string error, string fix)
+        public SpellingData AddFix(string error, string fix, SpellingFixKind kind)
         {
-            FixList fixList = FixList.Add(error, fix);
+            return AddFix(error, new SpellingFix(fix, kind));
+        }
+
+        public SpellingData AddFix(string error, SpellingFix spellingFix)
+        {
+            FixList fixList = FixList.Add(error, spellingFix);
 
             return new SpellingData(List, IgnoreList, fixList);
         }
@@ -96,24 +101,25 @@ namespace Roslynator.Spelling
 
                 FixList fixList2 = FixList.Load(filePath);
 
-                foreach (KeyValuePair<string, ImmutableHashSet<string>> kvp in fixList2.Items)
+                foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in fixList2.Items)
                 {
                     if (fixes.TryGetValue(kvp.Key, out List<string> fixes2))
                     {
-                        fixes2.AddRange(kvp.Value);
+                        fixes2.AddRange(kvp.Value.Select(f => f.Value));
                     }
                     else
                     {
-                        fixes[kvp.Key] = kvp.Value.ToList();
+                        fixes[kvp.Key] = kvp.Value.Select(f => f.Value).ToList();
                     }
                 }
             }
 
-            ImmutableDictionary<string, ImmutableHashSet<string>> fixList = fixes.ToImmutableDictionary(
+            ImmutableDictionary<string, ImmutableHashSet<SpellingFix>> fixList = fixes.ToImmutableDictionary(
                 f => f.Key,
                 f => f.Value
                     .Distinct(StringComparer.CurrentCulture)
-                    .ToImmutableHashSet(StringComparer.CurrentCulture),
+                    .Select(f => new SpellingFix(f, SpellingFixKind.List))
+                    .ToImmutableHashSet(SpellingFixComparer.CurrentCulture),
                 WordList.DefaultComparer);
 
             return new SpellingData(wordList, ignoreList, new FixList(fixList));

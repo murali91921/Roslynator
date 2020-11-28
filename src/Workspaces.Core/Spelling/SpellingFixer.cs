@@ -157,14 +157,14 @@ namespace Roslynator.Spelling
 
                         LogHelpers.WriteSpellingError(error, Options, sourceText, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
 
-                        string fix = GetFix(error, cancellationToken);
+                        SpellingFix fix = GetFix(error, cancellationToken);
 
-                        Debug.Assert(fix != "");
+                        Debug.Assert(fix.Value != "");
 
-                        if (fix != null
-                            && !string.Equals(fix, error.Value, StringComparison.Ordinal))
+                        if (!fix.IsDefault
+                            && !string.Equals(fix.Value, error.Value, StringComparison.Ordinal))
                         {
-                            (textChanges ??= new List<TextChange>()).Add(new TextChange(error.Location.SourceSpan, fix));
+                            (textChanges ??= new List<TextChange>()).Add(new TextChange(error.Location.SourceSpan, fix.Value));
 
                             ProcessFix(error, fix);
 
@@ -204,7 +204,7 @@ namespace Roslynator.Spelling
                 && !Workspace.TryApplyChanges(project.Solution))
             {
                 Debug.Fail($"Cannot apply changes to solution '{project.Solution.FilePath}'");
-                WriteLine($"Cannot apply changes to solution '{project.Solution.FilePath}'", ConsoleColor.Yellow, Verbosity.Diagnostic);
+                WriteLine($"    Cannot apply changes to solution '{project.Solution.FilePath}'", ConsoleColor.Yellow, Verbosity.Diagnostic);
             }
         }
 
@@ -235,7 +235,7 @@ namespace Roslynator.Spelling
 
                 if (document == null)
                 {
-                    WriteLine($"Cannot find document for'{error.Identifier.ValueText}'", ConsoleColor.Yellow, Verbosity.Detailed);
+                    WriteLine($"    Cannot find document for'{error.Identifier.ValueText}'", ConsoleColor.Yellow, Verbosity.Detailed);
                     SpellingData = SpellingData.AddIgnoredValue(error.Value);
                     continue;
                 }
@@ -266,15 +266,15 @@ namespace Roslynator.Spelling
 
                 if (symbol == null)
                 {
-                    WriteLine($"Cannot find symbol for '{identifier.ValueText}'", ConsoleColor.Yellow, Verbosity.Detailed);
+                    WriteLine($"    Cannot find symbol for '{identifier.ValueText}'", ConsoleColor.Yellow, Verbosity.Detailed);
                     SpellingData = SpellingData.AddIgnoredValue(error.Value);
                     continue;
                 }
 
-                string fix = GetFix(error, cancellationToken);
+                SpellingFix fix = GetFix(error, cancellationToken);
 
-                if (fix == null
-                    || string.Equals(fix, identifier.ValueText, StringComparison.Ordinal))
+                if (fix.IsDefault
+                    || string.Equals(fix.Value, identifier.ValueText, StringComparison.Ordinal))
                 {
                     SpellingData = SpellingData.AddIgnoredValue(error.Value);
 
@@ -298,14 +298,14 @@ namespace Roslynator.Spelling
                     newSolution = await Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(
                         CurrentSolution,
                         symbol,
-                        fix,
+                        fix.Value,
                         default(Microsoft.CodeAnalysis.Options.OptionSet),
                         cancellationToken)
                         .ConfigureAwait(false);
                 }
                 catch (InvalidOperationException ex)
                 {
-                    WriteLine($"Cannot rename '{symbol.Name}'", ConsoleColor.Yellow, Verbosity.Normal);
+                    WriteLine($"    Cannot rename '{symbol.Name}'", ConsoleColor.Yellow, Verbosity.Normal);
 #if DEBUG
                     WriteLine(document.FilePath);
                     WriteLine(identifier.Text);
@@ -318,7 +318,7 @@ namespace Roslynator.Spelling
                 if (!Workspace.TryApplyChanges(newSolution))
                 {
                     Debug.Fail($"Cannot apply changes to solution '{newSolution.FilePath}'");
-                    WriteLine($"Cannot apply changes to solution '{newSolution.FilePath}'", ConsoleColor.Yellow, Verbosity.Diagnostic);
+                    WriteLine($"    Cannot apply changes to solution '{newSolution.FilePath}'", ConsoleColor.Yellow, Verbosity.Diagnostic);
 
                     SpellingData = SpellingData.AddIgnoredValue(error.Value);
                     continue;
@@ -330,65 +330,68 @@ namespace Roslynator.Spelling
             }
         }
 
-        private string GetFix(SpellingError spellingError, CancellationToken cancellationToken)
+        private SpellingFix GetFix(SpellingError spellingError, CancellationToken cancellationToken)
         {
             string value = spellingError.Value;
             string containingValue = spellingError.ContainingValue;
 
-            if (spellingError.IsContained
-                && SpellingData.FixList.TryGetValue(containingValue, out ImmutableHashSet<string> fixes)
-                && fixes.Count == 1)
+            if (Options.AutoFix
+                && spellingError.IsContained
+                && SpellingData.FixList.TryGetValue(containingValue, out ImmutableHashSet<SpellingFix> fixes2)
+                && fixes2.Count == 1)
             {
-                string singleFix = fixes.First();
+                SpellingFix singleFix = fixes2.SingleOrDefault(f => f.Kind == SpellingFixKind.List, shouldThrow: false);
 
-                if (string.Equals(containingValue, singleFix, StringComparison.Ordinal))
+                if (string.Equals(containingValue, singleFix.Value, StringComparison.Ordinal))
                 {
                     WriteFix(spellingError, singleFix);
                     return singleFix;
                 }
             }
 
-            string fix = null;
+            SpellingFix fix = default;
+            var fixList = new List<SpellingFix>();
 
             TextCasing textCasing = TextUtility.GetTextCasing(value);
 
-            if (SpellingData.FixList.TryGetValue(value, out fixes)
-                && fixes.Count == 1)
+            if (SpellingData.FixList.TryGetValue(value, out ImmutableHashSet<SpellingFix> fixes3))
             {
-                fix = fixes.First();
-
-                if (SpellingData.FixList.Items.TryGetKey(value, out string originalValue)
+                if (Options.AutoFix
+                    && textCasing != TextCasing.Mixed
+                    && fixes3.Count == 1
+                    && SpellingData.FixList.TryGetKey(value, out string originalValue)
                     && !string.Equals(value, originalValue, StringComparison.Ordinal))
                 {
-                    if (textCasing == TextCasing.Mixed)
-                    {
-                        fix = null;
-                    }
-                    else if (TextUtility.GetTextCasing(fix) != TextCasing.Mixed)
-                    {
-                        fix = TextUtility.SetTextCasing(fix, textCasing);
-                    }
+                    SpellingFix fix2 = fixes3.First();
+
+                    if (TextUtility.GetTextCasing(fix2.Value) != TextCasing.Mixed)
+                        fix = fix2.WithValue(TextUtility.SetTextCasing(fix2.Value, textCasing));
+                }
+                else
+                {
+                    fixList = fixes3
+                        .Where(f => TextUtility.GetTextCasing(f.Value) != TextCasing.Mixed)
+                        .Select(f => f.WithValue(TextUtility.SetTextCasing(f.Value, textCasing)))
+                        .ToList();
                 }
             }
 
-            if (fix == null
+            if (fix.IsDefault
                 && textCasing != TextCasing.Mixed)
             {
-                fix = GetAutoFix(
+                fix = GetFix(
                     spellingError,
-                    (fixes?.Count > 1)
-                        ? fixes.Select(f => new SpellingFix(f, SpellingFixKind.List)).ToList()
-                        : new List<SpellingFix>(),
+                    fixList,
                     cancellationToken);
             }
 
-            if (fix == null
+            if (fix.IsDefault
                 && Options.Interactive)
             {
                 fix = GetUserFix();
             }
 
-            if (fix != null)
+            if (!fix.IsDefault)
             {
                 WriteFix(spellingError, fix);
 
@@ -397,16 +400,18 @@ namespace Roslynator.Spelling
                 {
                     int endIndex = spellingError.Index + value.Length;
 
-                    fix = containingValue.Remove(spellingError.Index)
-                        + fix
+                    string newValue = containingValue.Remove(spellingError.Index)
+                        + fix.Value
                         + containingValue.Substring(endIndex, containingValue.Length - endIndex);
+
+                    fix = fix.WithValue(newValue);
                 }
             }
 
             return fix;
         }
 
-        private string GetAutoFix(
+        private SpellingFix GetFix(
             SpellingError spellingError,
             List<SpellingFix> fixes,
             CancellationToken cancellationToken)
@@ -464,7 +469,7 @@ namespace Roslynator.Spelling
             }
 
             fixes = fixes
-                .Distinct(SpellingFixComparer.Value)
+                .Distinct(SpellingFixComparer.Default)
                 .Where(f =>
                 {
                     //TODO: is valid identifier
@@ -484,18 +489,18 @@ namespace Roslynator.Spelling
 
             if (fixes.Count > 0)
             {
-                if (fixes.Count == 1
-                    //&& !spellingError.IsSymbol
-                    && Options.AutoFix)
-                {
-                    SpellingFix fix = fixes[0];
+                //TODO: 
+                //if (fixes.Count == 1
+                //    && Options.AutoFix)
+                //{
+                //    SpellingFix fix = fixes[0];
 
-                    if (fix.Kind == SpellingFixKind.Swap
-                        || fix.Kind == SpellingFixKind.Fuzzy)
-                    {
-                        return fix.Value;
-                    }
-                }
+                //    if (fix.Kind == SpellingFixKind.Swap
+                //        || fix.Kind == SpellingFixKind.Fuzzy)
+                //    {
+                //        return fix.Value;
+                //    }
+                //}
 
                 if (Options.Interactive)
                 {
@@ -505,26 +510,28 @@ namespace Roslynator.Spelling
                     if (TryReadSuggestion(out int index)
                         && index < fixes.Count)
                     {
-                        return fixes[index].Value;
+                        return fixes[index];
                     }
                 }
             }
 
-            return null;
+            return default;
         }
 
-        private string GetUserFix()
+        private SpellingFix GetUserFix()
         {
             Write("    Enter fix: ");
 
             string fix = Console.ReadLine()?.Trim();
 
-            return (!string.IsNullOrEmpty(fix)) ? fix : null;
+            return (!string.IsNullOrEmpty(fix))
+                ? new SpellingFix(fix, SpellingFixKind.User)
+                : default;
         }
 
-        private static void WriteFix(SpellingError spellingError, string fix)
+        private static void WriteFix(SpellingError spellingError, SpellingFix fix)
         {
-            WriteLine($"    Replace '{spellingError.Value}' with '{fix}'", ConsoleColor.Green, Verbosity.Minimal);
+            WriteLine($"    Replace '{spellingError.Value}' with '{fix.Value}'", ConsoleColor.Green, Verbosity.Minimal);
         }
 
         private void WriteSuggestion(
@@ -618,8 +625,10 @@ namespace Roslynator.Spelling
             return false;
         }
 
-        private void ProcessFix(SpellingError spellingError, string fix)
+        private void ProcessFix(SpellingError spellingError, SpellingFix spellingFix)
         {
+            string fix = spellingFix.Value;
+
             string fix2 = null;
 
             string containingValue = spellingError.ContainingValue;
@@ -642,12 +651,12 @@ namespace Roslynator.Spelling
 
             if (fix2 != null)
             {
-                SpellingData = SpellingData.AddFix(spellingError.Value, fix2);
+                SpellingData = SpellingData.AddFix(spellingError.Value, fix2, spellingFix.Kind);
                 SpellingData = SpellingData.AddWord(fix2);
             }
             else
             {
-                SpellingData = SpellingData.AddFix(spellingError.ContainingValue, fix);
+                SpellingData = SpellingData.AddFix(spellingError.ContainingValue, spellingFix);
             }
         }
     }

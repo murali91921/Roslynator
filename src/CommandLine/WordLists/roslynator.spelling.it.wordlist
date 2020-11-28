@@ -119,6 +119,7 @@ deref
 desc
 dest
 dev
+diag
 dic
 dict
 diff
@@ -175,6 +176,7 @@ euler
 eval
 exe
 exec
+exp
 expando
 expr
 ext
@@ -284,6 +286,7 @@ langword
 laplace
 lcid
 len
+levenshtein
 lf
 lib
 linkedin
@@ -291,12 +294,14 @@ linq
 linux
 lisp
 litecoin
+lmdb
 localhost
 logon
 lorem
 lparam
 lpcm
 lru
+lstm
 lua
 luhn
 macintosh
@@ -306,6 +311,7 @@ matlab
 mbps
 mef
 memcpy
+mfc
 microsoft
 millis
 mime
@@ -417,6 +423,7 @@ resx
 ret
 rfc
 rgb
+rgba
 roboconf
 roslyn
 rpc
@@ -540,6 +547,7 @@ vshost
 vsixmanifest
 vssdk
 vsthrd
+wav
 wcf
 webcam
 webforms
@@ -559,11 +567,13 @@ xaml
 xap
 xbmc
 xhtml
+xla
 xls
 xlsx
 xml
 xmldoc
 xmlns
+xmp
 xobject
 xor
 xpath
