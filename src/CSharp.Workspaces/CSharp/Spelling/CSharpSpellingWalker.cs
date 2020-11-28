@@ -505,7 +505,18 @@ namespace Roslynator.CSharp.Spelling
             base.VisitParameter(node);
         }
 
-        //TODO: skip <code> element
+        public override void VisitXmlElement(XmlElementSyntax node)
+        {
+            switch (node.StartTag.Name.LocalName.ValueText)
+            {
+                case "c":
+                case "code":
+                    return;
+            }
+
+            base.VisitXmlElement(node);
+        }
+
         public override void VisitXmlText(XmlTextSyntax node)
         {
             if (Options.IncludeComments)

@@ -125,8 +125,8 @@ namespace Roslynator.Spelling
                     values
                         .SelectMany(f => f.Value.Select(g => (key: f.Key, fix: g)))
                         .OrderBy(f => f.key)
-                        .ThenBy(f => f.fix)
-                        .Select(f => $"{f.key}={f.fix}")));
+                        .ThenBy(f => f.fix, SpellingFixComparer.CurrentCulture)
+                        .Select(f => $"{f.key}={f.fix.Value}")));
         }
 
         public FixList SaveAndLoad(string path)

@@ -290,7 +290,7 @@ namespace Roslynator.Spelling
                     continue;
                 }
 
-                WriteLine($"    Rename '{identifier.ValueText}' to '{fix}'", Verbosity.Minimal);
+                WriteLine($"    Rename '{identifier.ValueText}' to '{fix.Value}'", Verbosity.Minimal);
 
                 Solution newSolution = null;
                 try
@@ -350,45 +350,50 @@ namespace Roslynator.Spelling
             }
 
             SpellingFix fix = default;
-            var fixList = new List<SpellingFix>();
+            var fixes = new List<SpellingFix>();
 
             TextCasing textCasing = TextUtility.GetTextCasing(value);
 
             if (SpellingData.FixList.TryGetValue(value, out ImmutableHashSet<SpellingFix> fixes3))
             {
                 if (Options.AutoFix
-                    && textCasing != TextCasing.Mixed
-                    && fixes3.Count == 1
-                    && SpellingData.FixList.TryGetKey(value, out string originalValue)
-                    && !string.Equals(value, originalValue, StringComparison.Ordinal))
+                    && textCasing != TextCasing.Mixed)
                 {
-                    SpellingFix fix2 = fixes3.First();
+                    SpellingFix fix3 = fixes3.SingleOrDefault(shouldThrow: false);
 
-                    if (TextUtility.GetTextCasing(fix2.Value) != TextCasing.Mixed)
-                        fix = fix2.WithValue(TextUtility.SetTextCasing(fix2.Value, textCasing));
+                    if (!fix3.IsDefault)
+                    {
+                        if (fix3.Kind == SpellingFixKind.List
+                            || (SpellingData.FixList.TryGetKey(value, out string originalValue)
+                                && string.Equals(value, originalValue, StringComparison.Ordinal)))
+                        {
+                            if (TextUtility.GetTextCasing(fix3.Value) != TextCasing.Mixed)
+                                fix = fix3.WithValue(TextUtility.SetTextCasing(fix3.Value, textCasing));
+                        }
+                    }
                 }
-                else
+
+                if (fix.IsDefault)
                 {
-                    fixList = fixes3
+                    fixes = fixes3
                         .Where(f => TextUtility.GetTextCasing(f.Value) != TextCasing.Mixed)
                         .Select(f => f.WithValue(TextUtility.SetTextCasing(f.Value, textCasing)))
                         .ToList();
                 }
             }
 
-            if (fix.IsDefault
-                && textCasing != TextCasing.Mixed)
+            if (fix.IsDefault)
             {
-                fix = GetFix(
-                    spellingError,
-                    fixList,
-                    cancellationToken);
-            }
+                if (textCasing != TextCasing.Mixed)
+                {
+                    if (fixes.Count == 0)
+                        AddPossibleFixes(spellingError, fixes, cancellationToken);
 
-            if (fix.IsDefault
-                && Options.Interactive)
-            {
-                fix = GetUserFix();
+                    fix = ChooseFix(spellingError, fixes);
+                }
+
+                if (fix.IsDefault)
+                    fix = GetUserFix();
             }
 
             if (!fix.IsDefault)
@@ -411,10 +416,46 @@ namespace Roslynator.Spelling
             return fix;
         }
 
-        private SpellingFix GetFix(
+        private SpellingFix ChooseFix(
             SpellingError spellingError,
-            List<SpellingFix> fixes,
-            CancellationToken cancellationToken)
+            List<SpellingFix> fixes)
+        {
+            fixes = fixes
+                .Distinct(SpellingFixComparer.Default)
+                .Where(f =>
+                {
+                    //TODO: is valid identifier
+                    return !spellingError.IsSymbol
+                        || (!f.Value.Contains('\'') && !f.Value.Contains('-'));
+                })
+                .Select(fix =>
+                {
+                    if (TextUtility.GetTextCasing(fix.Value) != TextCasing.Mixed)
+                        return fix.WithValue(TextUtility.SetTextCasing(fix.Value, spellingError.Casing));
+
+                    return fix;
+                })
+                .OrderBy(f => f.Kind)
+                .Take(9)
+                .ToList();
+
+            if (fixes.Count > 0
+                && Options.Interactive)
+            {
+                for (int i = 0; i < fixes.Count; i++)
+                    WriteSuggestion(spellingError, fixes[i], i);
+
+                if (TryReadSuggestion(out int index)
+                    && index < fixes.Count)
+                {
+                    return fixes[index];
+                }
+            }
+
+            return default;
+        }
+
+        private void AddPossibleFixes(SpellingError spellingError, List<SpellingFix> fixes, CancellationToken cancellationToken)
         {
             Debug.WriteLine($"find fix for '{spellingError.Value}'");
 
@@ -467,55 +508,6 @@ namespace Roslynator.Spelling
                     fixes.Add(new SpellingFix(match, SpellingFixKind.Fuzzy));
                 }
             }
-
-            fixes = fixes
-                .Distinct(SpellingFixComparer.Default)
-                .Where(f =>
-                {
-                    //TODO: is valid identifier
-                    return !spellingError.IsSymbol
-                        || (!f.Value.Contains('\'') && !f.Value.Contains('-'));
-                })
-                .Select(fix =>
-                {
-                    if (TextUtility.GetTextCasing(fix.Value) != TextCasing.Mixed)
-                        return fix.WithValue(TextUtility.SetTextCasing(fix.Value, spellingError.Casing));
-
-                    return fix;
-                })
-                .OrderBy(f => f.Kind)
-                .Take(9)
-                .ToList();
-
-            if (fixes.Count > 0)
-            {
-                //TODO: 
-                //if (fixes.Count == 1
-                //    && Options.AutoFix)
-                //{
-                //    SpellingFix fix = fixes[0];
-
-                //    if (fix.Kind == SpellingFixKind.Swap
-                //        || fix.Kind == SpellingFixKind.Fuzzy)
-                //    {
-                //        return fix.Value;
-                //    }
-                //}
-
-                if (Options.Interactive)
-                {
-                    for (int i = 0; i < fixes.Count; i++)
-                        WriteSuggestion(spellingError, fixes[i], i);
-
-                    if (TryReadSuggestion(out int index)
-                        && index < fixes.Count)
-                    {
-                        return fixes[index];
-                    }
-                }
-            }
-
-            return default;
         }
 
         private SpellingFix GetUserFix()
