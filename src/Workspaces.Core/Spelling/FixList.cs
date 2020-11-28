@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -69,8 +70,15 @@ namespace Roslynator.Spelling
                 .Where(f => f.index >= 0)
                 .Select(f => (key: f.value.Remove(f.index), value: f.value.Substring(f.index + 1))))
             {
+                Debug.Assert(!string.Equals(key, value, StringComparison.Ordinal), $"{key} {value}");
+
+                if (string.Equals(key, value, StringComparison.Ordinal))
+                    continue;
+
                 if (dic.TryGetValue(key, out HashSet<string> fixes))
                 {
+                    Debug.Assert(!fixes.Contains(value), $"Fix list already contains {key}={value}");
+
                     fixes.Add(value);
                     dic[key] = fixes;
                 }
@@ -108,6 +116,13 @@ namespace Roslynator.Spelling
                         .OrderBy(f => f.key)
                         .ThenBy(f => f.fix)
                         .Select(f => $"{f.key}={f.fix}")));
+        }
+
+        public FixList SaveAndLoad(string path)
+        {
+            Save(path);
+
+            return Load(path);
         }
     }
 }

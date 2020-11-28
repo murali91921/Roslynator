@@ -93,7 +93,9 @@ namespace Roslynator.CommandLine
 
                 wordList = wordList.Except(oldIgnoreList);
 
-                wordList.Save();
+                wordList
+                    .WithValues(wordList.Values.Distinct(StringComparer.CurrentCulture).Select(f => f.ToLowerInvariant()))
+                    .Save();
             }
 
             ImmutableDictionary<string, ImmutableHashSet<string>> fixes
@@ -101,14 +103,14 @@ namespace Roslynator.CommandLine
 
             if (fixes.Count > 0)
             {
-                const string path = @"..\..\..\WordLists\roslynator.spelling.core.fixlist2";
+                const string path = @"..\..\..\WordLists\roslynator.spelling.core.fixlist";
 
-                if (File.Exists(path))
+                if (File.Exists(path + 2))
                 {
                     Dictionary<string, List<string>> dic = fixes
                         .ToDictionary(f => f.Key, f => f.Value.ToList());
 
-                    foreach (KeyValuePair<string, ImmutableHashSet<string>> item in FixList.Load(path).Items)
+                    foreach (KeyValuePair<string, ImmutableHashSet<string>> item in FixList.Load(path + 2).Items)
                     {
                         if (dic.TryGetValue(item.Key, out List<string> list))
                         {
@@ -117,6 +119,17 @@ namespace Roslynator.CommandLine
                         else
                         {
                             dic[item.Key] = item.Value.ToList();
+                        }
+                    }
+
+                    foreach (KeyValuePair<string, ImmutableHashSet<string>> kvp in FixList.Load(path).Items)
+                    {
+                        if (dic.TryGetValue(kvp.Key, out List<string> list))
+                        {
+                            list.RemoveAll(f => kvp.Value.Contains(f));
+
+                            if (list.Count == 0)
+                                dic.Remove(kvp.Key);
                         }
                     }
 

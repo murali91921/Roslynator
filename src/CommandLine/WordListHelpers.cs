@@ -1,5 +1,8 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using Roslynator.Spelling;
 
 namespace Roslynator.CommandLine
@@ -16,6 +19,7 @@ namespace Roslynator.CommandLine
             WordList it = WordList.Load(basePath + "it.wordlist").Except(core).Except(core2).SaveAndLoad();
             WordList misc = WordList.Load(basePath + "misc.wordlist").Except(core).Except(core2).Except(it).SaveAndLoad();
             WordList acronyms = WordList.Load(basePath + "acronyms.wordlist").Except(core).Except(core2).Except(it).SaveAndLoad();
+            WordList names = WordList.Load(basePath + "names.wordlist").Except(core).Except(core2).Except(it).SaveAndLoad();
 
             WordList ignore2 = WordList.Load(basePath + "core.ignorelist2")
                 .Except(big)
@@ -25,6 +29,26 @@ namespace Roslynator.CommandLine
                 .Except(misc)
                 .Except(acronyms)
                 .SaveAndLoad();
+
+            WordList all = big.AddValues(core).AddValues(core2).AddValues(it).AddValues(misc).AddValues(acronyms);
+
+            string fixListPath = basePath + "core.fixlist";
+
+            FixList fixList = FixList.Load(fixListPath);
+
+            foreach (KeyValuePair<string, ImmutableHashSet<string>> kvp in fixList.Items)
+            {
+                if (all.Contains(kvp.Key))
+                    Debug.Fail(kvp.Key);
+
+                foreach (string fix in kvp.Value)
+                {
+                    if (!all.Contains(fix))
+                        Debug.Fail(fix);
+                }
+            }
+
+            fixList.SaveAndLoad(fixListPath);
         }
     }
 }

@@ -1,4 +1,15 @@
-dbo
+uid
+uids
+substr
+seq
+memcpy
+tanh
+pcm
+pdf
+printf
+protobufs
+rpc
+aac
 acklam
 acosh
 addon
@@ -9,6 +20,7 @@ admins
 ado
 adodb
 adtg
+adts
 agg
 algo
 alloc
@@ -22,6 +34,7 @@ args
 arr
 asax
 asc
+asf
 asinh
 asp
 aspnet
@@ -46,6 +59,7 @@ bin
 bitcoin
 blazor
 blowfish
+bmp
 bof
 bom
 bool
@@ -103,6 +117,7 @@ curr
 cz
 db
 dbg
+dbo
 ddl
 def
 delim
@@ -125,6 +140,7 @@ div
 django
 dll
 dlls
+dlna
 dml
 dns
 dnx
@@ -139,10 +155,14 @@ dothtml
 dotnet
 dotvvm
 downshift
+drm
 dtd
 dto
 dtos
+dts
 dvd
+dvr
+dxva
 ecma
 editorconfig
 elif
@@ -155,6 +175,7 @@ enum
 enums
 eof
 eol
+epg
 erlang
 err
 ethereum
@@ -168,11 +189,14 @@ ext
 externs
 fakers
 faq
+ffmpeg
 filterpriority
 firefox
 fixme
+flac
 flg
 flickr
+flv
 fody
 foo
 foobar
@@ -192,6 +216,7 @@ git
 github
 googlebot
 goto
+gpu
 gui
 guid
 guids
@@ -199,6 +224,8 @@ gzip
 haacked
 hashbang
 haskell
+hdr
+hevc
 hex
 hexa
 hidebysig
@@ -249,6 +276,7 @@ jit
 jni
 jobj
 jpeg
+jpegs
 jpg
 jquery
 js
@@ -272,6 +300,7 @@ localhost
 logon
 lorem
 lparam
+lpcm
 lru
 lua
 luhn
@@ -279,6 +308,7 @@ macintosh
 macintoshes
 mathematica
 matlab
+mbps
 mef
 microsoft
 millis
@@ -287,9 +317,12 @@ mixin
 mixins
 mkdir
 mkdirs
+mkv
 modernizr
 moq
+mov
 mozilla
+mpegts
 mpf
 msbuild
 mscorlib
@@ -319,12 +352,16 @@ nrefactory
 ns
 nswag
 ntlm
+ntsc
 nuget
 num
 nunit
+nvidia
 obj
 octocat
 odbc
+ogg
+ogv
 oledb
 onchange
 onclick
@@ -338,6 +375,7 @@ paramref
 params
 paren
 parens
+pbkdf
 pcl
 pdb
 peachpie
@@ -348,10 +386,12 @@ pkce
 pkg
 pkgdef
 png
+pnp
 pos
 posix
-postgre
+postgres
 pragma
+pragmas
 preinit
 prev
 proc
@@ -377,7 +417,10 @@ rfc
 rgb
 roboconf
 roslyn
+rsa
 rtl
+rtmp
+rtsp
 ruleset
 rxjs
 sass
@@ -403,7 +446,9 @@ sqlite
 sqlserver
 sqrt
 src
+srt
 ssd
+ssdp
 ssl
 sso
 ssv
@@ -419,6 +464,7 @@ structs
 sub
 subdir
 subdirs
+svc
 svg
 swagger
 swashbuckle
@@ -438,11 +484,13 @@ trie
 tsl
 tsql
 tsv
+ttf
 twitter
 txt
 typelib
 typeof
 typescript
+ubuntu
 udp
 ui
 uint
@@ -456,6 +504,7 @@ unicast
 unicode
 unix
 upn
+upnp
 uri
 uris
 urls
@@ -475,6 +524,8 @@ verilog
 vim
 virt
 vm
+vob
+vorbis
 vshost
 vsixmanifest
 vssdk
@@ -486,6 +537,8 @@ webp
 wifi
 winform
 winforms
+wma
+wmv
 wparam
 wpf
 wsdl
@@ -494,6 +547,7 @@ www
 xamarin
 xaml
 xap
+xbmc
 xhtml
 xls
 xlsx
@@ -513,4 +567,5 @@ xvalue
 yaml
 yvalue
 zlib
+zpl
 zvalue
