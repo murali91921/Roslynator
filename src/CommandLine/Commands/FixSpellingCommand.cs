@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+//#define NON_INTERACTIVE
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -28,12 +30,19 @@ namespace Roslynator.CommandLine
         {
             AssemblyResolver.Register();
 
+#if NON_INTERACTIVE
+            var options = new SpellingFixerOptions(
+                includeLocal: true,
+                includeGeneratedCode: Options.IncludeGeneratedCode,
+                interactive: false,
+                enableCompoundWords: true);
+#else
             var options = new SpellingFixerOptions(
                 includeLocal: false,
                 includeGeneratedCode: Options.IncludeGeneratedCode,
                 interactive: true,
                 enableCompoundWords: false);
-
+#endif
             CultureInfo culture = (Options.Culture != null) ? CultureInfo.GetCultureInfo(Options.Culture) : null;
 
             var projectFilter = new ProjectFilter(Options.Projects, Options.IgnoredProjects, Language);
@@ -92,23 +101,51 @@ namespace Roslynator.CommandLine
 
                 wordList = wordList.Except(oldIgnoreList);
 
+                IEnumerable<string> values = wordList.Values
+                    .Distinct(StringComparer.CurrentCulture)
+                    .Select(f =>
+                    {
+                        string value = f.ToLowerInvariant();
+#if DEBUG
+                        if (value.Length >= 6)
+                        {
+                            var fixes = new List<string>();
+
+                            fixes.AddRange(SpellingFixProvider.SwapMatches(
+                                value,
+                                spellingFixer.SpellingData,
+                                cancellationToken));
+
+                            fixes.AddRange(SpellingFixProvider.FuzzyMatches(
+                                value,
+                                spellingFixer.SpellingData,
+                                cancellationToken));
+
+                            if (fixes.Count > 0 && fixes.Count <= 3)
+                                value = $"{value}={string.Join(",", fixes)}";
+                        }
+#endif
+                        return value;
+                    });
+
                 wordList
-                    .WithValues(wordList.Values.Distinct(StringComparer.CurrentCulture).Select(f => f.ToLowerInvariant()))
+                    .WithValues(values)
                     .Save();
             }
+
+            const string fixListPath = @"..\..\..\WordLists\roslynator.spelling.core.fixlist";
 
             ImmutableDictionary<string, ImmutableHashSet<SpellingFix>> fixes
                 = spellingFixer.SpellingData.FixList.Items;
 
             if (fixes.Count > 0)
             {
-                const string path = @"..\..\..\WordLists\roslynator.spelling.core.fixlist";
-                string path2 = path + 2;
+                string path2 = fixListPath + 2;
 
                 if (File.Exists(path2))
                 {
                     Dictionary<string, List<SpellingFix>> dic = fixes
-                        .ToDictionary(f => f.Key, f => f.Value.ToList());
+                        .ToDictionary(f => f.Key, f => f.Value.ToList(), WordList.DefaultComparer);
 
                     foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in FixList.Load(path2).Items)
                     {
@@ -122,7 +159,7 @@ namespace Roslynator.CommandLine
                         }
                     }
 
-                    foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in FixList.Load(path).Items)
+                    foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in FixList.Load(fixListPath).Items)
                     {
                         if (dic.TryGetValue(kvp.Key, out List<SpellingFix> list))
                         {
@@ -134,8 +171,9 @@ namespace Roslynator.CommandLine
                     }
 
                     fixes = dic.ToImmutableDictionary(
-                        f => f.Key,
+                        f => f.Key.ToLowerInvariant(),
                         f => f.Value
+                            .Select(f => f.WithValue(f.Value.ToLowerInvariant()))
                             .Distinct(SpellingFixComparer.Default)
                             .ToImmutableHashSet(SpellingFixComparer.Default));
                 }

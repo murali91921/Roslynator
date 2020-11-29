@@ -1,6 +1,3 @@
-wheres
-humanizer
-humanizers
 abandon
 abandoned
 abandonment
@@ -50,6 +47,10 @@ academic
 academical
 academy
 accelerable
+accelerate
+accelerated
+accelerates
+accelerating
 acceleration
 accelerations
 accent
@@ -689,6 +690,7 @@ autumn
 availability
 available
 average
+averageable
 avoid
 await
 awaitable
@@ -1115,6 +1117,7 @@ cachable
 cache
 cacheable
 cached
+cacher
 caches
 caching
 cafe
@@ -1708,6 +1711,12 @@ congratulations
 congress
 congressional
 congruent
+conjunct
+conjunction
+conjunctions
+conjuncts
+conjuncture
+conjunctures
 connect
 connection
 connector
@@ -1971,7 +1980,13 @@ cusp
 custom
 customer
 customers
+customizable
 customization
+customizations
+customize
+customized
+customizes
+customizing
 customs
 cut
 cute
@@ -2044,7 +2059,10 @@ debounces
 debouncing
 debt
 debug
+debuggable
+debugged
 debugger
+debuggers
 debugging
 decade
 decades
@@ -2099,6 +2117,10 @@ decremented
 decrementing
 decrements
 decrypt
+decrypted
+decrypting
+decryption
+decrypts
 deduce
 deduction
 dedupe
@@ -2300,6 +2322,11 @@ determinize
 determinized
 determinizes
 determinizing
+detokenization
+detokenize
+detokenized
+detokenizes
+detokenizing
 devanagari
 develop
 developing
@@ -2523,6 +2550,7 @@ downcasted
 downcasting
 downfall
 download
+downloaded
 downloader
 downloaders
 downloading
@@ -2543,6 +2571,7 @@ downtown
 dozen
 draft
 drag
+draggable
 drain
 drama
 dramatic
@@ -2725,7 +2754,9 @@ encountered
 encourage
 encrypt
 encrypted
+encrypting
 encryption
+encrypts
 encyclopedia
 encylopedia
 end
@@ -2798,6 +2829,7 @@ episode
 epsilon
 epsilons
 equal
+equalities
 equality
 equally
 equals
@@ -2928,7 +2960,11 @@ existing
 exists
 exit
 expand
+expanded
+expanding
+expands
 expansion
+expansions
 expansive
 expect
 expectation
@@ -3144,6 +3180,8 @@ finished
 finite
 fire
 firearm
+firebrick
+firebricks
 fired
 firefighter
 firefly
@@ -3443,6 +3481,8 @@ gimps
 giraffe
 girl
 girlfriend
+gist
+gists
 give
 given
 glacier
@@ -3540,6 +3580,7 @@ groovy
 gross
 ground
 group
+groupable
 grouped
 grouping
 groupings
@@ -3814,6 +3855,8 @@ hue
 hug
 huge
 human
+humanizer
+humanizers
 humid
 humor
 humour
@@ -4032,8 +4075,10 @@ inherited
 inherits
 inhibit
 inhibition
+init
 initial
 initialization
+initializations
 initialize
 initialized
 initializer
@@ -4044,6 +4089,7 @@ initially
 initiate
 initiative
 initiatives
+inits
 inject
 injected
 injection
@@ -4071,6 +4117,7 @@ insanity
 insect
 insensitive
 insert
+insertable
 inserted
 inserter
 inserting
@@ -4213,6 +4260,8 @@ investigation
 investigator
 investment
 investor
+invisible
+invisibles
 invitation
 invite
 invocable
@@ -4541,6 +4590,11 @@ lines
 link
 linked
 links
+lint
+linter
+linters
+linting
+lints
 lion
 lip
 liqueur
@@ -4933,8 +4987,13 @@ mob
 mobile
 mock
 mockable
+modal
+modalities
+modality
+modally
 mode
 model
+modeless
 models
 modem
 modems
@@ -5090,6 +5149,7 @@ navigate
 navigated
 navigates
 navigation
+navigations
 navy
 near
 nearby
@@ -5677,6 +5737,8 @@ perfume
 perhaps
 peridiocally
 period
+permalink
+permalinks
 permanent
 permission
 permit
@@ -5885,7 +5947,6 @@ postcodes
 posted
 poster
 postfix
-postfixes
 postman
 postmark
 postmaster
@@ -5962,10 +6023,14 @@ prefetch
 prefetched
 prefetches
 prefetching
+prefill
 prefilled
+prefilling
+prefills
 prefix
 prefixed
 prefixes
+prefixing
 preformat
 preformats
 preformatted
@@ -6024,6 +6089,8 @@ pretrains
 pretty
 prevent
 prevents
+previewer
+previewers
 previous
 previously
 price
@@ -6228,6 +6295,7 @@ quote
 quoted
 quotes
 quotient
+quoting
 rabbit
 race
 racial
@@ -6328,7 +6396,11 @@ rebased
 rebases
 rebasing
 rebel
+rebind
+rebinding
+rebinds
 reboot
+rebound
 rebuild
 recalculate
 recall
@@ -6981,6 +7053,8 @@ screw
 script
 scripts
 scroll
+scrollable
+scrolled
 scrolling
 scrolls
 scrub
@@ -7405,6 +7479,7 @@ sparsely
 sparseness
 sparsest
 sparsity
+spatials
 spawn
 speak
 speaker
@@ -7432,6 +7507,8 @@ speculative
 speech
 speed
 spell
+spellcheck
+spellchecks
 spelling
 spend
 spending
@@ -8123,6 +8200,7 @@ toggled
 toilet
 token
 tokenization
+tokenizations
 tokenize
 tokenized
 tokenizer
@@ -8443,6 +8521,10 @@ unencrypted
 unescape
 unescaped
 unescaping
+unexpand
+unexpanded
+unexpanding
+unexpands
 unexpected
 unfair
 unfeedable
@@ -8542,8 +8624,10 @@ unmarshal
 unmarshaled
 unmarshaling
 unmarshals
+unmatch
 unmatchable
 unmatched
+unmatches
 unmatching
 unmirrored
 unmockable
@@ -8579,7 +8663,10 @@ unprotect
 unprotected
 unproxied
 unqueried
+unquote
 unquoted
+unquotes
+unquoting
 unreachable
 unread
 unrecognized
@@ -8629,6 +8716,7 @@ untokenized
 untyped
 unused
 unusual
+unversioned
 unwatch
 unwatched
 unwatches
@@ -8644,6 +8732,7 @@ upcasted
 upcasting
 updatable
 update
+updateable
 updated
 updater
 updates
@@ -8654,6 +8743,8 @@ upkeep
 uplift
 upload
 uploaded
+uploading
+uploads
 upon
 upper
 uppercase
@@ -8664,6 +8755,10 @@ upscale
 upscaled
 upscales
 upscaling
+upsert
+upserted
+upserting
+upserts
 upset
 upstairs
 uptake
@@ -8726,10 +8821,12 @@ varying
 vascular
 vase
 vast
+vector
 vectorize
 vectorized
 vectorizes
 vectorizing
+vectors
 vegetable
 vegetarian
 vehicle
@@ -8874,6 +8971,8 @@ wear
 weariness
 weather
 web
+weblog
+weblogs
 webmaster
 webmasters
 website
@@ -8913,6 +9012,7 @@ whenever
 where
 whereas
 whereby
+wheres
 wherever
 whether
 which

@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 
@@ -244,7 +243,7 @@ namespace Roslynator.Spelling
                 // Tvalue > TValue
                 // Ienumerable > IEnumerable
                 if ((ch == 'I' || ch == 'T')
-                    && TextUtility.GetTextCasing(value) == TextCasing.FirstUpper
+                    && spellingError.Casing == TextCasing.FirstUpper
                     && spellingData.List.Contains(value.Substring(1)))
                 {
                     (splitIndexes ??= ImmutableArray.CreateBuilder<int>()).Add(1);

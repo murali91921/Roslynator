@@ -3,12 +3,15 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Roslynator.Spelling;
 
 namespace Roslynator.CommandLine
 {
     internal static class WordListHelpers
     {
+        private static readonly Regex _splitRegex = new Regex(" +");
+
         public static void CompareWordList()
         {
             string basePath = @"E:\Projects\Roslynator\src\CommandLine\WordLists\roslynator.spelling.";
@@ -43,8 +46,13 @@ namespace Roslynator.CommandLine
 
                 foreach (SpellingFix fix in kvp.Value)
                 {
-                    if (!all.Contains(fix.Value))
-                        Debug.Fail(fix.Value);
+                    string value = fix.Value;
+
+                    foreach (string value2 in _splitRegex.Split(value))
+                    {
+                        if (!all.Contains(value2))
+                            Debug.Fail($"{value}: {value2}");
+                    }
                 }
             }
 

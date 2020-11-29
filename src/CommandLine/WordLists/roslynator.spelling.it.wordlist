@@ -2,6 +2,7 @@ aac
 acklam
 acos
 acosh
+activex
 addon
 addons
 addr
@@ -48,6 +49,7 @@ bcl
 beforefieldinit
 bernoulli
 bin
+bitbucket
 bitcoin
 blazor
 blowfish
@@ -82,6 +84,8 @@ cnt
 coeff
 com
 compat
+conf
+consolas
 const
 consts
 coord
@@ -101,6 +105,7 @@ csproj
 csrf
 css
 csv
+ctlr
 ctor
 ctors
 ctrl
@@ -148,6 +153,7 @@ dothtml
 dotnet
 dotvvm
 downshift
+dpi
 drm
 dtd
 dto
@@ -160,6 +166,7 @@ ecma
 editorconfig
 elif
 elses
+emacs
 en
 endian
 endif
@@ -200,6 +207,7 @@ foreach
 formfeed
 fortran
 fourier
+foxpro
 frag
 frags
 freq
@@ -209,7 +217,9 @@ funcs
 gac
 gauss
 git
+gitconfig
 github
+gitignore
 googlebot
 goto
 gpu
@@ -233,11 +243,13 @@ htm
 html
 http
 https
+hwnd
 hypertext
 icollection
 icollections
 icsharpcode
 id
+ide
 ids
 idx
 ienumerable
@@ -253,7 +265,6 @@ img
 impl
 inheritdoc
 ini
-init
 initobj
 instapayment
 int
@@ -300,12 +311,14 @@ logon
 lorem
 lparam
 lpcm
+lpsz
 lru
 lstm
 lua
 luhn
 macintosh
 macintoshes
+markdig
 mathematica
 matlab
 mbps
@@ -321,6 +334,7 @@ mkdir
 mkdirs
 mkv
 modernizr
+monokai
 moq
 mov
 mozilla
@@ -337,6 +351,7 @@ mutex
 mvc
 nameof
 nan
+ndp
 netcore
 netframework
 netstandard
@@ -370,6 +385,7 @@ onchange
 onclick
 org
 orig
+orm
 osx
 owin
 para
@@ -422,12 +438,14 @@ resharper
 resx
 ret
 rfc
+rfid
 rgb
 rgba
 roboconf
 roslyn
 rpc
 rsa
+rss
 rtl
 rtmp
 rtsp
@@ -547,6 +565,7 @@ vshost
 vsixmanifest
 vssdk
 vsthrd
+vsts
 wav
 wcf
 webcam
@@ -557,11 +576,13 @@ winform
 winforms
 wma
 wmv
+wordpress
 wparam
 wpf
 wsdl
 wss
 www
+wwwroot
 xamarin
 xaml
 xap
@@ -573,6 +594,7 @@ xlsx
 xml
 xmldoc
 xmlns
+xmls
 xmp
 xobject
 xor

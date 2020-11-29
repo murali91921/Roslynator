@@ -382,7 +382,8 @@ namespace Roslynator.Spelling
                 }
             }
 
-            if (fix.IsDefault)
+            if (fix.IsDefault
+                && Options.Interactive)
             {
                 if (textCasing != TextCasing.Mixed)
                 {
@@ -439,8 +440,7 @@ namespace Roslynator.Spelling
                 .Take(9)
                 .ToList();
 
-            if (fixes.Count > 0
-                && Options.Interactive)
+            if (fixes.Count > 0)
             {
                 for (int i = 0; i < fixes.Count; i++)
                     WriteSuggestion(spellingError, fixes[i], i);
@@ -457,7 +457,7 @@ namespace Roslynator.Spelling
 
         private void AddPossibleFixes(SpellingError spellingError, List<SpellingFix> fixes, CancellationToken cancellationToken)
         {
-            Debug.WriteLine($"find fix for '{spellingError.Value}'");
+            Debug.WriteLine($"find possible fix for '{spellingError.Value}'");
 
             string value = spellingError.Value;
 
