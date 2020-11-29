@@ -97,7 +97,7 @@ namespace Roslynator.CommandLine
                     oldIgnoreList = WordList.Load(oldIgnoreList.Path, oldIgnoreList.Comparer);
                 }
 
-                var wordList = new WordList(oldIgnoreList.Path + "2", oldIgnoreList.Comparer, ignoreList.Values);
+                var wordList = new WordList(oldIgnoreList.Path + ".tmp", oldIgnoreList.Comparer, ignoreList.Values);
 
                 wordList = wordList.Except(oldIgnoreList);
 
@@ -140,7 +140,7 @@ namespace Roslynator.CommandLine
 
             if (fixes.Count > 0)
             {
-                string path2 = fixListPath + 2;
+                string path2 = fixListPath + ".tmp";
 
                 if (File.Exists(path2))
                 {

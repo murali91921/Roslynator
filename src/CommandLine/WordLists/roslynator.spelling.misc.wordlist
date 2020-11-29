@@ -283,6 +283,7 @@ notfound
 notheme
 notnull
 notset
+numlock
 objecttype
 onelevel
 onexception
@@ -307,6 +308,7 @@ pointapi
 popcount
 postalcode
 postscan
+powershell
 preenumeratetheories
 processdir
 productid
@@ -367,6 +369,7 @@ stacktrace
 stacktraces
 startend
 startswith
+statusbar
 stopchar
 stopchars
 stoponfail
@@ -403,6 +406,7 @@ threadpool
 threadsafe
 threadstarted
 threedimensional
+titlebar
 toolbuttons
 topframe
 topframes
@@ -441,6 +445,7 @@ webservice
 webservices
 websocket
 websockets
+winuser
 wireup
 withexception
 writeline

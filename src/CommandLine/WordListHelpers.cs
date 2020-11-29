@@ -24,15 +24,6 @@ namespace Roslynator.CommandLine
             WordList acronyms = WordList.Load(basePath + "acronyms.wordlist").Except(core).Except(core2).Except(it).SaveAndLoad();
             WordList names = WordList.Load(basePath + "names.wordlist").Except(core).Except(core2).Except(it).SaveAndLoad();
 
-            WordList ignore2 = WordList.Load(basePath + "core.ignorelist2")
-                .Except(big)
-                .Except(core)
-                .Except(core2)
-                .Except(it)
-                .Except(misc)
-                .Except(acronyms)
-                .SaveAndLoad();
-
             WordList all = big.AddValues(core).AddValues(core2).AddValues(it).AddValues(misc).AddValues(acronyms);
 
             string fixListPath = basePath + "core.fixlist";
