@@ -34,8 +34,11 @@ namespace Roslynator.Spelling
             {
                 for (int i = 1; i < s.Length; i++)
                 {
-                    if (!char.IsLower(s[i]))
+                    if (!char.IsLower(s[i])
+                        && !char.IsLetter(s[i]))
+                    {
                         return TextCasing.Mixed;
+                    }
                 }
 
                 return TextCasing.Lower;
@@ -48,8 +51,11 @@ namespace Roslynator.Spelling
                 {
                     for (int i = 2; i < s.Length; i++)
                     {
-                        if (!char.IsLower(s[i]))
+                        if (!char.IsLower(s[i])
+                            && !char.IsLetter(s[i]))
+                        {
                             return TextCasing.Mixed;
+                        }
                     }
 
                     return TextCasing.FirstUpper;
@@ -58,8 +64,11 @@ namespace Roslynator.Spelling
                 {
                     for (int i = 0; i < s.Length; i++)
                     {
-                        if (!char.IsUpper(s[i]))
+                        if (!char.IsUpper(s[i])
+                            && !char.IsLetter(s[i]))
+                        {
                             return TextCasing.Mixed;
+                        }
                     }
 
                     return TextCasing.Upper;

@@ -298,6 +298,7 @@ agendas
 agent
 agents
 ages
+aggregatable
 aggregate
 aggregated
 aggregates
@@ -414,8 +415,11 @@ analysis
 analyst
 analyzable
 analyze
+analyzed
 analyzer
 analyzers
+analyzes
+analyzing
 anamorphic
 anarchy
 ancestor
@@ -1181,6 +1185,8 @@ callables
 callback
 callbacks
 called
+callee
+callees
 caller
 calling
 calls
@@ -1211,6 +1217,7 @@ canonic
 canonical
 canonicalization
 canonicalize
+canonicalized
 canonization
 canonizations
 canonize
@@ -1528,6 +1535,7 @@ cocktail
 coconut
 code
 codebase
+codebases
 codebook
 codebooks
 coded
@@ -1671,6 +1679,8 @@ complete
 completed
 completely
 completeness
+completer
+completers
 completes
 completion
 complex
@@ -2164,6 +2174,14 @@ decode
 decoded
 decodes
 decoding
+decompilation
+decompilations
+decompile
+decompiled
+decompiler
+decompilers
+decompiles
+decompiling
 decompose
 decompositions
 decompound
@@ -3250,6 +3268,7 @@ filter
 filterable
 filtered
 filtering
+filterings
 filters
 fin
 final
@@ -5093,6 +5112,8 @@ minute
 minutes
 miracle
 mirror
+misannotation
+misannotations
 miscellaneous
 misconfiguration
 misconfigurations
@@ -5785,6 +5806,7 @@ parametrizing
 parcel
 pardon
 parent
+parented
 parentheses
 parenthesis
 parenthesize
@@ -6232,6 +6254,12 @@ preprocessors
 prerender
 prerendered
 prescription
+preselect
+preselected
+preselecting
+preselection
+preselections
+preselects
 presence
 present
 presentation
@@ -6571,6 +6599,9 @@ realize
 realloc
 really
 realtime
+reanalyze
+reanalyzed
+reanalyzes
 reanalyzing
 reapplication
 reason
@@ -6742,6 +6773,10 @@ reinforced
 reinforcement
 reinitialize
 reinitializes
+reinvoke
+reinvoked
+reinvokes
+reinvoking
 reject
 rejected
 relapse
@@ -7602,6 +7637,12 @@ sneakily
 sneakiness
 sneeze
 snippet
+snippeted
+snippeting
+snippetize
+snippetized
+snippetizes
+snippetizing
 snippets
 snow
 snowboard
@@ -7971,6 +8012,8 @@ subnetworks
 subnode
 subnodes
 subordinate
+subpath
+subpaths
 subpattern
 subpatterns
 subprocess
@@ -7991,6 +8034,7 @@ subscription
 subscriptions
 subscripts
 subsequence
+subsequences
 subsequent
 subsequently
 subset
@@ -8478,6 +8522,8 @@ toolbars
 toolchain
 toolchains
 tools
+toolset
+toolsets
 tooth
 toothache
 toothbrush
@@ -8831,6 +8877,7 @@ unigram
 unigrams
 unimplemented
 unimportant
+unimported
 uninclude
 unincluded
 unincludes

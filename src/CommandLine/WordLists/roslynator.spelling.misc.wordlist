@@ -56,8 +56,13 @@ checkdigits
 childnodes
 classname
 clearcache
+cleartext
 clienthit
+codeaction
+codeblock
 codebuilder
+codecheck
+codefences
 codefixes
 codepagelinkedfonts
 colorspace
@@ -173,6 +178,7 @@ ilmarkers
 indirectopcode
 inputfile
 inputshape
+inputstream
 internaldiagnostics
 internallogger
 ipaddress
@@ -194,6 +200,7 @@ ldind
 ldloc
 linenumber
 linenumbers
+linespan
 linkskip
 localbuilder
 lockpool
@@ -240,6 +247,7 @@ metafile
 methodcall
 methodinfo
 methodname
+methodsyntax
 millionseconds
 mimetype
 minargs
@@ -313,6 +321,7 @@ preenumeratetheories
 processdir
 productid
 propertyon
+propertyvalue
 propname
 pubid
 queryresult
@@ -324,6 +333,7 @@ rbuttonup
 readuncommitted
 readwrite
 realdiv
+realpath
 recordset
 refcount
 refdate
@@ -360,6 +370,7 @@ softmax
 softplus
 softsign
 somefile
+somepoint
 sortcode
 sourcemember
 specialname
@@ -387,6 +398,7 @@ subspan
 subview
 subviews
 superview
+symbolfilter
 sysid
 syskeydown
 syskeyup

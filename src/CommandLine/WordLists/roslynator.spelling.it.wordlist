@@ -1,3 +1,4 @@
+jtoken
 aac
 acklam
 acos
@@ -21,6 +22,7 @@ algo
 alloc
 allocs
 amd
+antlr
 api
 apis
 app
@@ -49,6 +51,7 @@ automapper
 aux
 axapta
 azure
+backcompat
 bayes
 bcc
 bcl
@@ -107,11 +110,14 @@ cpus
 cref
 crlf
 cs
+csc
 csharp
+csi
 csproj
 csrf
 css
 csv
+csx
 ctlr
 ctor
 ctors
@@ -145,6 +151,7 @@ dir
 directx
 dirichlet
 dirs
+distro
 div
 django
 dll
@@ -167,6 +174,7 @@ downshift
 dpi
 dram
 drm
+dsl
 dtd
 dto
 dtos
@@ -289,6 +297,7 @@ initobj
 instapayment
 int
 intelli
+intellisense
 intellitrace
 interop
 ints
@@ -335,6 +344,7 @@ lparam
 lpcm
 lpsz
 lru
+lsp
 lstm
 lua
 luhn
@@ -385,6 +395,7 @@ njs
 nlog
 nomodule
 noop
+noops
 npgsql
 npm
 nre
@@ -404,6 +415,7 @@ odbc
 ogg
 ogv
 oledb
+omnisharp
 onchange
 onclick
 opengl
@@ -432,6 +444,7 @@ pentium
 perf
 perl
 php
+pid
 pkce
 pkg
 pkgdef
@@ -476,6 +489,7 @@ rom
 roslyn
 rpc
 rsa
+rsp
 rss
 rtl
 rtmp
@@ -489,6 +503,7 @@ scala
 scilab
 scm
 sdk
+sdks
 sdram
 selenium
 semver
@@ -497,9 +512,12 @@ serilog
 servlet
 shebang
 sid
+signalr
 sinh
 sizeof
 sln
+slnproj
+slnx
 smalltalk
 smtp
 spec
@@ -557,6 +575,8 @@ twitter
 txt
 typelib
 typeof
+typeparam
+typeparams
 typescript
 ubuntu
 udp
@@ -598,6 +618,7 @@ virt
 vm
 vob
 vorbis
+vscode
 vshost
 vsixmanifest
 vssdk

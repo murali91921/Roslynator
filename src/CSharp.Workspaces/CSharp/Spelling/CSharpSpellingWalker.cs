@@ -222,12 +222,22 @@ namespace Roslynator.CSharp.Spelling
                 }
             }
 
-            var spellingError = new SpellingError(
+            SyntaxNode node = identifier.Parent;
+
+            if (node.IsKind(SyntaxKind.IdentifierName)
+                && node.IsParentKind(SyntaxKind.NameEquals)
+                && node.Parent.IsParentKind(SyntaxKind.UsingDirective))
+            {
+                node = node.Parent.Parent;
+            }
+
+            var spellingError = new CSharpSpellingError(
                 value,
                 containingValue,
                 Location.Create(syntaxTree, textSpan),
                 index,
-                identifier);
+                identifier,
+                node);
 
             (Errors ??= new List<SpellingError>()).Add(spellingError);
 
@@ -565,6 +575,23 @@ namespace Roslynator.CSharp.Spelling
         {
             if (value.Length < 3)
                 return false;
+
+            switch (value)
+            {
+                case "xyz":
+                case "Xyz":
+                case "XYZ":
+                case "asdfgh":
+                case "Asdfgh":
+                case "ASDFGH":
+                case "qwerty":
+                case "Qwerty":
+                case "QWERTY":
+                case "qwertz":
+                case "Qwertz":
+                case "QWERTZ":
+                    return true;
+            }
 
             if (IsSequence())
                 return true;

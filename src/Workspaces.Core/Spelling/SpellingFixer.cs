@@ -130,73 +130,52 @@ namespace Roslynator.Spelling
             List<SpellingError> commentErrors = errors.Where(f => !f.IsSymbol).ToList();
 
             var applyChanges = false;
-            var errorsRemoved = false;
 
             project = CurrentSolution.GetProject(project.Id);
 
-            Document document = null;
-
-            while (commentErrors.Count > 0)
+            foreach (IGrouping<SyntaxTree, SpellingError> grouping in commentErrors
+                .GroupBy(f => f.Location.SourceTree))
             {
-                foreach (IGrouping<SyntaxTree, SpellingError> grouping in commentErrors
-                    .GroupBy(f => f.Location.SourceTree))
+                cancellationToken.ThrowIfCancellationRequested();
+
+                Document document = project.GetDocument(grouping.Key);
+
+                SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                List<TextChange> textChanges = null;
+
+                foreach (SpellingError error in grouping.OrderBy(f => f.Location.SourceSpan.Start))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    document = project.GetDocument(grouping.Key);
+                    if (SpellingData.IgnoreList.Contains(error.Value))
+                        continue;
 
-                    SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    LogHelpers.WriteSpellingError(error, Options, sourceText, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
 
-                    TextLineCollection lines = sourceText.Lines;
+                    SpellingFix fix = GetFix(error, cancellationToken);
 
-                    List<TextChange> textChanges = null;
+                    Debug.Assert(fix.Value != "");
 
-                    foreach (SpellingError error in grouping.OrderBy(f => f.Location.SourceSpan.Start))
+                    if (!fix.IsDefault
+                        && !string.Equals(fix.Value, error.Value, StringComparison.Ordinal))
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
+                        (textChanges ??= new List<TextChange>()).Add(new TextChange(error.Location.SourceSpan, fix.Value));
 
-                        LogHelpers.WriteSpellingError(error, Options, sourceText, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
-
-                        SpellingFix fix = GetFix(error, cancellationToken);
-
-                        Debug.Assert(fix.Value != "");
-
-                        if (!fix.IsDefault
-                            && !string.Equals(fix.Value, error.Value, StringComparison.Ordinal))
-                        {
-                            (textChanges ??= new List<TextChange>()).Add(new TextChange(error.Location.SourceSpan, fix.Value));
-
-                            ProcessFix(error, fix);
-
-                            commentErrors.Remove(error);
-                        }
-                        else
-                        {
-                            SpellingData = SpellingData.AddIgnoredValue(error.Value);
-
-                            if (commentErrors.RemoveAll(f => SpellingData.IgnoreList.Comparer.Equals(f.Value, error.Value)) > 0)
-                            {
-                                errors.RemoveAll(f => SpellingData.IgnoreList.Comparer.Equals(f.Value, error.Value));
-                                errorsRemoved = true;
-                                break;
-                            }
-                        }
+                        ProcessFix(error, fix);
                     }
-
-                    if (textChanges != null
-                        && (!errorsRemoved || !commentErrors.Any(f => f.Location.SourceTree == grouping.Key)))
+                    else
                     {
-                        document = await document.WithTextChangesAsync(textChanges, cancellationToken).ConfigureAwait(false);
-                        project = document.Project;
-
-                        applyChanges = true;
+                        SpellingData = SpellingData.AddIgnoredValue(error.Value);
                     }
+                }
 
-                    if (errorsRemoved)
-                    {
-                        errorsRemoved = false;
-                        break;
-                    }
+                if (textChanges != null)
+                {
+                    document = await document.WithTextChangesAsync(textChanges, cancellationToken).ConfigureAwait(false);
+                    project = document.Project;
+
+                    applyChanges = true;
                 }
             }
 
@@ -243,14 +222,30 @@ namespace Roslynator.Spelling
                 SyntaxNode root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                 SyntaxToken identifier = error.Identifier;
+                SyntaxNode node = error.Node;
 
-                SyntaxToken identifier2 = root.FindToken(error.Location.SourceSpan.Start, findInsideTrivia: false);
-
-                if (identifier.Span != identifier2.Span
-                    || identifier.RawKind != identifier2.RawKind
-                    || !string.Equals(identifier2.ValueText, identifier2.ValueText, StringComparison.Ordinal))
+                if (identifier.SyntaxTree != root.SyntaxTree)
                 {
-                    continue;
+                    SyntaxToken identifier2 = root.FindToken(error.Location.SourceSpan.Start, findInsideTrivia: false);
+
+                    if (identifier.Span != identifier2.Span
+                        || identifier.RawKind != identifier2.RawKind
+                        || !string.Equals(identifier2.ValueText, identifier2.ValueText, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    SyntaxNode node2 = identifier2.Parent;
+
+                    SyntaxNode n = identifier.Parent;
+                    while (n != node)
+                    {
+                        node2 = node2.Parent;
+                        n = n.Parent;
+                    }
+
+                    identifier = identifier2;
+                    node = node2;
                 }
 
                 SourceText sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -259,8 +254,8 @@ namespace Roslynator.Spelling
 
                 SemanticModel semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                ISymbol symbol = semanticModel.GetDeclaredSymbol(identifier2.Parent, cancellationToken)
-                    ?? semanticModel.GetSymbol(identifier2.Parent, cancellationToken);
+                ISymbol symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken)
+                    ?? semanticModel.GetSymbol(node, cancellationToken);
 
                 Debug.Assert(symbol != null, identifier.ToString());
 
@@ -308,7 +303,7 @@ namespace Roslynator.Spelling
                     WriteLine($"    Cannot rename '{symbol.Name}'", ConsoleColor.Yellow, Verbosity.Normal);
 #if DEBUG
                     WriteLine(document.FilePath);
-                    WriteLine(identifier.Text);
+                    WriteLine(identifier.ValueText);
                     WriteLine(ex.ToString());
 #endif
                     SpellingData = SpellingData.AddIgnoredValue(error.Value);
@@ -337,10 +332,11 @@ namespace Roslynator.Spelling
 
             if (Options.AutoFix
                 && spellingError.IsContained
-                && SpellingData.FixList.TryGetValue(containingValue, out ImmutableHashSet<SpellingFix> fixes2)
-                && fixes2.Count == 1)
+                && SpellingData.FixList.TryGetValue(containingValue, out ImmutableHashSet<SpellingFix> fixes2))
             {
-                SpellingFix singleFix = fixes2.SingleOrDefault(f => f.Kind == SpellingFixKind.List, shouldThrow: false);
+                SpellingFix singleFix = fixes2.SingleOrDefault(
+                    f => f.Kind == SpellingFixKind.List && spellingError.IsApplicableFix(f.Value),
+                    shouldThrow: false);
 
                 if (string.Equals(containingValue, singleFix.Value, StringComparison.Ordinal))
                 {
@@ -359,7 +355,9 @@ namespace Roslynator.Spelling
                 if (Options.AutoFix
                     && textCasing != TextCasing.Mixed)
                 {
-                    SpellingFix fix3 = fixes3.SingleOrDefault(shouldThrow: false);
+                    SpellingFix fix3 = fixes3.SingleOrDefault(
+                        f => spellingError.IsApplicableFix(f.Value),
+                        shouldThrow: false);
 
                     if (!fix3.IsDefault)
                     {
@@ -376,7 +374,8 @@ namespace Roslynator.Spelling
                 if (fix.IsDefault)
                 {
                     fixes = fixes3
-                        .Where(f => TextUtility.GetTextCasing(f.Value) != TextCasing.Mixed)
+                        .Where(f => TextUtility.GetTextCasing(f.Value) != TextCasing.Mixed
+                            && spellingError.IsApplicableFix(f.Value))
                         .Select(f => f.WithValue(TextUtility.SetTextCasing(f.Value, textCasing)))
                         .ToList();
                 }
@@ -388,7 +387,7 @@ namespace Roslynator.Spelling
                 if (textCasing != TextCasing.Mixed)
                 {
                     if (fixes.Count == 0)
-                        AddPossibleFixes(spellingError, fixes, cancellationToken);
+                        AddPossibleFixes(spellingError, ref fixes, cancellationToken);
 
                     fix = ChooseFix(spellingError, fixes);
                 }
@@ -404,11 +403,7 @@ namespace Roslynator.Spelling
                 if (spellingError.IsContained
                     && spellingError.IsSymbol)
                 {
-                    int endIndex = spellingError.Index + value.Length;
-
-                    string newValue = containingValue.Remove(spellingError.Index)
-                        + fix.Value
-                        + containingValue.Substring(endIndex, containingValue.Length - endIndex);
+                    string newValue = spellingError.ApplyFix(fix.Value);
 
                     fix = fix.WithValue(newValue);
                 }
@@ -425,9 +420,8 @@ namespace Roslynator.Spelling
                 .Distinct(SpellingFixComparer.Default)
                 .Where(f =>
                 {
-                    //TODO: is valid identifier
-                    return !spellingError.IsSymbol
-                        || (!f.Value.Contains('\'') && !f.Value.Contains('-'));
+                    return f.Kind == SpellingFixKind.List
+                        || spellingError.IsApplicableFix(f.Value);
                 })
                 .Select(fix =>
                 {
@@ -455,7 +449,7 @@ namespace Roslynator.Spelling
             return default;
         }
 
-        private void AddPossibleFixes(SpellingError spellingError, List<SpellingFix> fixes, CancellationToken cancellationToken)
+        private void AddPossibleFixes(SpellingError spellingError, ref List<SpellingFix> fixes, CancellationToken cancellationToken)
         {
             Debug.WriteLine($"find possible fix for '{spellingError.Value}'");
 
@@ -481,10 +475,15 @@ namespace Roslynator.Spelling
                             .Insert(splitIndex, char.ToUpperInvariant(value[splitIndex]).ToString()),
                         SpellingFixKind.Split));
 
-                    // foobar > foo bar
-                    if (!spellingError.IsSymbol
-                        && splitIndex > 1)
+                    if (spellingError.IsSymbol)
                     {
+                        // foobar > foo_bar
+                        if (spellingError.ContainingValue.Contains("_"))
+                            fixes.Add(new SpellingFix(value.Insert(splitIndex, "_"), SpellingFixKind.Split));
+                    }
+                    else if (splitIndex > 1)
+                    {
+                        // foobar > foo bar
                         fixes.Add(new SpellingFix(value.Insert(splitIndex, " "), SpellingFixKind.Split));
                     }
                 }

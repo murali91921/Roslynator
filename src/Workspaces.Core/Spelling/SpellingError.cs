@@ -6,26 +6,27 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslynator.Spelling
 {
-    //TODO: add SpellingError.IsApplicableFix
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    internal class SpellingError
+    internal abstract class SpellingError
     {
         private string _valueLower;
         private bool? _isContained;
         private TextCasing? _casing;
 
-        public SpellingError(
+        protected SpellingError(
             string value,
             string containingValue,
             Location location,
             int index,
-            SyntaxToken identifier = default)
+            SyntaxToken identifier = default,
+            SyntaxNode node = default)
         {
             Value = value;
             ContainingValue = containingValue;
             Location = location;
             Index = index;
             Identifier = identifier;
+            Node = node ?? identifier.Parent;
         }
 
         public string Value { get; }
@@ -62,5 +63,24 @@ namespace Roslynator.Spelling
                 return $"{Value}  {value2}";
             }
         }
+
+        public SyntaxNode Node { get; }
+
+        public string ApplyFix(string fix)
+        {
+            if (!IsSymbol)
+                return fix;
+
+            string value = Value;
+            string containingValue = ContainingValue;
+
+            int endIndex = Index + value.Length;
+
+            return containingValue.Remove(Index)
+                + fix
+                + containingValue.Substring(endIndex, containingValue.Length - endIndex);
+        }
+
+        public abstract bool IsApplicableFix(string fix);
     }
 }
