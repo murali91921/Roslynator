@@ -1,4 +1,3 @@
-jtoken
 aac
 acklam
 acos
@@ -36,6 +35,7 @@ asc
 asf
 asin
 asinh
+asm
 asp
 aspnet
 aspx
@@ -84,6 +84,7 @@ cdata
 cdn
 chars
 cil
+cjk
 cli
 clojure
 clr
@@ -100,6 +101,7 @@ const
 consts
 coord
 coords
+cordbg
 corefx
 corlib
 cosh
@@ -131,7 +133,9 @@ dbo
 ddl
 ddr
 debian
+decl
 def
+defs
 delim
 delphi
 deps
@@ -143,8 +147,6 @@ diag
 dib
 dic
 dict
-diff
-diffs
 dingbat
 dingbats
 dir
@@ -175,6 +177,7 @@ dpi
 dram
 drm
 dsl
+dst
 dtd
 dto
 dtos
@@ -183,6 +186,7 @@ dvd
 dvi
 dvr
 dxva
+ebcdic
 ecma
 editorconfig
 elif
@@ -196,6 +200,7 @@ enum
 enums
 eof
 eol
+eols
 epg
 erlang
 err
@@ -267,12 +272,14 @@ hidebysig
 hkcu
 hklm
 href
+hresult
 htm
 html
 http
 https
 hwnd
 hypertext
+iana
 icollection
 icollections
 icsharpcode
@@ -282,6 +289,7 @@ ids
 idx
 ienumerable
 ienumerables
+ietf
 iframe
 ifs
 iife
@@ -307,9 +315,9 @@ ip
 ipod
 ips
 ipv
+iso
 jarray
 javascript
-jit
 jni
 jobj
 jpeg
@@ -318,6 +326,7 @@ jpg
 jquery
 js
 json
+jtoken
 kerberos
 keydown
 keyup
@@ -342,7 +351,10 @@ logon
 lorem
 lparam
 lpcm
+lpcstr
+lpctstr
 lpsz
+lptstr
 lru
 lsp
 lstm
@@ -389,10 +401,12 @@ netcore
 netframework
 netstandard
 newtonsoft
+ngen
 nginx
 ninject
 njs
 nlog
+nodejs
 nomodule
 noop
 noops
@@ -412,6 +426,7 @@ nvidia
 obj
 octocat
 odbc
+oem
 ogg
 ogv
 oledb
@@ -484,6 +499,7 @@ rfc
 rfid
 rgb
 rgba
+rnd
 roboconf
 rom
 roslyn
@@ -511,8 +527,10 @@ seq
 serilog
 servlet
 shebang
+shlobj
 sid
 signalr
+silverlight
 sinh
 sizeof
 sln
@@ -555,6 +573,7 @@ sys
 tanh
 tcp
 temp
+testhost
 tfm
 thisobj
 tizen
@@ -615,6 +634,7 @@ verilog
 vga
 vim
 virt
+vlq
 vm
 vob
 vorbis
@@ -622,6 +642,7 @@ vscode
 vshost
 vsixmanifest
 vssdk
+vstest
 vsthrd
 vsto
 vsts
@@ -630,6 +651,8 @@ wcf
 webforms
 webp
 wifi
+winbase
+windir
 winform
 winforms
 wma

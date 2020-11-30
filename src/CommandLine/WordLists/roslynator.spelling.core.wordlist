@@ -4,6 +4,8 @@ abandonment
 abandons
 abbreviation
 abbreviations
+abbreviator
+abbreviators
 abilities
 ability
 able
@@ -108,6 +110,8 @@ accumulation
 accumulations
 accumulator
 accumulators
+accuracies
+accuracy
 accurate
 accurately
 accuse
@@ -746,6 +750,7 @@ background
 backgrounded
 backing
 backoff
+backout
 backpack
 backpacker
 backpacking
@@ -906,6 +911,8 @@ bible
 bicubic
 bicycle
 bicyclist
+bidirectional
+bidirectionally
 big
 bigram
 bigrammed
@@ -932,6 +939,12 @@ birth
 birthday
 birthright
 biscuit
+bisect
+bisected
+bisecting
+bisector
+bisectors
+bisects
 bit
 bite
 bitmap
@@ -1027,6 +1040,8 @@ bounds
 bow
 bowl
 box
+boxable
+boxed
 boxes
 boxing
 boy
@@ -1373,6 +1388,8 @@ checkboxes
 checked
 checker
 checking
+checkline
+checklines
 checkout
 checkpoint
 checkpointable
@@ -1496,6 +1513,10 @@ clinical
 clip
 clipboard
 clipping
+clobber
+clobbered
+clobbering
+clobbers
 clock
 clockwork
 clone
@@ -1647,6 +1668,7 @@ company
 comparable
 comparables
 comparand
+comparands
 compare
 compared
 comparer
@@ -1869,6 +1891,7 @@ contrast
 contrastive
 contrastively
 contravariance
+contravariant
 contribute
 contribution
 control
@@ -1893,6 +1916,8 @@ converter
 converters
 convertible
 convertibles
+convertor
+convertors
 converts
 conviction
 convince
@@ -2159,6 +2184,7 @@ decimals
 decimation
 decision
 deck
+declarable
 declaration
 declarations
 declaratively
@@ -2195,6 +2221,7 @@ deconstruct
 deconstructed
 deconstructing
 deconstruction
+deconstructions
 deconstructs
 decorate
 decorated
@@ -2272,9 +2299,14 @@ delicate
 delicious
 delight
 delighted
+delimit
+delimitation
+delimitations
 delimited
 delimiter
 delimiters
+delimiting
+delimits
 deliver
 delivery
 delta
@@ -2364,6 +2396,7 @@ descriptive
 descriptor
 descriptors
 deserializability
+deserializable
 deserialization
 deserializations
 deserialize
@@ -2453,6 +2486,8 @@ didn't
 die
 died
 diet
+diff
+diffed
 differ
 difference
 different
@@ -2467,6 +2502,8 @@ differently
 differs
 difficult
 difficulty
+diffing
+diffs
 diffuse
 diffused
 diffuses
@@ -2863,7 +2900,7 @@ encyclopedia
 encylopedia
 end
 ended
-endiannes
+endianness
 ending
 endings
 ends
@@ -2888,6 +2925,10 @@ enqueued
 enqueues
 enqueuing
 enquiry
+enquote
+enquoted
+enquotes
+enquoting
 enrich
 enriched
 enricher
@@ -2938,6 +2979,8 @@ equals
 equatable
 equate
 equation
+equidistant
+equidistantly
 equip
 equipment
 equivalence
@@ -2947,6 +2990,8 @@ eras
 erase
 erode
 erosion
+erroneous
+erroneously
 error
 errored
 erroring
@@ -3105,6 +3150,7 @@ export
 exported
 exporter
 exports
+exposable
 expose
 exposed
 exposes
@@ -3615,6 +3661,7 @@ glasses
 glitch
 glitches
 global
+globalizable
 globalization
 globalize
 globals
@@ -3710,6 +3757,8 @@ grouped
 grouping
 groupings
 groups
+groveler
+grovelers
 grow
 growable
 growing
@@ -3894,6 +3943,7 @@ highlighting
 highly
 highway
 hijack
+hijri
 hill
 him
 himself
@@ -4443,6 +4493,7 @@ iterates
 iterating
 iteration
 iterations
+iteratively
 iterator
 iterators
 it'll
@@ -4472,6 +4523,10 @@ jewellery
 jewelry
 jewish
 jews
+jit
+jits
+jitted
+jitting
 job
 jobs
 jockey
@@ -4857,6 +4912,7 @@ lump
 lunch
 lunchtime
 lung
+lunisolar
 lurk
 lurked
 lurking
@@ -5088,6 +5144,8 @@ mine
 miner
 mineral
 minified
+minifier
+minifiers
 minifies
 minify
 minifying
@@ -5255,6 +5313,7 @@ multithread
 multithreaded
 multithreading
 mum
+munge
 murder
 muscle
 museum
@@ -5410,6 +5469,7 @@ nonlinear
 nonlinearities
 nonlinearity
 nonlinearly
+nonnegative
 nonsensical
 nonspacing
 nonstandard
@@ -5521,6 +5581,8 @@ octal
 octet
 octets
 october
+octuplet
+octuplets
 odd
 odds
 of
@@ -5645,6 +5707,7 @@ outcome
 outcomes
 outcrop
 outcry
+outdent
 outdoor
 outdoors
 outer
@@ -5759,6 +5822,7 @@ painter
 painting
 pair
 pairs
+pairwise
 pajamas
 palace
 palatalization
@@ -5855,6 +5919,8 @@ pasta
 paste
 pasted
 patch
+patcher
+patchers
 patches
 patent
 path
@@ -6007,6 +6073,10 @@ pirate
 piston
 pitch
 pity
+pivot
+pivotal
+pivoting
+pivots
 pixel
 pixels
 pizza
@@ -6136,6 +6206,8 @@ postconditions
 posted
 poster
 postfix
+postfixed
+postfixes
 postman
 postmark
 postmaster
@@ -6197,6 +6269,12 @@ precomputed
 precomputes
 precondition
 preconditions
+preconvert
+preconverted
+preconverter
+preconverters
+preconverting
+preconverts
 predate
 predeclare
 predeclared
@@ -6597,6 +6675,12 @@ realistic
 reality
 realize
 realloc
+reallocate
+reallocated
+reallocates
+reallocating
+reallocation
+reallocations
 really
 realtime
 reanalyze
@@ -6618,6 +6702,10 @@ rebinding
 rebinds
 reboot
 rebound
+rebox
+reboxed
+reboxes
+reboxing
 rebuild
 recalculate
 recall
@@ -6706,8 +6794,12 @@ reenable
 reenabled
 reenables
 reenabling
+reentrance
+reentrances
 reentrancies
 reentrancy
+reentrant
+reentrants
 refactor
 refactored
 refactoring
@@ -6723,6 +6815,9 @@ referred
 refers
 refine
 reflect
+reflectabilities
+reflectability
+reflectable
 reflection
 reflux
 reform
@@ -6771,6 +6866,7 @@ reimplements
 reinforce
 reinforced
 reinforcement
+reinit
 reinitialize
 reinitializes
 reinvoke
@@ -6983,6 +7079,7 @@ residue
 resign
 resist
 resistance
+resizable
 resize
 resized
 resizer
@@ -7284,6 +7381,7 @@ screenshot
 screenshots
 screw
 script
+scriptable
 scripts
 scroll
 scrollable
@@ -7329,6 +7427,8 @@ seekable
 seem
 seems
 seen
+segfault
+segfaults
 segment
 segmentations
 segmenter
@@ -7360,6 +7460,8 @@ senior
 sense
 sensible
 sensitive
+sensitiveness
+sensitivenesses
 sensitivity
 sent
 sentence
@@ -7930,6 +8032,7 @@ strictly
 strike
 strikethrough
 string
+stringable
 stringification
 stringifications
 stringified
@@ -7966,6 +8069,8 @@ stylesheets
 styling
 stylish
 stylus
+subarray
+subarrays
 subautomaton
 subautomatons
 subclassed
@@ -7981,6 +8086,8 @@ subdivision
 subdivisions
 subelement
 subelements
+subexpression
+subexpressions
 subfolder
 subfolders
 subgraph
@@ -8582,6 +8689,7 @@ training
 trait
 traits
 tram
+trampolines
 transcode
 transcoded
 transcoder
@@ -8617,6 +8725,14 @@ transliterators
 transmission
 transmit
 transparent
+transpilation
+transpilations
+transpile
+transpiled
+transpiler
+transpilers
+transpiles
+transpiling
 transplant
 transport
 transportation
@@ -8645,7 +8761,16 @@ tree
 trees
 tremendous
 trend
+triage
+triaged
+triages
+triaging
 trial
+trialed
+trialing
+trialled
+trialling
+trials
 triangle
 triangulation
 triangulations
@@ -8766,6 +8891,7 @@ unchanged
 uncheck
 unchecked
 uncle
+unclosable
 unclosed
 uncomfortable
 uncomment
@@ -8778,6 +8904,7 @@ uncompressing
 unconditionally
 unconstrained
 unconverted
+undeclarable
 undeclared
 undecoded
 undefer
@@ -8801,6 +8928,8 @@ undergrowth
 underlaying
 underlie
 underline
+underling
+underlings
 underlying
 undermined
 underneath
@@ -8856,6 +8985,7 @@ unformats
 unformatted
 unformatting
 unfortunately
+unfound
 unfriend
 unfriended
 unfriending
@@ -9002,6 +9132,7 @@ unscales
 unscaling
 unsets
 unsetting
+unshift
 unsigned
 unsorted
 unspecified
@@ -9031,6 +9162,7 @@ untagging
 untags
 until
 untokenized
+untrusted
 untyped
 unused
 unusual
@@ -9170,6 +9302,7 @@ versa
 versatile
 verse
 version
+versionable
 versioned
 versioning
 versions
@@ -9221,6 +9354,8 @@ visits
 visual
 visualization
 visualizations
+visualizer
+visualizers
 vital
 vitamin
 vocabulary

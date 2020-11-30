@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -16,120 +17,98 @@ namespace Roslynator.Spelling
         {
             int length = value.Length;
 
-            ImmutableArray<(string, int, int)>.Builder fixes = null;
-            ImmutableHashSet<string> values;
-            ImmutableHashSet<string> valuesAllButLast = ImmutableHashSet<string>.Empty;
-            ImmutableDictionary<char, int> charMap = null;
+            if (length < 4)
+                return ImmutableArray<string>.Empty;
 
+            ImmutableDictionary<string, (string, int, int)>.Builder fixes = null;
+            ImmutableDictionary<char, int> charMap = null;
             WordCharMap map = spellingData.List.CharIndexMap;
             WordCharMap reversedMap = spellingData.List.ReversedCharIndexMap;
+            var intersects = new ImmutableHashSet<string>[length];
 
-            int max = length;
-            int i;
-
-            for (; max >= 0; max = i - 1)
+            int i = 0;
+            while (i < length)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                //Debug.WriteLine($"\r\nmax: {max}");
+                if (!map.TryGetValue(value, i, out ImmutableHashSet<string> values))
+                    break;
 
-                values = ImmutableHashSet<string>.Empty;
+                ImmutableHashSet<string> intersect = (i == 0)
+                    ? values
+                    : intersects[i - 1].Intersect(values);
 
-                int min = -1;
-                i = -1;
+                if (intersect.Count == 0)
+                    break;
 
-                if (max > 0)
+                intersects[i] = intersect;
+                i++;
+            }
+
+            if (i >= length - 1)
+                ProcessValues(intersects[length - 2]);
+
+            if (i == length)
+                ProcessValues(intersects[length - 1]);
+
+            int j = length - 1;
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!reversedMap.TryGetValue(value[j], length - j - 1, out ImmutableHashSet<string> values))
+                    break;
+
+                ImmutableHashSet<string> intersect = (j == length - 1)
+                    ? values
+                    : values.Intersect(intersects[j + 1]);
+
+                if (intersect.Count == 0)
+                    break;
+
+                intersects[j] = intersect;
+
+                if (j <= 1)
                 {
-                    i++;
-                    while (i < max)
-                    {
-                        if (!map.TryGetValue(value, i, out ImmutableHashSet<string> values2))
-                            break;
+                    ImmutableHashSet<string> values3 = intersects[j];
+                    ProcessValues(values3);
 
-                        ImmutableHashSet<string> intersect = (i == 0)
-                            ? values2
-                            : values.Intersect(values2);
-
-                        if (intersect.Count == 0)
-                            break;
-
-                        //Debug.WriteLine($"left  {i,2}  {value[i]} {intersect.Count,5}");
-
-                        if (i == length - 2
-                            && max == length)
-                        {
-                            valuesAllButLast = intersect;
-                        }
-
-                        values = intersect;
-                        min = i;
-                        i++;
-                    }
-                }
-
-                int j = length - 1;
-                while (j > min)
-                {
-                    if (!reversedMap.TryGetValue(
-                        value[j],
-                        length - j - 1,
-                        out ImmutableHashSet<string> values2))
-                    {
+                    if (j == 0)
                         break;
-                    }
-
-                    ImmutableHashSet<string> intersect;
-                    if (max == 0
-                        && j == length - 1)
-                    {
-                        intersect = values2;
-                    }
-                    else
-                    {
-                        intersect = values.Intersect(values2);
-                    }
-
-                    if (intersect.Count == 0)
-                        break;
-
-                    //Debug.WriteLine($"right {j,2}  {value[j]} {intersect.Count,5}");
-
-                    values = intersect;
-                    j--;
                 }
 
                 int diff = j - i;
 
-                if (Math.Abs(diff) <= 1)
-                    ProcessValues(values);
+                if (diff <= 0)
+                {
+                    ProcessValues(intersects[j - 1].Intersect(intersects[j]));
+
+                    if (j > 1)
+                        ProcessValues(intersects[j - 2].Intersect(intersects[j]));
+                }
+                else if (diff == 1)
+                {
+                    ProcessValues(intersects[j - 2].Intersect(intersects[j]));
+                }
+
+                j--;
             }
 
-            ProcessValues(valuesAllButLast);
+            if (j <= 0)
+                ProcessValues(intersects[1]);
+
+            if (i == -1)
+                ProcessValues(intersects[0]);
 
             if (fixes == null)
                 return ImmutableArray<string>.Empty;
 
-            fixes.Sort((x, y) =>
-            {
-                int a = (x.Item2 < 0) ? -x.Item2 : x.Item2;
-                int b = (y.Item2 < 0) ? -y.Item2 : y.Item2;
+            List<(string, int, int)> fixes2 = fixes.Select(f => f.Value).ToList();
 
-                int diff = a.CompareTo(b);
+            fixes2.Sort((x, y) => Sort(x, y));
 
-                if (diff != 0)
-                    return diff;
-
-                diff = x.Item3.CompareTo(y.Item3);
-
-                if (diff! != 0)
-                    return diff;
-
-                return StringComparer.CurrentCulture.Compare(x.Item1, y.Item1);
-            });
-
-            return fixes
+            return fixes2
                 .Select(f => f.Item1)
-                .Distinct(WordList.DefaultComparer)
                 .ToImmutableArray();
 
             void ProcessValues(ImmutableHashSet<string> values)
@@ -138,8 +117,8 @@ namespace Roslynator.Spelling
                 {
                     int lengthDiff = length - value2.Length;
 
-                    if (Math.Abs(lengthDiff) <= 1
-                        || (lengthDiff == -2 && length >= 6))
+                    if ((Math.Abs(lengthDiff) <= 1 || (lengthDiff == -2 && length >= 6))
+                        && fixes?.ContainsKey(value2) != true)
                     {
                         int charDiff = GetCharDiff(value2);
 
@@ -149,8 +128,8 @@ namespace Roslynator.Spelling
                             || (lengthDiff == 1 && charDiff == 1)
                             || (lengthDiff == -2 && charDiff == 0))
                         {
-                            (fixes ??= ImmutableArray.CreateBuilder<(string, int, int)>())
-                                .Add((value2, lengthDiff, charDiff));
+                            (fixes ??= ImmutableDictionary.CreateBuilder<string, (string, int, int)>(WordList.DefaultComparer))
+                                .Add(value2, (value2, lengthDiff, charDiff));
                         }
                     }
                 }
@@ -169,7 +148,25 @@ namespace Roslynator.Spelling
                     .Join(charMap, g => g.Key, kvp => kvp.Key, (g, kvp) => Math.Min(g.Count(), kvp.Value))
                     .Sum();
 
-                return value.Length - count;
+                return length - count;
+            }
+
+            static int Sort((string, int, int) x, (string, int, int) y)
+            {
+                int a = (x.Item2 < 0) ? -x.Item2 : x.Item2;
+                int b = (y.Item2 < 0) ? -y.Item2 : y.Item2;
+
+                int diff = a.CompareTo(b);
+
+                if (diff != 0)
+                    return diff;
+
+                diff = x.Item3.CompareTo(y.Item3);
+
+                if (diff! != 0)
+                    return diff;
+
+                return StringComparer.CurrentCulture.Compare(x.Item1, y.Item1);
             }
         }
 
@@ -178,6 +175,11 @@ namespace Roslynator.Spelling
             SpellingData spellingData,
             CancellationToken cancellationToken = default)
         {
+            int length = value.Length;
+
+            if (length < 4)
+                return ImmutableArray<string>.Empty;
+
             ImmutableArray<string>.Builder fixes = null;
 
             ImmutableHashSet<string> values = ImmutableHashSet<string>.Empty;
@@ -199,15 +201,15 @@ namespace Roslynator.Spelling
                     break;
             }
 
-            int maxDiff = (value.Length <= 6) ? 2 : 3;
+            int maxDiff = (length <= 6) ? 2 : 3;
 
             foreach (string value2 in values)
             {
-                if (value.Length == value2.Length)
+                if (length == value2.Length)
                 {
                     int diff = 0;
 
-                    for (int i = 0; i < value.Length; i++)
+                    for (int i = 0; i < length; i++)
                     {
                         if (value[i] != value2[i])
                             diff++;
@@ -233,10 +235,11 @@ namespace Roslynator.Spelling
             CancellationToken cancellationToken = default)
         {
             string value = spellingError.Value;
+            int length = value.Length;
 
             ImmutableArray<int>.Builder splitIndexes = null;
 
-            if (value.Length >= 4)
+            if (length >= 4)
             {
                 char ch = value[0];
 
@@ -250,7 +253,7 @@ namespace Roslynator.Spelling
                 }
             }
 
-            if (value.Length < 6)
+            if (length < 6)
                 return splitIndexes?.ToImmutableArray() ?? ImmutableArray<int>.Empty;
 
             value = spellingError.ValueLower;
@@ -259,7 +262,7 @@ namespace Roslynator.Spelling
 
             ImmutableHashSet<string> values = ImmutableHashSet<string>.Empty;
 
-            for (int i = 0; i < value.Length - 3; i++)
+            for (int i = 0; i < length - 3; i++)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -281,7 +284,7 @@ namespace Roslynator.Spelling
 
                     ImmutableHashSet<string> values3 = ImmutableHashSet<string>.Empty;
 
-                    for (int j = i + 1; j < value.Length; j++)
+                    for (int j = i + 1; j < length; j++)
                     {
                         if (!map.TryGetValue(value[j], j - i - 1, out ImmutableHashSet<string> values4))
                             break;
@@ -294,7 +297,7 @@ namespace Roslynator.Spelling
 
                     foreach (string value3 in values3)
                     {
-                        if (value3.Length != value.Length - i - 1)
+                        if (value3.Length != length - i - 1)
                             continue;
 
                         (splitIndexes ??= ImmutableArray.CreateBuilder<int>()).Add(i + 1);

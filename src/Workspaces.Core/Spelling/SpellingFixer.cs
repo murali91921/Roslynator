@@ -489,23 +489,20 @@ namespace Roslynator.Spelling
                 }
             }
 
-            if (spellingError.Length >= 4)
+            foreach (string match in SpellingFixProvider.SwapMatches(
+                spellingError.ValueLower,
+                SpellingData,
+                cancellationToken))
             {
-                foreach (string match in SpellingFixProvider.SwapMatches(
-                    spellingError.ValueLower,
-                    SpellingData,
-                    cancellationToken))
-                {
-                    fixes.Add(new SpellingFix(match, SpellingFixKind.Swap));
-                }
+                fixes.Add(new SpellingFix(match, SpellingFixKind.Swap));
+            }
 
-                foreach (string match in SpellingFixProvider.FuzzyMatches(
-                    spellingError.ValueLower,
-                    SpellingData,
-                    cancellationToken))
-                {
-                    fixes.Add(new SpellingFix(match, SpellingFixKind.Fuzzy));
-                }
+            foreach (string match in SpellingFixProvider.FuzzyMatches(
+                spellingError.ValueLower,
+                SpellingData,
+                cancellationToken))
+            {
+                fixes.Add(new SpellingFix(match, SpellingFixKind.Fuzzy));
             }
         }
 

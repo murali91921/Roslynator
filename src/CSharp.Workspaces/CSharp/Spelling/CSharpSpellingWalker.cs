@@ -386,12 +386,6 @@ namespace Roslynator.CSharp.Spelling
             base.VisitCatchDeclaration(node);
         }
 
-        public override void VisitExternAliasDirective(ExternAliasDirectiveSyntax node)
-        {
-            AnalyzeIdentifier(node.Identifier);
-            base.VisitExternAliasDirective(node);
-        }
-
         public override void VisitUsingDirective(UsingDirectiveSyntax node)
         {
             if (node.Alias != null)

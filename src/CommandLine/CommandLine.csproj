@@ -70,7 +70,7 @@
     <None Update="WordLists\roslynator.spelling.core2.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="WordLists\roslynator.spelling.compound.wordlist">
+    <None Update="WordLists\roslynator.spelling.hyphen.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="WordLists\roslynator.spelling.misc.wordlist">

@@ -53,7 +53,7 @@ namespace Roslynator.CSharp.Spelling
                 }
             }
 
-            return false;
+            return true;
         }
     }
 }

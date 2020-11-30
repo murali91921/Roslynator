@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-//#define NON_INTERACTIVE
+#define NON_INTERACTIVE
 
 using System;
 using System.Collections.Generic;
@@ -107,7 +107,7 @@ namespace Roslynator.CommandLine
                     {
                         string value = f.ToLowerInvariant();
 #if DEBUG
-                        if (value.Length >= 6)
+                        if (value.Length >= 10)
                         {
                             var fixes = new List<string>();
 
@@ -140,13 +140,13 @@ namespace Roslynator.CommandLine
 
             if (fixes.Count > 0)
             {
-                string path2 = fixListPath + ".tmp";
+                Dictionary<string, List<SpellingFix>> dic = fixes
+                    .ToDictionary(f => f.Key, f => f.Value.ToList(), WordList.DefaultComparer);
+
+                const string path2 = fixListPath + ".tmp";
 
                 if (File.Exists(path2))
                 {
-                    Dictionary<string, List<SpellingFix>> dic = fixes
-                        .ToDictionary(f => f.Key, f => f.Value.ToList(), WordList.DefaultComparer);
-
                     foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in FixList.Load(path2).Items)
                     {
                         if (dic.TryGetValue(kvp.Key, out List<SpellingFix> list))
@@ -158,25 +158,25 @@ namespace Roslynator.CommandLine
                             dic[kvp.Key] = kvp.Value.ToList();
                         }
                     }
-
-                    foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in FixList.Load(fixListPath).Items)
-                    {
-                        if (dic.TryGetValue(kvp.Key, out List<SpellingFix> list))
-                        {
-                            list.RemoveAll(f => kvp.Value.Contains(f, SpellingFixComparer.Default));
-
-                            if (list.Count == 0)
-                                dic.Remove(kvp.Key);
-                        }
-                    }
-
-                    fixes = dic.ToImmutableDictionary(
-                        f => f.Key.ToLowerInvariant(),
-                        f => f.Value
-                            .Select(f => f.WithValue(f.Value.ToLowerInvariant()))
-                            .Distinct(SpellingFixComparer.Default)
-                            .ToImmutableHashSet(SpellingFixComparer.Default));
                 }
+
+                foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in FixList.Load(fixListPath).Items)
+                {
+                    if (dic.TryGetValue(kvp.Key, out List<SpellingFix> list))
+                    {
+                        list.RemoveAll(f => kvp.Value.Contains(f, SpellingFixComparer.Default));
+
+                        if (list.Count == 0)
+                            dic.Remove(kvp.Key);
+                    }
+                }
+
+                fixes = dic.ToImmutableDictionary(
+                    f => f.Key.ToLowerInvariant(),
+                    f => f.Value
+                        .Select(f => f.WithValue(f.Value.ToLowerInvariant()))
+                        .Distinct(SpellingFixComparer.Default)
+                        .ToImmutableHashSet(SpellingFixComparer.Default));
 
                 FixList.Save(path2, fixes);
             }
