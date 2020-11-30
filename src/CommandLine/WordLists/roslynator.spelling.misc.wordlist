@@ -101,6 +101,7 @@ configfile
 connectionstring
 connectionstrings
 constructorwrapper
+contenttype
 contextmanager
 contextmarshal
 controlbox
@@ -128,6 +129,7 @@ datatype
 datatypes
 dateformat
 datetime
+datetimeoffset
 dayofweek
 dbtype
 defineproperty
@@ -153,7 +155,9 @@ enginecodes
 entrypoint
 entrypointnotfound
 enummemberattribute
+errorwithbody
 eventfire
+eventhandler
 eventport
 executionengine
 exename
@@ -383,6 +387,7 @@ opentype
 operationcanceled
 operationid
 orderid
+othername
 outofmemory
 overridebehaviorfactory
 packagedhtml
@@ -430,6 +435,7 @@ renderingfunctions
 requesthasnoparameter
 requesthasparameter
 resolutioncontext
+resourcestring
 restapi
 restartargs
 restartpath
@@ -582,5 +588,6 @@ winuser
 wireup
 withexception
 writeline
+writeonlysubect
 yourname
 yournamee

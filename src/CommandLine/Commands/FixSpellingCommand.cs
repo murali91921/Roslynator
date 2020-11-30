@@ -107,7 +107,7 @@ namespace Roslynator.CommandLine
                     {
                         string value = f.ToLowerInvariant();
 #if DEBUG
-                        if (value.Length >= 10)
+                        if (value.Length >= 9)
                         {
                             var fixes = new List<string>();
 

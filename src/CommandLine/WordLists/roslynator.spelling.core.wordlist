@@ -151,6 +151,8 @@ activated
 activates
 activation
 activations
+activator
+activators
 active
 actively
 activist
@@ -174,6 +176,8 @@ adaptational
 adaptationally
 adaptations
 adapted
+adaptee
+adaptees
 adapter
 adapters
 adapting
@@ -676,6 +680,8 @@ authenticated
 authenticates
 authenticating
 authentication
+authenticator
+authenticators
 author
 authority
 authorization
@@ -692,6 +698,7 @@ autocompleted
 autocompletes
 autocompleting
 autocompletion
+autodetect
 autodetecting
 autodiscovery
 autogenerate
@@ -1256,6 +1263,8 @@ caption
 captions
 capture
 captured
+capturer
+capturers
 captures
 car
 carbon
@@ -1291,6 +1300,7 @@ cash
 cashpoint
 casing
 cast
+castable
 casting
 castle
 casual
@@ -1562,6 +1572,8 @@ codebooks
 coded
 codepage
 codepages
+codependent
+codependents
 codepoint
 codepoints
 codes
@@ -1679,6 +1691,7 @@ comparison
 comparisons
 compatibility
 compatible
+compatibly
 compensate
 compensation
 compete
@@ -1716,6 +1729,9 @@ composability
 composable
 compose
 composite
+composited
+composites
+compositing
 composition
 compound
 compoundings
@@ -1850,6 +1866,7 @@ constrains
 constraint
 constraints
 construct
+constructable
 constructed
 construction
 constructor
@@ -2180,6 +2197,7 @@ decentralization
 decide
 decided
 decimal
+decimalization
 decimals
 decimation
 decision
@@ -2395,6 +2413,10 @@ descriptions
 descriptive
 descriptor
 descriptors
+deselect
+deselected
+deselecting
+deselects
 deserializability
 deserializable
 deserialization
@@ -3252,6 +3274,7 @@ favor
 favorite
 favour
 favourite
+favourites
 fax
 fear
 feasibility
@@ -4187,6 +4210,8 @@ indentations
 indented
 indenter
 indenting
+indention
+indentions
 independence
 independent
 independently
@@ -4251,8 +4276,11 @@ infringed
 ingredient
 inherent
 inherit
+inheritable
 inheritance
+inheritances
 inherited
+inheriting
 inherits
 inhibit
 inhibition
@@ -5063,6 +5091,7 @@ melody
 melon
 melt
 member
+memberless
 members
 membership
 memberwise
@@ -5110,6 +5139,8 @@ mexicans
 micro
 microcode
 microscope
+microsecond
+microseconds
 microtexture
 microtextures
 microwave
@@ -5333,6 +5364,8 @@ mutated
 mutates
 mutation
 mutations
+mutator
+mutators
 mutual
 mutually
 mux
@@ -5351,6 +5384,7 @@ name
 named
 names
 namespace
+namespaced
 namespaces
 naming
 narrative
@@ -5465,6 +5499,7 @@ nonetheless
 nonexisting
 nongeneric
 noninfringement
+noninheritable
 nonlinear
 nonlinearities
 nonlinearity
@@ -6067,6 +6102,7 @@ pings
 pink
 pipe
 pipeline
+pipelined
 pipelines
 piracy
 pirate
@@ -6158,6 +6194,7 @@ polyfill
 polygamma
 polygon
 polygons
+polymorphically
 polymorphism
 ponderate
 ponderates
@@ -6821,6 +6858,7 @@ reflectable
 reflection
 reflux
 reform
+reformattable
 refresh
 refreshable
 refreshed
@@ -6988,6 +7026,7 @@ replicator
 replicators
 reply
 report
+reportable
 reported
 reportee
 reportees
@@ -7442,6 +7481,7 @@ selections
 selector
 selectors
 self
+selfclosing
 selfish
 sell
 semantic
@@ -7933,6 +7973,7 @@ star
 stare
 starry
 start
+startable
 started
 starting
 starts
@@ -8073,6 +8114,8 @@ subarray
 subarrays
 subautomaton
 subautomatons
+subchild
+subchilds
 subclassed
 subclassing
 subclause
@@ -8365,6 +8408,7 @@ tablet
 tabs
 tactic
 tag
+taggable
 tagline
 taglines
 tags
@@ -8527,7 +8571,10 @@ thrashing
 thread
 threading
 threat
+threated
 threaten
+threating
+threats
 three
 threshold
 thresholding
@@ -9104,6 +9151,7 @@ unpaused
 unpauses
 unpausing
 unpleasant
+unpopped
 unpositioned
 unpredicted
 unprefixed
@@ -9130,6 +9178,7 @@ unscale
 unscaled
 unscales
 unscaling
+unserializable
 unsets
 unsetting
 unshift
