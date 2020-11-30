@@ -1,15 +1,15 @@
-dhcp
-snk
-ntp
-uucp
-vararg
-varchar
-varchars
-sscli
-fqn
-syslog
-udp
-tcp
+saml
+inet
+uint
+uints
+sspi
+tcpip
+sasl
+msdtc
+ordbms
+superuser
+superusers
+hmac
 aac
 acklam
 acos
@@ -68,8 +68,10 @@ backcompat
 bayes
 bcc
 bcl
+bcp
 beforefieldinit
 bernoulli
+bigint
 bin
 bitbucket
 bitcoin
@@ -143,6 +145,7 @@ curr
 cz
 db
 dbg
+dbms
 dbo
 ddl
 ddr
@@ -157,6 +160,7 @@ deref
 desc
 dest
 dev
+dhcp
 diag
 dib
 dic
@@ -225,6 +229,7 @@ exe
 exec
 exp
 expando
+expandos
 expr
 ext
 externs
@@ -232,6 +237,7 @@ fakers
 faq
 ffmpeg
 filterpriority
+firebase
 firefox
 fixme
 flac
@@ -248,6 +254,7 @@ formfeed
 fortran
 fourier
 foxpro
+fqn
 frag
 frags
 freq
@@ -285,6 +292,7 @@ hexa
 hidebysig
 hkcu
 hklm
+hql
 href
 hresult
 htm
@@ -301,6 +309,7 @@ id
 ide
 ids
 idx
+iec
 ienumerable
 ienumerables
 ietf
@@ -341,6 +350,8 @@ jquery
 js
 json
 jtoken
+jwk
+jwks
 jwt
 kerberos
 keydown
@@ -354,6 +365,7 @@ lcid
 len
 levenshtein
 lf
+lhs
 lib
 linkedin
 linq
@@ -432,6 +444,7 @@ nrefactory
 ns
 nswag
 ntlm
+ntp
 ntsc
 nuget
 nullptr
@@ -444,6 +457,7 @@ odbc
 oem
 ogg
 ogv
+oidc
 oledb
 omnisharp
 onchange
@@ -480,9 +494,12 @@ pkg
 pkgdef
 png
 pnp
+poco
+pocos
 pos
 posix
 postgre
+postgres
 pragma
 pragmas
 preinit
@@ -500,6 +517,7 @@ pylint
 quicksort
 qwerty
 ram
+rdbms
 readme
 regex
 regexes
@@ -515,6 +533,7 @@ rfc
 rfid
 rgb
 rgba
+rhs
 rnd
 roboconf
 rom
@@ -552,8 +571,10 @@ sizeof
 sln
 slnproj
 slnx
+smallint
 smalltalk
 smtp
+snk
 spec
 sql
 sqlite
@@ -561,7 +582,9 @@ sqlserver
 sqrt
 sram
 src
+srid
 srt
+sscli
 ssd
 ssdp
 ssl
@@ -586,12 +609,14 @@ svg
 swagger
 swashbuckle
 sys
+syslog
 tanh
 tcp
 temp
 testhost
 tfm
 thisobj
+tinyint
 tizen
 tlbimp
 tls
@@ -615,6 +640,7 @@ typeparams
 typescript
 ubuntu
 udp
+udt
 ui
 uid
 uids
@@ -639,11 +665,15 @@ usings
 utc
 utf
 utils
+uucp
 uuid
 uwp
 val
 var
+vararg
 varargs
+varchar
+varchars
 vba
 vbproj
 verilog

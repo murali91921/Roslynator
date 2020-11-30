@@ -105,12 +105,12 @@ namespace Roslynator.Spelling
 
                 if (span.IsValid)
                 {
-                    Write($"  ", Verbosity.Normal);
+                    Write("  ", Verbosity.Normal);
                     Write(span.Path, Verbosity.Normal);
 
                     LinePosition linePosition = span.StartLinePosition;
 
-                    WriteLine($"  ({linePosition.Line + 1},{linePosition.Character + 1})", Verbosity.Normal);
+                    WriteLine($"({linePosition.Line + 1},{linePosition.Character + 1})", Verbosity.Normal);
                 }
             }
         }
@@ -321,8 +321,8 @@ namespace Roslynator.Spelling
                 SpellingFix fix = GetFix(error, cancellationToken);
                 SpellingFix originalFix = fix;
 
-                if (error.IsContained
-                    && error.IsSymbol)
+                if (!fix.IsDefault
+                    && error.IsContained)
                 {
                     fix = fix.WithValue(error.ApplyFix(fix.Value));
                 }
@@ -474,17 +474,7 @@ namespace Roslynator.Spelling
             }
 
             if (!fix.IsDefault)
-            {
                 WriteFix(spellingError, fix);
-
-                if (spellingError.IsContained
-                    && spellingError.IsSymbol)
-                {
-                    string newValue = spellingError.ApplyFix(fix.Value);
-
-                    fix = fix.WithValue(newValue);
-                }
-            }
 
             return fix;
         }

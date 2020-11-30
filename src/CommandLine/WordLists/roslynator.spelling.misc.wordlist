@@ -1,10 +1,12 @@
-invalidchars
-ipchains
-openlog
-computername
-someexception
-stacktracedetail
-eventlog
+datareader
+datatypename
+daterange
+tablesample
+descriptioncancellation
+enumsortorder
+functioncall
+linestrings
+
 abandonedmutex
 abswatchlist
 actiontype
@@ -105,6 +107,7 @@ combobox
 commandline
 completetable
 complextype
+computername
 configdir
 configfile
 connectionstring
@@ -167,6 +170,7 @@ enummemberattribute
 errorwithbody
 eventfire
 eventhandler
+eventlog
 eventport
 executionengine
 exename
@@ -235,6 +239,7 @@ httppost
 hwmap
 hwuploaded
 hyperparameters
+identityserver
 iformatflags
 ignorecase
 ilmarkers
@@ -251,11 +256,14 @@ internaldiagnostics
 internallogger
 invalidarg
 invalidcast
+invalidchars
 invalidcomobject
 invalidfiltercriteria
 invalidoperation
 invalidprogram
 ipaddress
+ipchains
+isdirty
 isnot
 isnotnull
 isnull
@@ -276,6 +284,8 @@ lbuttonup
 ldind
 ldloc
 lefttree
+libname
+likelyname
 linearray
 linehash
 linenumber
@@ -403,6 +413,7 @@ onreadystatechange
 ontimeout
 openapi
 openicon
+openlog
 opentype
 operationcanceled
 operationid
@@ -410,6 +421,7 @@ orderid
 othername
 outofmemory
 overridebehaviorfactory
+ownerid
 packagedhtml
 pageid
 pagesize
@@ -494,6 +506,7 @@ soapaction
 softmax
 softplus
 softsign
+someexception
 somefile
 somepoint
 sortcode
@@ -502,6 +515,7 @@ specialname
 stackframe
 stackframes
 stacktrace
+stacktracedetail
 stacktraces
 startat
 startend
@@ -593,6 +607,7 @@ urlpath
 usecancellationtokenistrue
 usecancellationtokenparameter
 usercontrol
+userinfo
 userview
 usesystemdefault
 valuetype

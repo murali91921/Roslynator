@@ -71,7 +71,7 @@ namespace Roslynator.CommandLine
 
                 Stopwatch stopwatch = Stopwatch.StartNew();
 
-                SpellingFixResult result = await spellingFixer.FixProjectAsync(project, cancellationToken);
+                ImmutableArray<SpellingFixResult> results = await spellingFixer.FixProjectAsync(project, cancellationToken);
 
                 stopwatch.Stop();
 
