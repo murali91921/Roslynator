@@ -1,3 +1,15 @@
+dhcp
+snk
+ntp
+uucp
+vararg
+varchar
+varchars
+sscli
+fqn
+syslog
+udp
+tcp
 aac
 acklam
 acos

@@ -120,7 +120,7 @@ namespace Roslynator.CSharp.Spelling
 
             while (match.Success)
             {
-                if (match.Length > 2)
+                if (match.Length >= Options.MinWordLength)
                 {
                     foreach (SplitItem splitItem in SplitItemCollection.Create(_splitCommentWordRegex, match.Value))
                     {
@@ -145,7 +145,7 @@ namespace Roslynator.CSharp.Spelling
         {
             string value = identifier.ValueText;
 
-            if (value.Length < 3)
+            if (value.Length < Options.MinWordLength)
                 return;
 
             if (prefixLength > 0)
@@ -197,7 +197,7 @@ namespace Roslynator.CSharp.Spelling
             SyntaxTree syntaxTree,
             bool isSimpleIdentifier)
         {
-            if (value.Length < 3)
+            if (value.Length < Options.MinWordLength)
                 return false;
 
             if (IsAllowedNonsensicalWord(value))
