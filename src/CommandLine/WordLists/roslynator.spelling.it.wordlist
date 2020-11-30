@@ -1,15 +1,14 @@
-saml
-inet
-uint
-uints
-sspi
-tcpip
-sasl
-msdtc
-ordbms
-superuser
-superusers
-hmac
+xlsm
+pkcs
+visio
+elisp
+mhtml
+tgz
+ecmascript
+adpcm
+aifc
+aiff
+asx
 aac
 acklam
 acos
@@ -292,6 +291,7 @@ hexa
 hidebysig
 hkcu
 hklm
+hmac
 hql
 href
 hresult
@@ -322,6 +322,7 @@ ilist
 ilists
 img
 impl
+inet
 inheritdoc
 ini
 initobj
@@ -416,6 +417,7 @@ msbuild
 mscorlib
 msde
 msdn
+msdtc
 msil
 msmq
 mssql
@@ -463,6 +465,7 @@ omnisharp
 onchange
 onclick
 opengl
+ordbms
 org
 orig
 orm
@@ -547,6 +550,8 @@ rtmp
 rtsp
 ruleset
 rxjs
+saml
+sasl
 sass
 sbyte
 sbytes
@@ -589,6 +594,7 @@ ssd
 ssdp
 ssl
 sso
+sspi
 ssv
 stackalloc
 stackoverflow
@@ -604,6 +610,8 @@ sub
 subdir
 subdirs
 substr
+superuser
+superusers
 svc
 svg
 swagger
@@ -612,6 +620,7 @@ sys
 syslog
 tanh
 tcp
+tcpip
 temp
 testhost
 tfm
@@ -645,6 +654,7 @@ ui
 uid
 uids
 uint
+uints
 uis
 uitest
 ulong
