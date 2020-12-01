@@ -315,8 +315,11 @@ namespace Roslynator.Spelling
                     continue;
                 }
 
-                if (!symbol.IsVisible(Options.SymbolVisibility))
+                if (!symbol.IsKind(SymbolKind.Namespace, SymbolKind.Alias)
+                    && !symbol.IsVisible(Options.SymbolVisibility))
+                {
                     continue;
+                }
 
                 SpellingFix fix = GetFix(error, cancellationToken);
                 SpellingFix originalFix = fix;

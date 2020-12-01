@@ -574,8 +574,6 @@ namespace Roslynator
                             {
                                 case SymbolKind.Local:
                                     return Visibility.Private;
-                                case SymbolKind.Namespace:
-                                    return Visibility.Public;
                                 case SymbolKind.Parameter:
                                     {
                                         symbol = symbol.ContainingSymbol;
@@ -585,6 +583,11 @@ namespace Roslynator
                                     {
                                         symbol = symbol.ContainingSymbol;
                                         break;
+                                    }
+                                case SymbolKind.Namespace:
+                                case SymbolKind.Alias:
+                                    {
+                                        return Visibility.NotApplicable;
                                     }
                                 default:
                                     {
@@ -621,7 +624,7 @@ namespace Roslynator
             }
         }
 
-        internal static bool IsVisible(this ISymbol symbol, VisibilityFilter visibilityFilter)
+        internal static bool IsVisible(this ISymbol symbol, VisibilityFilter visibilityFilter, bool defaultIsVisible = false)
         {
             switch (symbol.GetVisibility())
             {

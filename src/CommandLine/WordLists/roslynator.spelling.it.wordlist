@@ -1,14 +1,3 @@
-xlsm
-pkcs
-visio
-elisp
-mhtml
-tgz
-ecmascript
-adpcm
-aifc
-aiff
-asx
 aac
 acklam
 acos
@@ -17,10 +6,9 @@ activex
 addon
 addons
 addr
-admin
-admins
 ado
 adodb
+adpcm
 adsl
 adt
 adtg
@@ -28,6 +16,8 @@ adts
 agg
 agp
 ai
+aifc
+aiff
 algo
 alloc
 allocs
@@ -41,6 +31,7 @@ apps
 arg
 arglist
 args
+argv
 arr
 asax
 asc
@@ -51,6 +42,7 @@ asm
 asp
 aspnet
 aspx
+asx
 async
 atan
 atanh
@@ -70,6 +62,7 @@ bcl
 bcp
 beforefieldinit
 bernoulli
+bezier
 bigint
 bin
 bitbucket
@@ -85,12 +78,14 @@ brainfuck
 bsd
 bson
 bstr
+btn
 bugfix
 bugfixing
 bugzilla
 builtin
 byref
 byval
+calibri
 callvirt
 captcha
 captchas
@@ -132,6 +127,7 @@ csharp
 csi
 csproj
 csrf
+csrss
 css
 csv
 csx
@@ -141,6 +137,7 @@ ctors
 ctrl
 ctx
 curr
+cygwin
 cz
 db
 dbg
@@ -205,8 +202,10 @@ dvr
 dxva
 ebcdic
 ecma
+ecmascript
 editorconfig
 elif
+elisp
 elses
 emacs
 en
@@ -240,6 +239,7 @@ firebase
 firefox
 fixme
 flac
+fld
 flg
 flickr
 flv
@@ -264,14 +264,18 @@ funcs
 gac
 gauss
 gc
+gdi
 git
+gitattributes
 gitconfig
 github
 gitignore
+gmail
 gnu
 googlebot
 gopher
 goto
+gpg
 gpu
 grep
 grpc
@@ -297,11 +301,14 @@ href
 hresult
 htm
 html
+htmls
 http
+httpd
 https
 hwnd
 hypertext
 iana
+ico
 icollection
 icollections
 icsharpcode
@@ -332,6 +339,7 @@ intelli
 intellisense
 intellitrace
 interop
+interops
 ints
 io
 ioc
@@ -342,6 +350,7 @@ ipv
 iso
 jarray
 javascript
+jira
 jni
 jobj
 jpeg
@@ -354,6 +363,7 @@ jtoken
 jwk
 jwks
 jwt
+kdiff
 kerberos
 keydown
 keyup
@@ -374,6 +384,7 @@ linux
 lisp
 litecoin
 lmdb
+lnk
 localhost
 logon
 lorem
@@ -398,6 +409,7 @@ mef
 memcpy
 mergesort
 mfc
+mhtml
 microsoft
 millis
 mime
@@ -425,6 +437,7 @@ mutex
 mvc
 nameof
 nan
+nbsp
 ndp
 netcore
 netframework
@@ -490,9 +503,11 @@ peachpie
 pentium
 perf
 perl
+pgp
 php
 pid
 pkce
+pkcs
 pkg
 pkgdef
 png
@@ -522,6 +537,8 @@ qwerty
 ram
 rdbms
 readme
+rect
+rects
 regex
 regexes
 regexp
@@ -536,6 +553,7 @@ rfc
 rfid
 rgb
 rgba
+rgx
 rhs
 rnd
 roboconf
@@ -545,6 +563,8 @@ rpc
 rsa
 rsp
 rss
+rtb
+rtf
 rtl
 rtmp
 rtsp
@@ -592,6 +612,7 @@ srt
 sscli
 ssd
 ssdp
+ssh
 ssl
 sso
 sspi
@@ -624,6 +645,7 @@ tcpip
 temp
 testhost
 tfm
+tgz
 thisobj
 tinyint
 tizen
@@ -636,6 +658,7 @@ tpl
 treeview
 treeviews
 trie
+trv
 tsl
 tsql
 tsv
@@ -686,10 +709,12 @@ varchar
 varchars
 vba
 vbproj
+verdana
 verilog
 vga
 vim
 virt
+visio
 vlq
 vm
 vob
@@ -703,6 +728,7 @@ vsthrd
 vsto
 vsts
 wav
+wbmp
 wcf
 webforms
 webp
@@ -712,6 +738,7 @@ windir
 winform
 winforms
 wma
+wmi
 wmv
 wordpress
 wparam
@@ -727,6 +754,7 @@ xbmc
 xhtml
 xla
 xls
+xlsm
 xlsx
 xml
 xmldoc
@@ -740,6 +768,7 @@ xsd
 xsi
 xsl
 xslt
+xsrf
 xss
 xunit
 xvalue
