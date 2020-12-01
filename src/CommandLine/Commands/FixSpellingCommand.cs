@@ -102,7 +102,7 @@ namespace Roslynator.CommandLine
                 wordList = wordList.Except(oldIgnoreList);
 
                 IEnumerable<string> values = wordList.Values
-                    .Except(spellingFixer.SpellingData.FixList.Items.Select(f => f.Key), wordList.Comparer)
+                    .Except(spellingFixer.SpellingData.FixList.Items.Select(f => f.Key), WordList.DefaultComparer)
                     .Distinct(StringComparer.CurrentCulture)
                     .Select(f =>
                     {

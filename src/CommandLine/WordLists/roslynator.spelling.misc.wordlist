@@ -62,7 +62,6 @@ atlasimage
 atlasinputimage
 atlasrect
 attindex
-attrib
 audioexplosion
 authordate
 authoremail
@@ -1195,8 +1194,13 @@ syncroot
 sysid
 syskeydown
 syskeyup
+systemerror
+systemmemory
+systemwindow
 tablerowdelimiter
 tablesample
+tablespace
+tablespaces
 tableview
 tabstate
 tabstop
@@ -1327,8 +1331,10 @@ usercontrol
 userinfo
 userpicture
 userprofile
+userspace
 userview
 usesystemdefault
+validaterelease
 validatorrunner
 valuecount
 valuelength
@@ -1339,8 +1345,10 @@ versiontype
 videofile
 videogame
 videostream
+videostreaming
 viewdiff
 viewmodel
+viewtransformation
 vscodedark
 vscodelight
 waitandretry
@@ -1371,6 +1379,8 @@ websocket
 websockets
 webviewhtml
 weekyear
+widthpoint
+widthpoints
 windowframe
 windowtext
 winstore
@@ -1380,6 +1390,8 @@ withexception
 wndenumproc
 workdir
 workingdir
+writebuffer
+writecheque
 writeindexonly
 writeline
 writeonlysubect
