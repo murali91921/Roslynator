@@ -17,6 +17,8 @@ categorise
 categorised
 categorises
 categorising
+customise
+customised
 deserialisability
 deserialisable
 deserialisation
@@ -27,6 +29,7 @@ deserialiser
 deserialisers
 deserialises
 deserialising
+finalised
 generalised
 initialisable
 initialisation
@@ -52,6 +55,7 @@ normaliser
 normalisers
 normalises
 normalising
+parameterisable
 parameterisation
 parameterised
 parameterises
@@ -61,6 +65,11 @@ parametrise
 parametrised
 parametrises
 parametrising
+prioritised
+randomisation
+randomisations
+randomise
+randomised
 reinitialise
 reinitialised
 reinitialises
@@ -85,6 +94,7 @@ signallers
 signalling
 synchronise
 synchronises
+synthesise
 uninitialised
 visualiser
 visualisers

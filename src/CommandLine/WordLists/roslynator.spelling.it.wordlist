@@ -53,6 +53,7 @@ auth
 autofac
 automapper
 aux
+aws
 axapta
 azure
 backcompat
@@ -156,6 +157,7 @@ deref
 desc
 dest
 dev
+devops
 dhcp
 diag
 dib
@@ -253,6 +255,7 @@ formfeed
 fortran
 fourier
 foxpro
+fqdn
 fqn
 frag
 frags
@@ -284,6 +287,7 @@ guid
 guids
 gzip
 haacked
+hadoop
 hashbang
 haskell
 hdd
@@ -308,6 +312,7 @@ https
 hwnd
 hypertext
 iana
+ibm
 ico
 icollection
 icollections
@@ -347,9 +352,11 @@ ip
 ipod
 ips
 ipv
+iqueryable
 iso
 jarray
 javascript
+jdk
 jira
 jni
 jobj
@@ -399,6 +406,7 @@ lsp
 lstm
 lua
 luhn
+lzma
 macintosh
 macintoshes
 markdig
@@ -443,6 +451,10 @@ netcore
 netframework
 netstandard
 newtonsoft
+nfc
+nfd
+nfkc
+nfkd
 ngen
 nginx
 ninject
@@ -458,6 +470,7 @@ nre
 nrefactory
 ns
 nswag
+ntfs
 ntlm
 ntp
 ntsc
@@ -477,6 +490,7 @@ oledb
 omnisharp
 onchange
 onclick
+oop
 opengl
 ordbms
 org
@@ -510,6 +524,7 @@ pkce
 pkcs
 pkg
 pkgdef
+pkzip
 png
 pnp
 poco
@@ -537,6 +552,7 @@ qwerty
 ram
 rdbms
 readme
+realm
 rect
 rects
 regex
@@ -587,6 +603,8 @@ seq
 serilog
 servlet
 shebang
+shim
+shims
 shlobj
 sid
 signalr
@@ -638,8 +656,10 @@ svg
 swagger
 swashbuckle
 sys
+sysconfig
 syslog
 tanh
+tbl
 tcp
 tcpip
 temp
@@ -664,6 +684,7 @@ tsql
 tsv
 ttf
 twitter
+twofish
 txt
 typelib
 typeof
@@ -737,6 +758,7 @@ winbase
 windir
 winform
 winforms
+winzip
 wma
 wmi
 wmv

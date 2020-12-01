@@ -1,3 +1,7 @@
+auto-scaling
+non-pooled
+short-circuit
+non-virtual
 non-empty
 well-formed
 client-side
