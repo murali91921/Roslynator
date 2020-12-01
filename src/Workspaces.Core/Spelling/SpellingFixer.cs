@@ -399,7 +399,7 @@ namespace Roslynator.Spelling
                     error.Index,
                     error.Location.GetMappedLineSpan()));
 
-                ProcessFix(error, fix);
+                ProcessFix(error, originalFix);
             }
 
             return results;
@@ -688,37 +688,8 @@ namespace Roslynator.Spelling
 
         private void ProcessFix(SpellingError spellingError, SpellingFix spellingFix)
         {
-            string fix = spellingFix.Value;
-
-            string fix2 = null;
-
-            string containingValue = spellingError.ContainingValue;
-
-            int index = spellingError.Index;
-
-            if (fix.Length > index
-                && string.CompareOrdinal(fix, 0, containingValue, 0, index) == 0)
-            {
-                int endIndex = spellingError.EndIndex;
-
-                int length = containingValue.Length - endIndex;
-
-                if (fix.Length > index + length
-                    && string.CompareOrdinal(fix, fix.Length - length, containingValue, endIndex, length) == 0)
-                {
-                    fix2 = fix.Substring(index, fix.Length - length - index);
-                }
-            }
-
-            if (fix2 != null)
-            {
-                SpellingData = SpellingData.AddFix(spellingError.Value, fix2, spellingFix.Kind);
-                SpellingData = SpellingData.AddWord(fix2);
-            }
-            else
-            {
-                SpellingData = SpellingData.AddFix(spellingError.ContainingValue, spellingFix);
-            }
+            SpellingData = SpellingData.AddFix(spellingError.Value, spellingFix);
+            SpellingData = SpellingData.AddWord(spellingFix.Value);
         }
     }
 }

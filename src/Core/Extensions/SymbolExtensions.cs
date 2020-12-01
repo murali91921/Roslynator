@@ -624,7 +624,7 @@ namespace Roslynator
             }
         }
 
-        internal static bool IsVisible(this ISymbol symbol, VisibilityFilter visibilityFilter, bool defaultIsVisible = false)
+        internal static bool IsVisible(this ISymbol symbol, VisibilityFilter visibilityFilter)
         {
             switch (symbol.GetVisibility())
             {
