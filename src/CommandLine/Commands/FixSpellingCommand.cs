@@ -105,27 +105,28 @@ namespace Roslynator.CommandLine
                 IEnumerable<string> values = wordList.Values
                     .Except(spellingFixer.SpellingData.FixList.Items.Select(f => f.Key), WordList.DefaultComparer)
                     .Distinct(StringComparer.CurrentCulture)
+                    .OrderBy(f => f)
                     .Select(f =>
                     {
                         string value = f.ToLowerInvariant();
 #if DEBUG
-                        if (value.Length >= 6)
+                        var fixes = new List<string>();
+
+                        fixes.AddRange(SpellingFixProvider.SwapMatches(
+                            value,
+                            spellingFixer.SpellingData));
+
+                        if (fixes.Count == 0
+                            && value.Length >= 8)
                         {
-                            var fixes = new List<string>();
-
-                            fixes.AddRange(SpellingFixProvider.SwapMatches(
-                                value,
-                                spellingFixer.SpellingData,
-                                cancellationToken));
-
                             fixes.AddRange(SpellingFixProvider.FuzzyMatches(
                                 value,
                                 spellingFixer.SpellingData,
                                 cancellationToken));
-
-                            if (fixes.Count > 0 && fixes.Count <= 3)
-                                value = $"{value}={string.Join(",", fixes)}";
                         }
+
+                        if (fixes.Count > 0)
+                            value = $"{value}={string.Join(",", fixes)}";
 #endif
                         return value;
                     });

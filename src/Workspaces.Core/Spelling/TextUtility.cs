@@ -6,6 +6,15 @@ namespace Roslynator.Spelling
 {
     internal static class TextUtility
     {
+        public static string ReplaceRange(string s, string value, int index, int length)
+        {
+            int endIndex = index + length;
+
+            return s.Remove(index)
+                + value
+                + s.Substring(endIndex, s.Length - endIndex);
+        }
+
         public static string SetTextCasing(string s, TextCasing textCasing)
         {
             TextCasing textCasing2 = GetTextCasing(s);

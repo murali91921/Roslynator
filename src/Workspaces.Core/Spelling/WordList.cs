@@ -16,7 +16,7 @@ namespace Roslynator.Spelling
     {
         private WordCharMap _charIndexMap;
         private WordCharMap _reversedCharIndexMap;
-        private WordCharMap _charMap;
+        private ImmutableDictionary<string, ImmutableHashSet<string>> _charMap;
 
         public static StringComparer DefaultComparer { get; } = StringComparer.CurrentCultureIgnoreCase;
 
@@ -64,14 +64,41 @@ namespace Roslynator.Spelling
             }
         }
 
-        public WordCharMap CharMap
+        //TODO: del
+        //public WordCharMap CharMap
+        //{
+        //    get
+        //    {
+        //        if (_charMap == null)
+        //            Interlocked.CompareExchange(ref _charMap, WordCharMap.CreateCharMap(this), null);
+
+        //        return _charMap;
+        //    }
+        //}
+
+        public ImmutableDictionary<string, ImmutableHashSet<string>> CharMap
         {
             get
             {
                 if (_charMap == null)
-                    Interlocked.CompareExchange(ref _charMap, WordCharMap.CreateCharMap(this), null);
+                    Interlocked.CompareExchange(ref _charMap, Create(), null);
 
                 return _charMap;
+
+                ImmutableDictionary<string, ImmutableHashSet<string>> Create()
+                {
+                    return Values
+                        .Select(s =>
+                        {
+                            char[] arr = s.ToCharArray();
+
+                            Array.Sort(arr, (x, y) => x.CompareTo(y));
+
+                            return (value: s, value2: new string(arr));
+                        })
+                        .GroupBy(f => f.value, Comparer)
+                        .ToImmutableDictionary(f => f.Key, f => f.Select(f => f.value2).ToImmutableHashSet(Comparer));
+                }
             }
         }
 

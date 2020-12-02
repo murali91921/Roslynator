@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System;
 
 namespace Roslynator.Spelling
 {
@@ -85,7 +86,8 @@ namespace Roslynator.Spelling
                     if (TryAddMatches(intersects[j - 1].Intersect(intersect), length + 1, ref matches))
                         break;
                 }
-                else if (diff == 1)
+                else if (diff == 1
+                    && j > 1)
                 {
                     if (TryAddMatches(intersects[j - 2].Intersect(intersect), length - 1, length, ref matches))
                         break;
@@ -136,8 +138,7 @@ namespace Roslynator.Spelling
 
         public static ImmutableArray<string> SwapMatches(
             string value,
-            SpellingData spellingData,
-            CancellationToken cancellationToken = default)
+            SpellingData spellingData)
         {
             int length = value.Length;
 
@@ -146,46 +147,49 @@ namespace Roslynator.Spelling
 
             ImmutableArray<string>.Builder fixes = null;
 
-            ImmutableHashSet<string> values = ImmutableHashSet<string>.Empty;
+            char[] arr = value.ToCharArray();
 
-            foreach (WordChar wordChar in value
-                .GroupBy(ch => ch)
-                .Select(g => new WordChar(g.Key, g.Count())))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
+            Array.Sort(arr, (x, y) => x.CompareTo(y));
 
-                if (!spellingData.List.CharMap.TryGetValue(wordChar, out ImmutableHashSet<string> values2))
-                    break;
+            var key = new string(arr);
 
-                values = (values.Count == 0)
-                    ? values2
-                    : values.Intersect(values2);
+            if (!spellingData.List.CharMap.TryGetValue(key, out ImmutableHashSet<string> values))
+                return ImmutableArray<string>.Empty;
 
-                if (values.Count == 0)
-                    break;
-            }
-
-            int maxDiff = (length <= 6) ? 2 : 3;
+            int maxCharDiff = (length <= 6) ? 2 : 3;
 
             foreach (string value2 in values)
             {
                 if (length == value2.Length)
                 {
-                    int diff = 0;
+                    int charDiff = 0;
+                    int diffStartIndex = -1;
+                    int diffEndIndex = -1;
 
                     for (int i = 0; i < length; i++)
                     {
                         if (value[i] != value2[i])
-                            diff++;
+                        {
+                            if (diffStartIndex == -1)
+                            {
+                                diffStartIndex = i;
+                            }
+                            else
+                            {
+                                diffEndIndex = i;
+                            }
+
+                            charDiff++;
+                        }
 
                         if (i > 1
-                            && diff > maxDiff)
+                            && charDiff > maxCharDiff)
                         {
-                            break;
+                            return ImmutableArray<string>.Empty;
                         }
                     }
 
-                    if (diff <= maxDiff)
+                    if (diffEndIndex - diffStartIndex <= 2)
                         (fixes ??= ImmutableArray.CreateBuilder<string>()).Add(value2);
                 }
             }

@@ -71,14 +71,7 @@ namespace Roslynator.Spelling
             if (!IsSymbol)
                 return fix;
 
-            string value = Value;
-            string containingValue = ContainingValue;
-
-            int endIndex = Index + value.Length;
-
-            return containingValue.Remove(Index)
-                + fix
-                + containingValue.Substring(endIndex, containingValue.Length - endIndex);
+            return TextUtility.ReplaceRange(ContainingValue, fix, Index, Length);
         }
 
         public abstract bool IsApplicableFix(string fix);

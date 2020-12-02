@@ -69,23 +69,24 @@ namespace Roslynator.Spelling
             return new WordCharMap(wordList, map);
         }
 
-        public static WordCharMap CreateCharMap(WordList wordList)
-        {
-            ImmutableDictionary<WordChar, ImmutableHashSet<string>> map = wordList.Values
-                .SelectMany(s => s
-                    .GroupBy(ch => ch)
-                    .Select(g =>
-                    {
-                        return (
-                            key: new WordChar(g.Key, g.Count()),
-                            value: s);
-                    }))
-                .GroupBy(f => f.key)
-                .ToImmutableDictionary(
-                    f => f.Key,
-                    f => f.Select(f => f.value).ToImmutableHashSet(wordList.Comparer));
+        //TODO: del
+        //public static WordCharMap CreateCharMap(WordList wordList)
+        //{
+        //    ImmutableDictionary<WordChar, ImmutableHashSet<string>> map = wordList.Values
+        //        .SelectMany(s => s
+        //            .GroupBy(ch => ch)
+        //            .Select(g =>
+        //            {
+        //                return (
+        //                    key: new WordChar(g.Key, g.Count()),
+        //                    value: s);
+        //            }))
+        //        .GroupBy(f => f.key)
+        //        .ToImmutableDictionary(
+        //            f => f.Key,
+        //            f => f.Select(f => f.value).ToImmutableHashSet(wordList.Comparer));
 
-            return new WordCharMap(wordList, map);
-        }
+        //    return new WordCharMap(wordList, map);
+        //}
     }
 }

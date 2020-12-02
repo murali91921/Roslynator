@@ -174,17 +174,14 @@ namespace Roslynator.CSharp.Spelling
             {
                 Debug.Assert(splitItem.Value.All(f => char.IsLetter(f)), splitItem.Value);
 
-                if (AnalyzeValue(
+                AnalyzeValue(
                     splitItem.Value,
                     value,
                     splitItem.Index + prefixLength,
                     new TextSpan(identifier.SpanStart + splitItem.Index + prefixLength, splitItem.Length),
                     identifier,
                     identifier.SyntaxTree,
-                    isSimpleIdentifier: _simpleIdentifierToSkipRegex.IsMatch(value2)))
-                {
-                    break;
-                }
+                    isSimpleIdentifier: _simpleIdentifierToSkipRegex.IsMatch(value2));
             }
         }
 
@@ -587,25 +584,18 @@ namespace Roslynator.CSharp.Spelling
                     return true;
             }
 
-            if (IsSequence())
+            if (IsAbcSequence())
                 return true;
 
-            char ch = value[0];
-            int i = 1;
+            if (IsAaaSequence())
+                return true;
 
-            // aaa
-            while (i < value.Length)
-            {
-                if (value[i] != ch)
-                    return IsSequence2();
+            if (IsAaaBbbCccSequence())
+                return true;
 
-                i++;
-            }
+            return false;
 
-            return true;
-
-            // abc, Abc, ABC
-            bool IsSequence()
+            bool IsAbcSequence()
             {
                 int num = 0;
 
@@ -647,9 +637,42 @@ namespace Roslynator.CSharp.Spelling
                 return true;
             }
 
-            // aabbcc
-            bool IsSequence2()
+            bool IsAaaSequence()
             {
+                char ch = value[0];
+                int i = 1;
+
+                if (ch >= 65
+                    && ch <= 90
+                    && value[1] == ch + 32)
+                {
+                    ch = (char)(ch + 32);
+                    i++;
+                }
+
+                while (i < value.Length)
+                {
+                    if (value[i] != ch)
+                        return false;
+
+                    i++;
+                }
+
+                return true;
+            }
+
+            // aabbcc
+            bool IsAaaBbbCccSequence()
+            {
+                char ch = value[0];
+                int i = 1;
+
+                while (i < value.Length
+                    && value[i] == ch)
+                {
+                    i++;
+                }
+
                 if (i > 1
                     && (ch == 'a' || ch == 'A')
                     && value.Length >= 6

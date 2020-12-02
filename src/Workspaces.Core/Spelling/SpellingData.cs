@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Roslynator.Spelling
@@ -62,6 +62,16 @@ namespace Roslynator.Spelling
         public SpellingData AddIgnoredValue(string value)
         {
             return new SpellingData(List, IgnoreList.AddValue(value), FixList);
+        }
+
+        public SpellingData AddIgnoredValues(IEnumerable<SpellingError> errors)
+        {
+            return AddIgnoredValues(errors.Select(f => f.Value));
+        }
+
+        public SpellingData AddIgnoredValues(IEnumerable<string> values)
+        {
+            return new SpellingData(List, IgnoreList.AddValues(values), FixList);
         }
 
         public static SpellingData LoadFromDirectory(string directoryPath)
