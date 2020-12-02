@@ -231,6 +231,8 @@ namespace Roslynator.CSharp.Spelling
                 node = node.Parent.Parent;
             }
 
+            Debug.Assert(Options.IncludeComments || identifier.Parent != null, identifier.ValueText);
+
             var spellingError = new CSharpSpellingError(
                 value,
                 containingValue,
@@ -258,20 +260,18 @@ namespace Roslynator.CSharp.Spelling
                     }
                 case SyntaxKind.SingleLineDocumentationCommentTrivia:
                 case SyntaxKind.MultiLineDocumentationCommentTrivia:
+                case SyntaxKind.RegionDirectiveTrivia:
+                case SyntaxKind.EndRegionDirectiveTrivia:
                     {
                         if (Options.IncludeComments)
                             base.VisitTrivia(trivia);
 
                         break;
                     }
-                case SyntaxKind.RegionDirectiveTrivia:
-                case SyntaxKind.EndRegionDirectiveTrivia:
-                    {
-                        base.VisitTrivia(trivia);
-                        break;
-                    }
                 case SyntaxKind.PreprocessingMessageTrivia:
                     {
+                        Debug.Assert(Options.IncludeComments);
+
                         AnalyzeComment(trivia.ToString(), trivia.SyntaxTree, trivia.Span);
                         break;
                     }
