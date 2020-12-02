@@ -249,7 +249,18 @@ namespace Roslynator.Spelling
 
                 (SyntaxToken identifier, List<SpellingError> errors, DocumentId documentId) = symbolErrors[i];
 
-                if (errors.All(f => f == null))
+                SyntaxNode node = null;
+
+                foreach (SpellingError error in errors)
+                {
+                    if (error != null)
+                    {
+                        node = error.Node;
+                        break;
+                    }
+                }
+
+                if (node == null)
                     continue;
 
                 Document document = project.GetDocument(documentId);
@@ -264,8 +275,6 @@ namespace Roslynator.Spelling
                 }
 
                 SyntaxNode root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-                SyntaxNode node = errors[0].Node;
 
                 if (identifier.SyntaxTree != root.SyntaxTree)
                 {
@@ -319,7 +328,7 @@ namespace Roslynator.Spelling
 
                 for (int j = 0; j < errors.Count; j++)
                 {
-                    SpellingError error = errors[i];
+                    SpellingError error = errors[j];
 
                     if (error == null)
                         continue;
@@ -345,12 +354,15 @@ namespace Roslynator.Spelling
 
                             for (int l = 0; l < errors2.Count; l++)
                             {
-                                if (SpellingData.IgnoreList.Comparer.Equals(errors2[l].Value, error.Value))
+                                if (SpellingData.IgnoreList.Comparer.Equals(errors2[l]?.Value, error.Value))
                                     errors2[l] = null;
                             }
                         }
                     }
                 }
+
+                if (string.Equals(identifier.Text, newName, StringComparison.Ordinal))
+                    continue;
 
                 Solution newSolution = null;
                 if (!Options.DryRun)
@@ -359,6 +371,7 @@ namespace Roslynator.Spelling
 
                     try
                     {
+                        //TODO: check name conflict
                         newSolution = await Microsoft.CodeAnalysis.Rename.Renamer.RenameSymbolAsync(
                             CurrentSolution,
                             symbol,
@@ -398,6 +411,9 @@ namespace Roslynator.Spelling
 
                 foreach ((SpellingError error, SpellingFix fix) in fixes)
                 {
+                    if (fix.IsDefault)
+                        continue;
+
                     results.Add(new SpellingFixResult(
                         error.Value,
                         fix.Value,
