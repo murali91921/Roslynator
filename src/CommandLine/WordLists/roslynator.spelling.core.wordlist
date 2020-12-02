@@ -530,6 +530,7 @@ angle
 anglicisations
 angry
 animal
+animalia
 animals
 animatronic
 animatronically
@@ -582,6 +583,7 @@ antialiasing
 anticipate
 anticipated
 antique
+antitrigonometric
 anxiety
 anxious
 any
@@ -663,6 +665,8 @@ archimedean
 architect
 architecture
 archive
+archiver
+archivers
 arctangent
 are
 area
@@ -867,6 +871,8 @@ autocompletion
 autodetect
 autodetecting
 autodiscovery
+autofilter
+autofilters
 autoformat
 autoformats
 autoformatted
@@ -1011,6 +1017,7 @@ bar
 barbar
 barbecue
 barcode
+barcoded
 barcodes
 barely
 bareword
@@ -1173,6 +1180,8 @@ bitmasking
 bitness
 bitrate
 bits
+bitshift
+bitshifts
 bitstream
 bitter
 bitwise
@@ -1653,6 +1662,8 @@ charming
 charset
 charsets
 chart
+chartsheet
+chartsheets
 chase
 chassis
 chat
@@ -1714,6 +1725,7 @@ choice
 choices
 cholesterol
 choose
+chordata
 chorus
 chosen
 christian
@@ -1729,6 +1741,8 @@ church
 cigarette
 cinema
 cipher
+ciphered
+ciphering
 ciphers
 circle
 circuit
@@ -1957,6 +1971,7 @@ command
 commander
 commands
 commas
+comma-separated
 commata
 commence
 commenced
@@ -2030,6 +2045,7 @@ completers
 completes
 completion
 complex
+complexities
 complexity
 compliant
 complicated
@@ -2380,6 +2396,7 @@ covariant
 covariate
 covariates
 cover
+coverable
 coverage
 coverlet
 coverlets
@@ -2415,6 +2432,8 @@ crime
 criminal
 crisis
 criteria
+criterion
+criterions
 critic
 critical
 criticism
@@ -2505,6 +2524,7 @@ cycle
 cyclic
 cycling
 cyclist
+cyclomatic
 cymru
 cyrillic
 dad
@@ -2967,6 +2987,12 @@ devirtualize
 devirtualized
 devirtualizes
 devirtualizing
+devise
+devised
+devises
+devising
+devisor
+devisors
 devote
 devoted
 dew
@@ -3173,6 +3199,8 @@ disposable
 disposal
 dispose
 disposed
+disposer
+disposers
 disposes
 disposing
 disposition
@@ -3221,6 +3249,8 @@ documentary
 documentation
 documentations
 documents
+dodecagon
+dodecagons
 does
 doesn't
 dog
@@ -4017,6 +4047,7 @@ finalizer
 finalizers
 finalizes
 finalizing
+finallies
 finally
 finance
 financial
@@ -4065,6 +4096,7 @@ fixer
 fixers
 fixes
 fixing
+fixup
 fizzle
 fizzled
 fizzler
@@ -4084,6 +4116,8 @@ flaming
 flash
 flask
 flat
+flattener
+flatteners
 flavor
 flavour
 flavouring
@@ -4340,6 +4374,12 @@ genitive
 gentle
 gentleman
 gently
+geocache
+geocached
+geocacher
+geocachers
+geocaches
+geocaching
 geocentric
 geocentrically
 geocode
@@ -4403,6 +4443,7 @@ globalizable
 globalization
 globalize
 globals
+globbing
 globe
 gloop
 glory
@@ -4668,6 +4709,9 @@ helpful
 helps
 hen
 hence
+heptagon
+heptagonal
+heptagons
 her
 herb
 here
@@ -4832,6 +4876,8 @@ hunting
 hurry
 hurt
 husband
+hussar
+hussars
 hut
 hydrophile
 hydrophobe
@@ -4842,6 +4888,7 @@ hygienic
 hygienically
 hygienics
 hyperlink
+hyperlinks
 hypervisor
 hypervisors
 hyphen
@@ -4906,6 +4953,7 @@ immigration
 immutability
 immutable
 impact
+impeccable
 imperfective
 imperial
 implant
@@ -5184,6 +5232,7 @@ instructions
 instructor
 instructs
 instrument
+instrumentable
 instrumental
 instrumentalism
 instrumentalisms
@@ -5191,6 +5240,7 @@ instrumentalities
 instrumentality
 instrumented
 instrumenting
+instrumentor
 instruments
 insulator
 insult
@@ -5896,6 +5946,7 @@ male
 malformed
 mall
 malware
+mammalia
 man
 manage
 manageabilities
@@ -6205,6 +6256,7 @@ misformats
 misformatted
 misformatting
 mismatch
+mismatches
 misrecognize
 misrecognized
 misrecognizes
@@ -6270,6 +6322,9 @@ molecule
 mom
 moment
 momentum
+monad
+monadic
+monads
 monday
 money
 monitor
@@ -6360,6 +6415,7 @@ multipoint
 multipoints
 multipolygon
 multipolygons
+multiprocess
 multiprocessing
 multiscale
 multisearch
@@ -6369,6 +6425,7 @@ multistatements
 multithread
 multithreaded
 multithreading
+multivalued
 multivariate
 mum
 munge
@@ -6458,6 +6515,8 @@ negateable
 negated
 negation
 negative
+negator
+negators
 neglect
 negotiate
 negotiation
@@ -6945,6 +7004,8 @@ padding
 paddings
 page
 pageable
+pagebreak
+pagebreaks
 paged
 pager
 pagers
@@ -7039,6 +7100,8 @@ parrot
 parsable
 parse
 parseable
+parsec
+parsecs
 parsed
 parser
 parsers
@@ -7070,6 +7133,8 @@ passes
 passing
 passion
 passive
+passphrase
+passphrases
 passport
 passthrough
 password
@@ -7265,6 +7330,7 @@ piston
 pitch
 pity
 pivot
+pivotable
 pivotal
 pivoting
 pivots
@@ -7291,6 +7357,7 @@ planet
 planning
 plans
 plant
+plantae
 plaster
 plastic
 plate
@@ -7513,6 +7580,8 @@ predefine
 predefined
 predefines
 predefining
+predetermines
+predetermining
 predicate
 predicated
 predicates
@@ -7859,6 +7928,8 @@ quantum
 quarry
 quarter
 quarterback
+quartile
+quartiles
 quaternion
 quaternions
 queen
@@ -8075,7 +8146,12 @@ recompile
 recompiled
 recompose
 recomposed
+recompress
+recompressed
 recompresses
+recompressing
+recompression
+recompressions
 recomputation
 recomputations
 recompute
@@ -8936,6 +9012,8 @@ searching
 seaside
 season
 seat
+secant
+secants
 second
 secondary
 secondhand
@@ -9154,6 +9232,8 @@ sideboard
 sidecar
 sidecars
 sidewalk
+sidewall
+sidewalls
 sigh
 sight
 sightseeing
@@ -9628,11 +9708,13 @@ stressed
 stressful
 stretch
 stretcher
+stricken
 strict
 stricter
 strictly
 strike
 strikethrough
+striking
 string
 stringable
 stringification
@@ -9650,6 +9732,7 @@ stroke
 strong
 strongly
 strongnamed
+struck
 structure
 structured
 struggle
@@ -9764,6 +9847,7 @@ subsequences
 subsequent
 subsequently
 subset
+subsets
 subsidiary
 subsidy
 subsonic
@@ -9793,12 +9877,16 @@ subtitle
 subtitles
 subtoken
 subtokens
+subtotal
+subtotally
+subtotals
 subtract
 subtraction
 subtree
 subtrees
 subtrie
 subversion
+subverting
 subword
 subwords
 succeed
@@ -10113,6 +10201,8 @@ team
 tear
 teardown
 teardowns
+teardrop
+teardrops
 tearing
 tears
 teaspoon
@@ -10215,6 +10305,10 @@ therapy
 there
 thereby
 therefore
+thermodynamic
+thermodynamical
+thermodynamically
+thermodynamics
 thermometer
 these
 thesis
@@ -10533,6 +10627,7 @@ trigger
 triggered
 triggering
 triggers
+trigonometric
 trigram
 trigrams
 trilinear
@@ -10596,6 +10691,7 @@ tweets
 twelve
 twenty
 twice
+twiddled
 twin
 twip
 twips
@@ -10681,6 +10777,7 @@ unconfigured
 unconstrained
 unconverted
 uncorrelated
+uncreated
 undecidable
 undeclarable
 undeclared
@@ -11124,6 +11221,7 @@ used
 useful
 useless
 user
+user-defined
 username
 usernames
 users
@@ -11135,6 +11233,7 @@ uterus
 utilities
 utility
 utilize
+u-turn
 vacation
 vacuously
 valency
@@ -11377,6 +11476,7 @@ welcome
 welfare
 well
 we'll
+well-formed
 went
 were
 we're
@@ -11557,6 +11657,7 @@ youth
 you've
 zebra
 zero
+zero-based
 zeros
 zeta
 zinc

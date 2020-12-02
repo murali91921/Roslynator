@@ -87,30 +87,18 @@ namespace Roslynator.Spelling
 
             WriteLine(Verbosity.Normal);
 
-            foreach (SpellingFixResult result in results
+            foreach (IGrouping<SpellingFixResult, SpellingFixResult> grouping in results
                 .SelectMany(f => f)
                 .OrderBy(f => f.OldValue)
                 .ThenBy(f => f.NewValue)
-                .ThenBy(f => f.LineSpan.Path)
-                .ThenBy(f => f.LineSpan.StartLinePosition))
+                .GroupBy(f => f, SpellingFixResultEqualityComparer.OldValueAndNewValue))
             {
-                Write($"{result.OldValue} {result.NewValue}", Verbosity.Normal);
+                WriteLine($"{grouping.Key.OldValue} = {grouping.Key.NewValue}", Verbosity.Normal);
 
-                if (result.IsSymbol)
-                    Write($"  {result.OldIdentifier} {result.NewIdentifier}", Verbosity.Normal);
-
-                WriteLine(Verbosity.Normal);
-
-                FileLinePositionSpan span = result.LineSpan;
-
-                if (span.IsValid)
+                foreach (SpellingFixResult result in grouping)
                 {
-                    Write("  ", Verbosity.Normal);
-                    Write(span.Path, Verbosity.Normal);
-
-                    LinePosition linePosition = span.StartLinePosition;
-
-                    WriteLine($"({linePosition.Line + 1},{linePosition.Character + 1})", Verbosity.Normal);
+                    if (result.IsSymbol)
+                        WriteLine($"  {result.OldIdentifier}  {result.NewIdentifier}", Verbosity.Normal);
                 }
             }
         }
@@ -486,6 +474,7 @@ namespace Roslynator.Spelling
             SpellingError spellingError,
             List<SpellingFix> fixes)
         {
+            //TODO: set max number of suggestions
             fixes = fixes
                 .Distinct(SpellingFixComparer.Default)
                 .Where(f =>

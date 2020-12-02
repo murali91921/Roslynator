@@ -31,7 +31,19 @@ api
 apis
 app
 apps
+arccos
+arccosecant
+arccosine
+arccot
+arccotangent
+arccsc
+arcsec
+arcsecant
+arcsin
+arcsine
+arctan
 arg
+argb
 arglist
 args
 argv
@@ -127,9 +139,15 @@ coord
 coords
 cordbg
 corefx
+corelib
 corlib
+cos
+cosecant
 cosh
 cosine
+cot
+cotangent
+coth
 cpp
 cpu
 cpus
@@ -137,6 +155,7 @@ cref
 crlf
 cs
 csc
+csch
 csharp
 csi
 csproj
@@ -192,6 +211,7 @@ distro
 div
 divx
 django
+dlg
 dll
 dlls
 dlna
@@ -298,6 +318,8 @@ gitattributes
 gitconfig
 github
 gitignore
+glob
+globs
 glonass
 gmail
 gnome
@@ -573,6 +595,7 @@ peachpie
 pentium
 perf
 perl
+pfx
 pgp
 php
 pid
@@ -593,6 +616,7 @@ postgre
 postgres
 ppi
 pptp
+pr
 pragma
 pragmas
 preinit
@@ -610,6 +634,7 @@ pylint
 quicksort
 qwerty
 ram
+rar
 rdbms
 readme
 realm
@@ -661,6 +686,8 @@ sctp
 sdk
 sdks
 sdram
+sec
+sech
 selenium
 semver
 seq
@@ -732,6 +759,7 @@ swashbuckle
 sys
 sysconfig
 syslog
+tan
 tanh
 tbl
 tcp

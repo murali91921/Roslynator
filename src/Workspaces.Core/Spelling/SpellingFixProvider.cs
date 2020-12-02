@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -17,17 +15,16 @@ namespace Roslynator.Spelling
         {
             int length = value.Length;
 
-            if (length < 4)
+            if (length <= 3)
                 return ImmutableArray<string>.Empty;
 
-            ImmutableDictionary<string, (string, int, int)>.Builder fixes = null;
-            ImmutableDictionary<char, int> charMap = null;
+            ImmutableHashSet<string>.Builder matches = null;
             WordCharMap map = spellingData.List.CharIndexMap;
             WordCharMap reversedMap = spellingData.List.ReversedCharIndexMap;
             var intersects = new ImmutableHashSet<string>[length];
 
             int i = 0;
-            while (i < length)
+            while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -38,18 +35,23 @@ namespace Roslynator.Spelling
                     ? values
                     : intersects[i - 1].Intersect(values);
 
+                if (i == length - 2)
+                {
+                    TryAddMatches(intersect, length, ref matches);
+                }
+                else if (i == length - 1)
+                {
+                    TryAddMatches(intersect, length + 1, ref matches);
+
+                    break;
+                }
+
                 if (intersect.Count == 0)
                     break;
 
                 intersects[i] = intersect;
                 i++;
             }
-
-            if (i >= length - 1)
-                ProcessValues(intersects[length - 2]);
-
-            if (i == length)
-                ProcessValues(intersects[length - 1]);
 
             int j = length - 1;
             while (true)
@@ -63,111 +65,73 @@ namespace Roslynator.Spelling
                     ? values
                     : values.Intersect(intersects[j + 1]);
 
+                if (j == 1)
+                {
+                    TryAddMatches(intersect, length, ref matches);
+                }
+                else if (j == 0)
+                {
+                    TryAddMatches(intersect, length + 1, ref matches);
+                    break;
+                }
+
                 if (intersect.Count == 0)
                     break;
-
-                intersects[j] = intersect;
-
-                if (j <= 1)
-                {
-                    ImmutableHashSet<string> values3 = intersects[j];
-                    ProcessValues(values3);
-
-                    if (j == 0)
-                        break;
-                }
 
                 int diff = j - i;
 
                 if (diff <= 0)
                 {
-                    ProcessValues(intersects[j - 1].Intersect(intersects[j]));
-
-                    if (j > 1)
-                        ProcessValues(intersects[j - 2].Intersect(intersects[j]));
+                    if (TryAddMatches(intersects[j - 1].Intersect(intersect), length + 1, ref matches))
+                        break;
                 }
                 else if (diff == 1)
                 {
-                    ProcessValues(intersects[j - 2].Intersect(intersects[j]));
+                    if (TryAddMatches(intersects[j - 2].Intersect(intersect), length - 1, length, ref matches))
+                        break;
                 }
 
+                intersects[j] = intersect;
                 j--;
             }
 
-            if (j <= 0)
-                ProcessValues(intersects[1]);
-
-            if (i == -1)
-                ProcessValues(intersects[0]);
-
-            if (fixes == null)
+            if (matches == null)
                 return ImmutableArray<string>.Empty;
 
-            List<(string, int, int)> fixes2 = fixes.Select(f => f.Value).ToList();
-
-            fixes2.Sort((x, y) => Sort(x, y));
-
-            return fixes2
-                .Select(f => f.Item1)
+            return matches
+                .OrderBy(f => f)
                 .ToImmutableArray();
+        }
 
-            void ProcessValues(ImmutableHashSet<string> values)
+        private static bool TryAddMatches(
+            ImmutableHashSet<string> values,
+            int requiredLength,
+            ref ImmutableHashSet<string>.Builder matches)
+        {
+            return TryAddMatches(values, requiredLength, requiredLength, ref matches);
+        }
+
+        private static bool TryAddMatches(
+            ImmutableHashSet<string> values,
+            int minRequiredLength,
+            int maxRequiredLength,
+            ref ImmutableHashSet<string>.Builder matches)
+        {
+            var success = false;
+
+            foreach (string value2 in values)
             {
-                foreach (string value2 in values)
+                if (value2.Length < minRequiredLength
+                    || value2.Length > maxRequiredLength)
                 {
-                    int lengthDiff = length - value2.Length;
-
-                    if ((Math.Abs(lengthDiff) <= 1 || (lengthDiff == -2 && length >= 6))
-                        && fixes?.ContainsKey(value2) != true)
-                    {
-                        int charDiff = GetCharDiff(value2);
-
-                        if ((lengthDiff == -1 && charDiff == 0)
-                            || (lengthDiff == -1 && charDiff == 1 && length >= 6)
-                            || (lengthDiff == 0 && charDiff == 1)
-                            || (lengthDiff == 1 && charDiff == 1)
-                            || (lengthDiff == -2 && charDiff == 0))
-                        {
-                            (fixes ??= ImmutableDictionary.CreateBuilder<string, (string, int, int)>(WordList.DefaultComparer))
-                                .Add(value2, (value2, lengthDiff, charDiff));
-                        }
-                    }
-                }
-            }
-
-            int GetCharDiff(string value2)
-            {
-                if (charMap == null)
-                {
-                    charMap = value
-                        .GroupBy(ch => ch)
-                        .ToImmutableDictionary(g => g.Key, g => g.Count());
+                    continue;
                 }
 
-                int count = value2.GroupBy(ch => ch)
-                    .Join(charMap, g => g.Key, kvp => kvp.Key, (g, kvp) => Math.Min(g.Count(), kvp.Value))
-                    .Sum();
-
-                return length - count;
+                if ((matches ??= ImmutableHashSet.CreateBuilder(WordList.DefaultComparer)).Add(value2))
+                    success = true;
             }
 
-            static int Sort((string, int, int) x, (string, int, int) y)
-            {
-                int a = (x.Item2 < 0) ? -x.Item2 : x.Item2;
-                int b = (y.Item2 < 0) ? -y.Item2 : y.Item2;
-
-                int diff = a.CompareTo(b);
-
-                if (diff != 0)
-                    return diff;
-
-                diff = x.Item3.CompareTo(y.Item3);
-
-                if (diff! != 0)
-                    return diff;
-
-                return StringComparer.CurrentCulture.Compare(x.Item1, y.Item1);
-            }
+            return success;
         }
 
         public static ImmutableArray<string> SwapMatches(

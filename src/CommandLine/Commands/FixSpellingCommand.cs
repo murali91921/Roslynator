@@ -35,7 +35,8 @@ namespace Roslynator.CommandLine
                 includeLocal: true,
                 includeGeneratedCode: Options.IncludeGeneratedCode,
                 interactive: false,
-                enableCompoundWords: true);
+                enableCompoundWords: true,
+                dryRun: true);
 #else
             var options = new SpellingFixerOptions(
                 includeLocal: false,
@@ -108,7 +109,7 @@ namespace Roslynator.CommandLine
                     {
                         string value = f.ToLowerInvariant();
 #if DEBUG
-                        if (value.Length >= 9)
+                        if (value.Length >= 6)
                         {
                             var fixes = new List<string>();
 
