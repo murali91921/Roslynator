@@ -1,11 +1,5 @@
-mvvm
-rtm
-tahoma
-typedef
-typedefs
-wnd
-gc'd
-
+clob
+isdn
 aac
 acklam
 acos
@@ -73,6 +67,7 @@ atlassian
 attr
 attrs
 auth
+autocrypt
 autofac
 automapper
 aux
@@ -187,7 +182,11 @@ dba
 dbg
 dbms
 dbo
+dddmm
+dddmmss
 ddl
+ddmm
+ddmmss
 ddos
 ddr
 ddr2
@@ -219,6 +218,7 @@ distro
 div
 divx
 django
+dkim
 dlg
 dll
 dlls
@@ -253,8 +253,11 @@ dvi
 dvr
 dxva
 ebcdic
+ecdh
+ecdsa
 ecma
 ecmascript
+eddsa
 editorconfig
 elif
 elisp
@@ -269,6 +272,7 @@ enums
 eof
 eol
 eols
+eot
 epg
 erlang
 erp
@@ -319,6 +323,7 @@ func
 funcs
 gac
 gc
+gc'd
 gdi
 gfdl
 git
@@ -359,6 +364,8 @@ hidebysig
 hkcu
 hklm
 hmac
+hmmss
+hmmssfffffff
 hql
 href
 hresult
@@ -477,6 +484,7 @@ lsp
 lstm
 lua
 luhn
+lwsp
 lzma
 mac
 macintosh
@@ -486,6 +494,7 @@ markdig
 mathematica
 matlab
 mbps
+mdb
 mef
 memcpy
 mergesort
@@ -520,6 +529,7 @@ msmq
 mssql
 mutex
 mvc
+mvvm
 nameof
 nan
 nat
@@ -560,6 +570,7 @@ num
 nunit
 nvidia
 obj
+ocsp
 octocat
 odbc
 oem
@@ -643,6 +654,7 @@ quicksort
 qwerty
 ram
 rar
+rcpt
 rdbms
 readme
 realm
@@ -677,6 +689,7 @@ rss
 rtb
 rtf
 rtl
+rtm
 rtmp
 rtos
 rtsp
@@ -767,6 +780,7 @@ swashbuckle
 sys
 sysconfig
 syslog
+tahoma
 tan
 tanh
 tbl
@@ -799,6 +813,8 @@ ttf
 twitter
 twofish
 txt
+typedef
+typedefs
 typelib
 typeof
 typeparam
@@ -882,6 +898,7 @@ wlan
 wma
 wmi
 wmv
+wnd
 wordpress
 wpa
 wparam
@@ -919,6 +936,7 @@ xunit
 xvalue
 y2k
 yaml
+yml
 youtube
 yvalue
 zlib
