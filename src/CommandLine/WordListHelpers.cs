@@ -16,15 +16,15 @@ namespace Roslynator.CommandLine
         {
             string basePath = @"E:\Projects\Roslynator\src\CommandLine\WordLists\roslynator.spelling.";
 
-            WordList big = WordList.Load(basePath + "big.wordlist");
-            WordList core = WordList.Load(basePath + "core.wordlist").SaveAndLoad();
-            WordList core2 = WordList.Load(basePath + "core2.wordlist").SaveAndLoad();
-            WordList it = WordList.Load(basePath + "it.wordlist").Except(core).Except(core2).SaveAndLoad();
-            WordList misc = WordList.Load(basePath + "misc.wordlist").Except(core).Except(core2).Except(it).SaveAndLoad();
-            WordList acronyms = WordList.Load(basePath + "acronyms.wordlist").Except(core).Except(core2).Except(it).SaveAndLoad();
-            WordList names = WordList.Load(basePath + "names.wordlist").Except(core).Except(core2).Except(it).SaveAndLoad();
+            WordList br = WordList.Load(basePath + "core_br.wordlist").SaveAndLoad();
+            WordList tech = WordList.Load(basePath + "it.wordlist").Except(br).SaveAndLoad();
+            WordList abbr = WordList.Load(basePath + "abbr.wordlist").Except(br).Except(tech).SaveAndLoad();
+            WordList names = WordList.Load(basePath + "names.wordlist").Except(br).Except(tech).SaveAndLoad();
+            WordList big = WordList.Load(basePath + "big.wordlist").Except(br).SaveAndLoad();
+            WordList core = WordList.Load(basePath + "core.wordlist").Except(br).Except(tech).Except(abbr).SaveAndLoad();
+            WordList misc = WordList.Load(basePath + "misc.wordlist").Except(core).Except(br).Except(tech).SaveAndLoad();
 
-            WordList all = big.AddValues(core).AddValues(core2).AddValues(it).AddValues(misc).AddValues(acronyms);
+            WordList all = big.AddValues(core).AddValues(br).AddValues(tech).AddValues(misc).AddValues(abbr);
 
             string fixListPath = basePath + "core.fixlist";
 

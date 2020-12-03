@@ -67,7 +67,7 @@
     <None Update="WordLists\roslynator.spelling.names.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="WordLists\roslynator.spelling.core2.wordlist">
+    <None Update="WordLists\roslynator.spelling.core_br.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="WordLists\roslynator.spelling.hyphen.wordlist">
@@ -76,7 +76,7 @@
     <None Update="WordLists\roslynator.spelling.misc.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="WordLists\roslynator.spelling.acronyms.wordlist">
+    <None Update="WordLists\roslynator.spelling.abbr.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="WordLists\roslynator.spelling.big.wordlist">
