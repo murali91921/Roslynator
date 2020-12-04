@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Roslynator.Spelling
@@ -10,12 +12,14 @@ namespace Roslynator.Spelling
     {
         ISyntaxFactsService SyntaxFacts { get; }
 
-        SpellingAnalysisResult AnalyzeSpelling(
+        DiagnosticAnalyzer CreateAnalyzer(SpellingData spellingData, SpellingFixerOptions options);
+
+        ImmutableArray<Diagnostic> AnalyzeSpelling(
             SyntaxNode node,
             SpellingData spellingData,
             SpellingFixerOptions options,
             CancellationToken cancellationToken);
 
-        SpellingError CreateErrorFromDiagnostic(Diagnostic diagnostic);
+        SpellingDiagnostic CreateSpellingDiagnostic(Diagnostic diagnostic);
     }
 }

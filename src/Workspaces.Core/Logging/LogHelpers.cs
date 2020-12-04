@@ -66,20 +66,20 @@ namespace Roslynator
             }
         }
 
-        public static void WriteSpellingError(
-            SpellingError spellingError,
+        public static void WriteSpellingDiagnostic(
+            SpellingDiagnostic diagnostic,
             SpellingFixerOptions options,
             SourceText sourceText,
             string baseDirectoryPath,
             string indentation,
             Verbosity verbosity)
         {
-            string messageText = DiagnosticFormatter.FormatSpellingError(spellingError, baseDirectoryPath);
+            string messageText = DiagnosticFormatter.FormatSpellingDiagnostic(diagnostic, baseDirectoryPath);
 
             Write(indentation, verbosity);
             WriteLine(messageText, ConsoleColor.Cyan, verbosity);
 
-            TextSpan span = spellingError.Location.SourceSpan;
+            TextSpan span = diagnostic.Location.SourceSpan;
             TextLineCollection lines = sourceText.Lines;
             int lineIndex = lines.IndexOf(span.Start);
             TextLine line = lines[lineIndex];
@@ -94,8 +94,8 @@ namespace Roslynator
 
             Write(indentation, verbosity);
             Write(text.Substring(0, index), ConsoleColor.DarkGray, verbosity);
-            Write(spellingError.Value, ConsoleColor.Cyan, verbosity);
-            WriteLine(text.Substring(index + spellingError.Length), ConsoleColor.DarkGray, verbosity);
+            Write(diagnostic.Value, ConsoleColor.Cyan, verbosity);
+            WriteLine(text.Substring(index + diagnostic.Length), ConsoleColor.DarkGray, verbosity);
 
             int max = Math.Min(lines.Count - 1, lineIndex + options.CodeContext);
 

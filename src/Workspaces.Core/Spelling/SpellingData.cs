@@ -64,9 +64,9 @@ namespace Roslynator.Spelling
             return new SpellingData(List, IgnoreList.AddValue(value), FixList);
         }
 
-        public SpellingData AddIgnoredValues(IEnumerable<SpellingError> errors)
+        public SpellingData AddIgnoredValues(IEnumerable<SpellingDiagnostic> diagnostics)
         {
-            return AddIgnoredValues(errors.Select(f => f.Value));
+            return AddIgnoredValues(diagnostics.Select(f => f.Value));
         }
 
         public SpellingData AddIgnoredValues(IEnumerable<string> values)

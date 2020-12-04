@@ -198,11 +198,11 @@ namespace Roslynator.Spelling
         }
 
         public static ImmutableArray<int> GetSplitIndexes(
-            SpellingError spellingError,
+            SpellingDiagnostic diagnostic,
             SpellingData spellingData,
             CancellationToken cancellationToken = default)
         {
-            string value = spellingError.Value;
+            string value = diagnostic.Value;
             int length = value.Length;
 
             ImmutableArray<int>.Builder splitIndexes = null;
@@ -214,7 +214,7 @@ namespace Roslynator.Spelling
                 // Tvalue > TValue
                 // Ienumerable > IEnumerable
                 if ((ch == 'I' || ch == 'T')
-                    && spellingError.Casing == TextCasing.FirstUpper
+                    && diagnostic.Casing == TextCasing.FirstUpper
                     && spellingData.List.Contains(value.Substring(1)))
                 {
                     (splitIndexes ??= ImmutableArray.CreateBuilder<int>()).Add(1);
@@ -224,7 +224,7 @@ namespace Roslynator.Spelling
             if (length < 6)
                 return splitIndexes?.ToImmutableArray() ?? ImmutableArray<int>.Empty;
 
-            value = spellingError.ValueLower;
+            value = diagnostic.ValueLower;
 
             WordCharMap map = spellingData.List.CharIndexMap;
 

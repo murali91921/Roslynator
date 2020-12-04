@@ -6,9 +6,9 @@ using Roslynator.Spelling;
 
 namespace Roslynator.CSharp.Spelling
 {
-    internal sealed class CSharpSpellingError : SpellingError
+    internal sealed class CSharpSpellingDiagnostic : SpellingDiagnostic
     {
-        public CSharpSpellingError(
+        public CSharpSpellingDiagnostic(
             string value,
             string containingValue,
             Location location,

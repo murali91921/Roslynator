@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -29,29 +29,27 @@ namespace Roslynator.CSharp.Spelling
 ",
             RegexOptions.IgnorePatternWhitespace);
 
-        //TODO: del
-        //        private static readonly Regex _splitCommentWordRegex = new Regex(
-        //            @"
-        //    (?<=\p{Lu})(?=\p{Lu}\p{Ll})
-        //|
-        //    (?<=\p{Ll})(?=\p{Lu})
-        //",
-        //            RegexOptions.IgnorePatternWhitespace);
-
-        private static readonly Regex _wordInComment = new Regex(
+        private static readonly Regex _splitCaseRegex = new Regex(
             @"
-\b
-\p{L}{2,}
-(
-    (?='s\b)
+    (?<=\p{Lu})(?=\p{Lu}\p{Ll})
 |
-    ('(d|ll|m|re|t|ve)\b)
-|
-\b
-)",
-            RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
+    (?<=\p{Ll})(?=\p{Lu})
+",
+            RegexOptions.IgnorePatternWhitespace);
 
-        private static readonly Regex _compoundWordInComment = new Regex(
+        private static readonly Regex _splitHyphenRegex = new Regex("-");
+
+        private static readonly Regex _splitCaseAndHyphenRegex = new Regex(
+            @"
+    -
+|
+    (?<=\p{Lu})(?=\p{Lu}\p{Ll})
+|
+    (?<=\p{Ll})(?=\p{Lu})
+",
+            RegexOptions.IgnorePatternWhitespace);
+
+        private static readonly Regex _wordInCommentRegex = new Regex(
             @"
 \b
 \p{L}{2,}
@@ -71,15 +69,16 @@ namespace Roslynator.CSharp.Spelling
         private static readonly Regex _urlRegex = new Regex(
             @"\bhttps?://[^\s]+(?=\s|\z)", RegexOptions.IgnoreCase);
 
+        private readonly Action<Diagnostic> _reportDiagnostic;
+
         public SpellingData SpellingData { get; }
 
         public SpellingFixerOptions Options { get; }
 
         public CancellationToken CancellationToken { get; }
 
-        public List<SpellingError> Errors { get; private set; }
-
         public CSharpSpellingWalker(
+            Action<Diagnostic> reportDiagnostic,
             SpellingData spellingData,
             SpellingFixerOptions options,
             CancellationToken cancellationToken)
@@ -88,6 +87,8 @@ namespace Roslynator.CSharp.Spelling
             SpellingData = spellingData;
             Options = options;
             CancellationToken = cancellationToken;
+
+            _reportDiagnostic = reportDiagnostic;
         }
 
         private void AnalyzeComment(string value, SyntaxTree syntaxTree, TextSpan textSpan)
@@ -115,42 +116,46 @@ namespace Roslynator.CSharp.Spelling
             TextSpan textSpan,
             SyntaxTree syntaxTree)
         {
-            Match match = ((Options.EnableCompoundWords) ? _compoundWordInComment : _wordInComment)
-                .Match(value, startIndex, length);
+            Match match = _wordInCommentRegex.Match(value, startIndex, length);
+
+            Regex splitRegex = GetSplitRegex();
 
             while (match.Success)
             {
                 if (match.Length >= Options.MinWordLength)
                 {
-                    if (AnalyzeValue(
-                        match.Value,
-                        null,
-                        0,
-                        new TextSpan(textSpan.Start + match.Index, match.Length),
-                        default(SyntaxToken),
-                        syntaxTree))
+                    if (splitRegex == null)
                     {
-                        break;
+                        AnalyzeValue(
+                            match.Value,
+                            new TextSpan(textSpan.Start + match.Index, match.Length),
+                            syntaxTree);
                     }
-
-                    //TODO: del
-                    //foreach (SplitItem splitItem in SplitItemCollection.Create(_splitCommentWordRegex, match.Value))
-                    //{
-                    //    if (AnalyzeValue(
-                    //        splitItem.Value,
-                    //        match.Value,
-                    //        splitItem.Index,
-                    //        new TextSpan(textSpan.Start + match.Index + splitItem.Index, splitItem.Value.Length),
-                    //        default(SyntaxToken),
-                    //        syntaxTree,
-                    //        reportContainingValue: true))
-                    //    {
-                    //        break;
-                    //    }
-                    //}
+                    else
+                    {
+                        foreach (SplitItem splitItem in SplitItemCollection.Create(splitRegex, match.Value))
+                        {
+                            AnalyzeValue(
+                                splitItem.Value,
+                                new TextSpan(textSpan.Start + match.Index + splitItem.Index, splitItem.Value.Length),
+                                syntaxTree);
+                        }
+                    }
                 }
 
                 match = match.NextMatch();
+            }
+
+            Regex GetSplitRegex()
+            {
+                return Options.SplitMode switch
+                {
+                    SplitMode.None => null,
+                    SplitMode.Case => _splitCaseRegex,
+                    SplitMode.Hyphen => _splitHyphenRegex,
+                    SplitMode.CaseAndHyphen => _splitCaseAndHyphenRegex,
+                    _ => throw new InvalidOperationException(),
+                };
             }
         }
 
@@ -191,46 +196,34 @@ namespace Roslynator.CSharp.Spelling
 
                 AnalyzeValue(
                     splitItem.Value,
-                    value,
-                    splitItem.Index + prefixLength,
                     new TextSpan(identifier.SpanStart + splitItem.Index + prefixLength, splitItem.Length),
-                    identifier,
                     identifier.SyntaxTree);
             }
         }
 
-        private bool AnalyzeValue(
+        private void AnalyzeValue(
             string value,
-            string containingValue,
-            int index,
             TextSpan textSpan,
-            SyntaxToken identifier,
             SyntaxTree syntaxTree)
         {
             if (value.Length < Options.MinWordLength)
-                return false;
+                return;
 
             if (IsAllowedNonsensicalWord(value))
-                return false;
+                return;
 
             if (SpellingData.IgnoreList.Contains(value))
-                return false;
+                return;
 
             if (SpellingData.List.Contains(value))
-                return false;
+                return;
 
-            Debug.Assert(Options.IncludeComments || identifier.Parent != null, identifier.ValueText);
-
-            var spellingError = new CSharpSpellingError(
-                containingValue ?? value,
-                containingValue,
+            Diagnostic diagnostic = Diagnostic.Create(
+                SpellingAnalyzer.DiagnosticDescriptor,
                 Location.Create(syntaxTree, textSpan),
-                index,
-                identifier);
+                value);
 
-            (Errors ??= new List<SpellingError>()).Add(spellingError);
-
-            return true;
+            _reportDiagnostic(diagnostic);
         }
 
         public override void VisitTrivia(SyntaxTrivia trivia)

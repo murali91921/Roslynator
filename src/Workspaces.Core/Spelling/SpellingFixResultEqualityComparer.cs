@@ -41,8 +41,8 @@ namespace Roslynator.Spelling
             if (obj == null)
                 return 0;
 
-            if (obj is SpellingFixResult spellingError)
-                return GetHashCode(spellingError);
+            if (obj is SpellingFixResult result)
+                return GetHashCode(result);
 
             throw new ArgumentException("", nameof(obj));
         }

@@ -6,15 +6,14 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslynator.Spelling
 {
-    //TODO: rename to SpellingDiagnostic
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
-    internal abstract class SpellingError
+    internal abstract class SpellingDiagnostic
     {
         private string _valueLower;
         private bool? _isContained;
         private TextCasing? _casing;
 
-        protected SpellingError(
+        protected SpellingDiagnostic(
             string value,
             string containingValue,
             Location location,

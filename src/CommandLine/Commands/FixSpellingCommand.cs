@@ -32,17 +32,17 @@ namespace Roslynator.CommandLine
 
 #if NON_INTERACTIVE
             var options = new SpellingFixerOptions(
+                splitMode: SplitMode.None,
                 includeLocal: true,
                 includeGeneratedCode: Options.IncludeGeneratedCode,
                 interactive: false,
-                enableCompoundWords: true,
                 dryRun: true);
 #else
             var options = new SpellingFixerOptions(
+                splitMode: SplitMode.None,
                 includeLocal: false,
                 includeGeneratedCode: Options.IncludeGeneratedCode,
-                interactive: true,
-                enableCompoundWords: true);
+                interactive: true);
 #endif
             CultureInfo culture = (Options.Culture != null) ? CultureInfo.GetCultureInfo(Options.Culture) : null;
 

@@ -10,6 +10,7 @@ namespace Roslynator.Spelling
 
         public SpellingFixerOptions(
             VisibilityFilter symbolVisibility = VisibilityFilter.All,
+            SplitMode splitMode = SplitMode.None,
             int minWordLength = 3,
             int codeContext = 1,
             bool includeComments = true,
@@ -17,13 +18,13 @@ namespace Roslynator.Spelling
             bool includeGeneratedCode = false,
             bool autoFix = true,
             bool interactive = true,
-            bool enableCompoundWords = false,
             bool dryRun = false)
         {
             if (codeContext < 0)
                 throw new ArgumentOutOfRangeException(nameof(codeContext), codeContext, "");
 
             SymbolVisibility = symbolVisibility;
+            SplitMode = splitMode;
             MinWordLength = minWordLength;
             CodeContext = codeContext;
             IncludeComments = includeComments;
@@ -31,11 +32,12 @@ namespace Roslynator.Spelling
             IncludeGeneratedCode = includeGeneratedCode;
             AutoFix = autoFix;
             Interactive = interactive;
-            EnableCompoundWords = enableCompoundWords;
             DryRun = dryRun;
         }
 
         public VisibilityFilter SymbolVisibility { get; }
+
+        public SplitMode SplitMode { get; }
 
         public int MinWordLength { get; }
 
@@ -50,9 +52,6 @@ namespace Roslynator.Spelling
         public bool AutoFix { get; }
 
         public bool Interactive { get; }
-
-        //TODO: del
-        public bool EnableCompoundWords { get; }
 
         public bool DryRun { get; }
     }

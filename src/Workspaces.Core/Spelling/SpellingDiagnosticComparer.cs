@@ -6,19 +6,19 @@ using System.Collections.Generic;
 
 namespace Roslynator.Spelling
 {
-    internal abstract class SpellingErrorComparer :
-        IComparer<SpellingError>,
-        IEqualityComparer<SpellingError>,
+    internal abstract class SpellingDiagnosticComparer :
+        IComparer<SpellingDiagnostic>,
+        IEqualityComparer<SpellingDiagnostic>,
         IComparer,
         IEqualityComparer
     {
-        public static SpellingErrorComparer FilePathThenSpanStart { get; } = new FilePathThenSpanStartComparer();
+        public static SpellingDiagnosticComparer FilePathThenSpanStart { get; } = new FilePathThenSpanStartComparer();
 
-        public abstract int Compare(SpellingError x, SpellingError y);
+        public abstract int Compare(SpellingDiagnostic x, SpellingDiagnostic y);
 
-        public abstract bool Equals(SpellingError x, SpellingError y);
+        public abstract bool Equals(SpellingDiagnostic x, SpellingDiagnostic y);
 
-        public abstract int GetHashCode(SpellingError obj);
+        public abstract int GetHashCode(SpellingDiagnostic obj);
 
         public int Compare(object x, object y)
         {
@@ -31,8 +31,8 @@ namespace Roslynator.Spelling
             if (y == null)
                 return 1;
 
-            if (x is SpellingError a
-                && y is SpellingError b)
+            if (x is SpellingDiagnostic a
+                && y is SpellingDiagnostic b)
             {
                 return Compare(a, b);
             }
@@ -51,8 +51,8 @@ namespace Roslynator.Spelling
             if (y == null)
                 return false;
 
-            if (x is SpellingError a
-                && y is SpellingError b)
+            if (x is SpellingDiagnostic a
+                && y is SpellingDiagnostic b)
             {
                 return Equals(a, b);
             }
@@ -65,15 +65,15 @@ namespace Roslynator.Spelling
             if (obj == null)
                 return 0;
 
-            if (obj is SpellingError spellingError)
-                return GetHashCode(spellingError);
+            if (obj is SpellingDiagnostic diagnostic)
+                return GetHashCode(diagnostic);
 
             throw new ArgumentException("", nameof(obj));
         }
 
-        private class FilePathThenSpanStartComparer : SpellingErrorComparer
+        private class FilePathThenSpanStartComparer : SpellingDiagnosticComparer
         {
-            public override int Compare(SpellingError x, SpellingError y)
+            public override int Compare(SpellingDiagnostic x, SpellingDiagnostic y)
             {
                 if (object.ReferenceEquals(x, y))
                     return 0;
@@ -94,7 +94,7 @@ namespace Roslynator.Spelling
                 return x.Location.SourceSpan.Start.CompareTo(y.Location.SourceSpan.Start);
             }
 
-            public override bool Equals(SpellingError x, SpellingError y)
+            public override bool Equals(SpellingDiagnostic x, SpellingDiagnostic y)
             {
                 if (object.ReferenceEquals(x, y))
                     return true;
@@ -111,7 +111,7 @@ namespace Roslynator.Spelling
                     && x.Location.SourceSpan.Start == y.Location.SourceSpan.Start;
             }
 
-            public override int GetHashCode(SpellingError obj)
+            public override int GetHashCode(SpellingDiagnostic obj)
             {
                 if (obj == null)
                     throw new ArgumentNullException(nameof(obj));

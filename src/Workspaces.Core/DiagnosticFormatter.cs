@@ -74,16 +74,16 @@ namespace Roslynator
             }
         }
 
-        public static string FormatSpellingError(
-            SpellingError spellingError,
+        public static string FormatSpellingDiagnostic(
+            SpellingDiagnostic spellingDiagnostic,
             string baseDirectoryPath = null)
         {
             StringBuilder sb = StringBuilderCache.GetInstance();
 
-            AppendLocation(spellingError.Location, baseDirectoryPath, sb);
+            AppendLocation(spellingDiagnostic.Location, baseDirectoryPath, sb);
 
             sb.Append("Fix spelling of '");
-            sb.Append(spellingError.Value);
+            sb.Append(spellingDiagnostic.Value);
             sb.Append("'");
 
             return StringBuilderCache.GetStringAndFree(sb);
