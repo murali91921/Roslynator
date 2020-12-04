@@ -573,12 +573,10 @@ namespace Roslynator
                             switch (symbol.Kind)
                             {
                                 case SymbolKind.Local:
-                                    return Visibility.Private;
-                                case SymbolKind.Parameter:
                                     {
-                                        symbol = symbol.ContainingSymbol;
-                                        break;
+                                        return Visibility.Private;
                                     }
+                                case SymbolKind.Parameter:
                                 case SymbolKind.TypeParameter:
                                     {
                                         symbol = symbol.ContainingSymbol;

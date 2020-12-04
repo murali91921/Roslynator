@@ -10,7 +10,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Roslynator.Host.Mef;
 using static Roslynator.Logger;
 
 namespace Roslynator.Spelling
@@ -107,9 +109,19 @@ namespace Roslynator.Spelling
             Project project,
             CancellationToken cancellationToken = default)
         {
-            ImmutableArray<SpellingFixResult>.Builder results = ImmutableArray.CreateBuilder<SpellingFixResult>();
-
             project = CurrentSolution.GetProject(project.Id);
+
+            ReportDiagnostic reportDiagnostic = SpellingAnalyzer.Descriptor.GetEffectiveSeverity(project.CompilationOptions);
+
+            if (reportDiagnostic == ReportDiagnostic.Suppress)
+                return ImmutableArray<SpellingFixResult>.Empty;
+
+            ISpellingService service = MefWorkspaceServices.Default.GetService<ISpellingService>(project.Language);
+
+            if (service == null)
+                return ImmutableArray<SpellingFixResult>.Empty;
+
+            ImmutableArray<SpellingFixResult>.Builder results = ImmutableArray.CreateBuilder<SpellingFixResult>();
 
             var commentsFixed = false;
 
@@ -117,19 +129,64 @@ namespace Roslynator.Spelling
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                SpellingAnalysisResult spellingAnalysisResult = await SpellingAnalyzer.AnalyzeSpellingAsync(
-                    project,
-                    SpellingData,
-                    new SpellingFixerOptions(
-                        includeComments: !commentsFixed,
-                        includeLocal: false),
-                    cancellationToken)
-                    .ConfigureAwait(false);
+                var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(
+                    options: default(AnalyzerOptions),
+                    onAnalyzerException: default(Action<Exception, DiagnosticAnalyzer, Diagnostic>),
+                    concurrentAnalysis: true,
+                    logAnalyzerExecutionTime: false,
+                    reportSuppressedDiagnostics: false);
 
-                if (!spellingAnalysisResult.Errors.Any())
+                Compilation compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                SpellingAnalyzer analyzer = SpellingAnalyzer.Create(
+                    service,
+                    SpellingData,
+                    Options,
+                    (Options.IncludeGeneratedCode)
+                        ? GeneratedCodeAnalysisFlags.ReportDiagnostics
+                        : GeneratedCodeAnalysisFlags.None);
+
+                ImmutableArray<DiagnosticAnalyzer> analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(analyzer);
+
+                var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, compilationWithAnalyzersOptions);
+
+                ImmutableArray<Diagnostic> diagnostics = await compilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+
+                if (!diagnostics.Any())
                     break;
 
-                List<SpellingError> errors = spellingAnalysisResult.Errors.ToList();
+                ImmutableArray<SpellingError>.Builder errorsBuilder = ImmutableArray.CreateBuilder<SpellingError>();
+
+                foreach (Diagnostic diagnostic in diagnostics)
+                {
+                    if (diagnostic.Id != SpellingAnalyzer.Id)
+                        continue;
+
+                    if (diagnostic.IsSuppressed)
+                        continue;
+
+                    SpellingError spellingError = service.CreateErrorFromDiagnostic(diagnostic);
+
+                    Debug.Assert(spellingError != null);
+
+                    if (spellingError != null)
+                        errorsBuilder.Add(spellingError);
+                }
+
+                //TODO: del
+                //SpellingAnalysisResult spellingAnalysisResult = await SpellingAnalyzer.AnalyzeSpellingAsync(
+                //    project,
+                //    SpellingData,
+                //    new SpellingFixerOptions(
+                //        includeComments: !commentsFixed,
+                //        includeLocal: false),
+                //    cancellationToken)
+                //    .ConfigureAwait(false);
+
+                ImmutableArray<SpellingError> errors = errorsBuilder.ToImmutableArray();
+
+                if (!errors.Any())
+                    break;
 
                 if (!commentsFixed)
                 {
@@ -138,7 +195,7 @@ namespace Roslynator.Spelling
                     commentsFixed = true;
                 }
 
-                List<SpellingFixResult> symbolResults = await FixSymbolsAsync(project, errors, cancellationToken).ConfigureAwait(false);
+                List<SpellingFixResult> symbolResults = await FixSymbolsAsync(project, errors, service.SyntaxFacts, cancellationToken).ConfigureAwait(false);
                 results.AddRange(symbolResults);
 
                 if (Options.DryRun)
@@ -152,7 +209,7 @@ namespace Roslynator.Spelling
 
         private async Task<List<SpellingFixResult>> FixCommentsAsync(
             Project project,
-            List<SpellingError> errors,
+            ImmutableArray<SpellingError> errors,
             CancellationToken cancellationToken)
         {
             var results = new List<SpellingFixResult>();
@@ -227,7 +284,8 @@ namespace Roslynator.Spelling
 
         private async Task<List<SpellingFixResult>> FixSymbolsAsync(
             Project project,
-            List<SpellingError> spellingErrors,
+            ImmutableArray<SpellingError> spellingErrors,
+            ISyntaxFactsService syntaxFacts,
             CancellationToken cancellationToken)
         {
             var results = new List<SpellingFixResult>();
@@ -255,7 +313,7 @@ namespace Roslynator.Spelling
                 {
                     if (error != null)
                     {
-                        node = error.Node;
+                        node = syntaxFacts.GetSymbolDeclaration(error.Identifier);
                         break;
                     }
                 }

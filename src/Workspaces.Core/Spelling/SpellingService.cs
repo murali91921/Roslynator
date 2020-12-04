@@ -14,5 +14,7 @@ namespace Roslynator.Spelling
             SpellingData spellingData,
             SpellingFixerOptions options,
             CancellationToken cancellationToken);
+
+        public abstract SpellingError CreateErrorFromDiagnostic(Diagnostic diagnostic);
     }
 }

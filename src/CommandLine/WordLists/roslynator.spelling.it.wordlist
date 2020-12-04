@@ -199,6 +199,7 @@ ddr2
 ddr3
 debian
 decl
+decltype
 def
 defs
 delim
@@ -216,6 +217,7 @@ diag
 dib
 dic
 dict
+diffie
 dingbat
 dingbats
 dir
@@ -246,6 +248,7 @@ dos
 dothtml
 dotnet
 dotvvm
+dovecot
 downshift
 dpi
 dram
@@ -378,6 +381,7 @@ heisenberg
 hevc
 hex
 hexa
+HHmm
 hidebysig
 hkcu
 hklm
@@ -417,6 +421,7 @@ iis
 ildasm
 ilist
 ilists
+imaps
 img
 impl
 inet
@@ -577,6 +582,7 @@ ninject
 nist
 njs
 nlog
+nntp
 nodejs
 nomodule
 noop
@@ -600,6 +606,7 @@ nupkgs
 nuspec
 nuspecs
 nvidia
+oaep
 obj
 ocsp
 octocat
@@ -607,6 +614,7 @@ odbc
 oem
 ogg
 ogv
+oid
 oidc
 ole
 oled
@@ -771,7 +779,9 @@ slnx
 sloc
 smallint
 smalltalk
+smime
 smtp
+smtps
 snk
 snmp
 sntp
@@ -855,6 +865,7 @@ tsl
 tsql
 tsv
 ttf
+ttl
 twitter
 twofish
 txt
@@ -997,6 +1008,7 @@ youtube
 yvalue
 yymmddh
 yyyymmd
+yyyyMMdd
 yyyymmddh
 zlib
 zpl

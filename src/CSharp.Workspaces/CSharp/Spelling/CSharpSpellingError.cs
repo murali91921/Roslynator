@@ -13,8 +13,7 @@ namespace Roslynator.CSharp.Spelling
             string containingValue,
             Location location,
             int index,
-            SyntaxToken identifier = default,
-            SyntaxNode node = null) : base(value, containingValue, location, index, identifier, node)
+            SyntaxToken identifier = default) : base(value, containingValue, location, index, identifier)
         {
         }
 

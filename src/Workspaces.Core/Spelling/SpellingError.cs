@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Roslynator.Spelling
 {
+    //TODO: rename to SpellingDiagnostic
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     internal abstract class SpellingError
     {
@@ -18,15 +19,13 @@ namespace Roslynator.Spelling
             string containingValue,
             Location location,
             int index,
-            SyntaxToken identifier = default,
-            SyntaxNode node = default)
+            SyntaxToken identifier = default)
         {
             Value = value;
             ContainingValue = containingValue;
             Location = location;
             Index = index;
             Identifier = identifier;
-            Node = node ?? identifier.Parent;
         }
 
         public string Value { get; }
@@ -63,8 +62,6 @@ namespace Roslynator.Spelling
                 return $"{Value}  {value2}";
             }
         }
-
-        public SyntaxNode Node { get; }
 
         public string ApplyFix(string fix)
         {

@@ -51,6 +51,7 @@ namespace Roslynator.Spelling
 
         public bool Interactive { get; }
 
+        //TODO: del
         public bool EnableCompoundWords { get; }
 
         public bool DryRun { get; }

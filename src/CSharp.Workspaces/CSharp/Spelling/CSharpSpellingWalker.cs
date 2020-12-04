@@ -29,13 +29,14 @@ namespace Roslynator.CSharp.Spelling
 ",
             RegexOptions.IgnorePatternWhitespace);
 
-        private static readonly Regex _splitCommentWordRegex = new Regex(
-            @"
-    (?<=\p{Lu})(?=\p{Lu}\p{Ll})
-|
-    (?<=\p{Ll})(?=\p{Lu})
-",
-            RegexOptions.IgnorePatternWhitespace);
+        //TODO: del
+        //        private static readonly Regex _splitCommentWordRegex = new Regex(
+        //            @"
+        //    (?<=\p{Lu})(?=\p{Lu}\p{Ll})
+        //|
+        //    (?<=\p{Ll})(?=\p{Lu})
+        //",
+        //            RegexOptions.IgnorePatternWhitespace);
 
         private static readonly Regex _wordInComment = new Regex(
             @"
@@ -67,11 +68,6 @@ namespace Roslynator.CSharp.Spelling
 
         private static readonly Regex _identifierToSkipRegex = new Regex(@"\A_*\p{Ll}{1,3}\d*\z");
 
-        private static readonly Regex _simpleIdentifierToSkipRegex = new Regex(
-            @"(?<=\A_*)(\p{Ll}{3,}|\p{Lu}\p{Ll}{2,})(?=\d*\z)");
-
-        private static readonly Regex _typeParameterLowercaseRegex = new Regex(@"(?<=\At)\p{Ll}{3,}\z");
-
         private static readonly Regex _urlRegex = new Regex(
             @"\bhttps?://[^\s]+(?=\s|\z)", RegexOptions.IgnoreCase);
 
@@ -83,7 +79,10 @@ namespace Roslynator.CSharp.Spelling
 
         public List<SpellingError> Errors { get; private set; }
 
-        public CSharpSpellingWalker(SpellingData spellingData, SpellingFixerOptions options, CancellationToken cancellationToken)
+        public CSharpSpellingWalker(
+            SpellingData spellingData,
+            SpellingFixerOptions options,
+            CancellationToken cancellationToken)
             : base(SyntaxWalkerDepth.StructuredTrivia)
         {
             SpellingData = spellingData;
@@ -123,17 +122,32 @@ namespace Roslynator.CSharp.Spelling
             {
                 if (match.Length >= Options.MinWordLength)
                 {
-                    foreach (SplitItem splitItem in SplitItemCollection.Create(_splitCommentWordRegex, match.Value))
+                    if (AnalyzeValue(
+                        match.Value,
+                        null,
+                        0,
+                        new TextSpan(textSpan.Start + match.Index, match.Length),
+                        default(SyntaxToken),
+                        syntaxTree))
                     {
-                        AnalyzeValue(
-                            splitItem.Value,
-                            match.Value,
-                            splitItem.Index,
-                            new TextSpan(textSpan.Start + match.Index + splitItem.Index, splitItem.Value.Length),
-                            default(SyntaxToken),
-                            syntaxTree,
-                            isSimpleIdentifier: false);
+                        break;
                     }
+
+                    //TODO: del
+                    //foreach (SplitItem splitItem in SplitItemCollection.Create(_splitCommentWordRegex, match.Value))
+                    //{
+                    //    if (AnalyzeValue(
+                    //        splitItem.Value,
+                    //        match.Value,
+                    //        splitItem.Index,
+                    //        new TextSpan(textSpan.Start + match.Index + splitItem.Index, splitItem.Value.Length),
+                    //        default(SyntaxToken),
+                    //        syntaxTree,
+                    //        reportContainingValue: true))
+                    //    {
+                    //        break;
+                    //    }
+                    //}
                 }
 
                 match = match.NextMatch();
@@ -181,8 +195,7 @@ namespace Roslynator.CSharp.Spelling
                     splitItem.Index + prefixLength,
                     new TextSpan(identifier.SpanStart + splitItem.Index + prefixLength, splitItem.Length),
                     identifier,
-                    identifier.SyntaxTree,
-                    isSimpleIdentifier: _simpleIdentifierToSkipRegex.IsMatch(value2));
+                    identifier.SyntaxTree);
             }
         }
 
@@ -192,8 +205,7 @@ namespace Roslynator.CSharp.Spelling
             int index,
             TextSpan textSpan,
             SyntaxToken identifier,
-            SyntaxTree syntaxTree,
-            bool isSimpleIdentifier)
+            SyntaxTree syntaxTree)
         {
             if (value.Length < Options.MinWordLength)
                 return false;
@@ -207,37 +219,14 @@ namespace Roslynator.CSharp.Spelling
             if (SpellingData.List.Contains(value))
                 return false;
 
-            if (isSimpleIdentifier
-                && identifier.Parent != null
-                && IsLocalOrParameterOrField(identifier.Parent))
-            {
-                Match match = _typeParameterLowercaseRegex.Match(value);
-
-                if (match.Success
-                    && SpellingData.List.Contains(match.Value))
-                {
-                    return false;
-                }
-            }
-
-            SyntaxNode node = identifier.Parent;
-
-            if (node.IsKind(SyntaxKind.IdentifierName)
-                && node.IsParentKind(SyntaxKind.NameEquals)
-                && node.Parent.IsParentKind(SyntaxKind.UsingDirective))
-            {
-                node = node.Parent.Parent;
-            }
-
             Debug.Assert(Options.IncludeComments || identifier.Parent != null, identifier.ValueText);
 
             var spellingError = new CSharpSpellingError(
-                value,
+                containingValue ?? value,
                 containingValue,
                 Location.Create(syntaxTree, textSpan),
                 index,
-                identifier,
-                node);
+                identifier);
 
             (Errors ??= new List<SpellingError>()).Add(spellingError);
 
@@ -536,32 +525,33 @@ namespace Roslynator.CSharp.Spelling
             return _identifierToSkipRegex.IsMatch(s);
         }
 
-        private static bool IsLocalOrParameterOrField(SyntaxNode node)
-        {
-            switch (node.Kind())
-            {
-                case SyntaxKind.CatchDeclaration:
-                case SyntaxKind.SingleVariableDesignation:
-                    {
-                        return true;
-                    }
-                case SyntaxKind.VariableDeclarator:
-                    {
-                        return node.IsParentKind(SyntaxKind.VariableDeclaration)
-                            && node.Parent.IsParentKind(
-                                SyntaxKind.LocalDeclarationStatement,
-                                SyntaxKind.UsingStatement,
-                                SyntaxKind.ForStatement,
-                                SyntaxKind.FixedStatement,
-                                SyntaxKind.FieldDeclaration,
-                                SyntaxKind.EventFieldDeclaration);
-                    }
-                default:
-                    {
-                        return false;
-                    }
-            }
-        }
+        //TODO: del
+        //private static bool IsLocalOrParameterOrField(SyntaxNode node)
+        //{
+        //    switch (node.Kind())
+        //    {
+        //        case SyntaxKind.CatchDeclaration:
+        //        case SyntaxKind.SingleVariableDesignation:
+        //            {
+        //                return true;
+        //            }
+        //        case SyntaxKind.VariableDeclarator:
+        //            {
+        //                return node.IsParentKind(SyntaxKind.VariableDeclaration)
+        //                    && node.Parent.IsParentKind(
+        //                        SyntaxKind.LocalDeclarationStatement,
+        //                        SyntaxKind.UsingStatement,
+        //                        SyntaxKind.ForStatement,
+        //                        SyntaxKind.FixedStatement,
+        //                        SyntaxKind.FieldDeclaration,
+        //                        SyntaxKind.EventFieldDeclaration);
+        //            }
+        //        default:
+        //            {
+        //                return false;
+        //            }
+        //    }
+        //}
 
         private bool IsAllowedNonsensicalWord(string value)
         {

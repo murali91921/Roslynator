@@ -42,7 +42,7 @@ namespace Roslynator.CommandLine
                 includeLocal: false,
                 includeGeneratedCode: Options.IncludeGeneratedCode,
                 interactive: true,
-                enableCompoundWords: false);
+                enableCompoundWords: true);
 #endif
             CultureInfo culture = (Options.Culture != null) ? CultureInfo.GetCultureInfo(Options.Culture) : null;
 
