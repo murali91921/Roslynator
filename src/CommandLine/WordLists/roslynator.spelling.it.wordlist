@@ -65,6 +65,7 @@ atlassian
 attr
 attrs
 auth
+authenticode
 autocrypt
 autofac
 automapper
@@ -113,6 +114,7 @@ cdn
 cd-r
 cd-rom
 cd-rw
+cfg
 cgi
 chars
 cil
@@ -127,6 +129,8 @@ cls
 clut
 cmake
 cmd
+cmdlet
+cmdlets
 cmos
 cmp
 cnt
@@ -141,6 +145,7 @@ consts
 coord
 coords
 cordbg
+coreclr
 corefx
 corelib
 corlib
@@ -160,6 +165,7 @@ cs
 csc
 csch
 csharp
+cshtml
 csi
 csproj
 csrf
@@ -202,8 +208,10 @@ deref
 desc
 dest
 dev
+devenv
 devops
 dhcp
+dhhmmss
 diag
 dib
 dic
@@ -227,6 +235,7 @@ dmca
 dml
 dns
 dnx
+dnxcore
 doc
 docker
 docs
@@ -251,6 +260,7 @@ dts
 dvd
 dvi
 dvr
+dxgi
 dxva
 ebcdic
 ecdh
@@ -261,6 +271,7 @@ eddsa
 editorconfig
 elif
 elisp
+elmah
 elses
 emacs
 en
@@ -338,6 +349,7 @@ github
 gitignore
 glob
 globs
+globstar
 glonass
 gmail
 gnome
@@ -510,6 +522,7 @@ mef
 memcpy
 memmove
 mergesort
+metaproj
 mfc
 mgcp
 mhtml
@@ -537,6 +550,7 @@ msde
 msdn
 msdtc
 msil
+msix
 msmq
 mssql
 msvc
@@ -581,6 +595,10 @@ nuget
 nullptr
 num
 nunit
+nupkg
+nupkgs
+nuspec
+nuspecs
 nvidia
 obj
 ocsp
@@ -661,6 +679,7 @@ prop
 props
 protobuf
 protobufs
+psmdcp
 ptr
 pwd
 pylint
@@ -730,6 +749,7 @@ semver
 seq
 serilog
 servlet
+sfproj
 sfx
 sgml
 shebang
@@ -742,6 +762,8 @@ signalr
 silverlight
 sinh
 sizeof
+sku
+skus
 skype
 sln
 slnproj
@@ -753,6 +775,8 @@ smtp
 snk
 snmp
 sntp
+snupkg
+snupkgs
 solaris
 spec
 sql
@@ -787,6 +811,7 @@ sub
 subdir
 subdirs
 substr
+suo
 superuser
 superusers
 suse
@@ -798,6 +823,7 @@ swashbuckle
 sys
 sysconfig
 syslog
+sysname
 tahoma
 tan
 tanh
@@ -807,6 +833,7 @@ tcpip
 temp
 testhost
 tfm
+tfms
 tftp
 tgz
 thisobj
@@ -839,6 +866,7 @@ typeparam
 typeparams
 typescript
 uac
+uap
 uddi
 udp
 udt
@@ -878,8 +906,10 @@ varargs
 varchar
 varchars
 vba
+vbhthml
 vbproj
 vbs
+vcxproj
 verdana
 verilog
 vga
@@ -893,7 +923,9 @@ vorbis
 vpn
 vps
 vscode
+vsct
 vshost
+vsix
 vsixmanifest
 vssdk
 vstest
@@ -909,9 +941,11 @@ webforms
 webp
 wifi
 winbase
+wincrypt
 windir
 winform
 winforms
+winmd
 winzip
 wlan
 wma
@@ -942,9 +976,12 @@ xmldoc
 xmlns
 xmls
 xmp
+xna
 xobject
 xor
 xpath
+xplat
+xproj
 xsd
 xsi
 xsl
@@ -958,6 +995,9 @@ yaml
 yml
 youtube
 yvalue
+yymmddh
+yyyymmd
+yyyymmddh
 zlib
 zpl
 zvalue

@@ -923,6 +923,7 @@ autogenerating
 autogeneration
 autoincrement
 autoincrements
+autoload
 automagically
 automapped
 automapping
@@ -937,6 +938,9 @@ automocked
 autoplay
 autoproperties
 autoproperty
+autoreference
+autoreferenced
+autoreferences
 autosave
 autosaved
 autosaves
@@ -1883,6 +1887,8 @@ cleaner
 cleanup
 clear
 cleared
+clearer
+clearers
 clearly
 clears
 cleavage
@@ -1965,6 +1971,8 @@ codependents
 codepoint
 codepoints
 codes
+codespace
+codespaces
 coding
 coefficient
 coercible
@@ -2244,6 +2252,8 @@ confirmation
 confirmed
 conflict
 conflicting
+confliction
+conflictions
 conflicts
 conform
 conformity
@@ -2291,6 +2301,7 @@ consistent
 consisting
 consists
 console
+consolidatable
 consolidate
 consonant
 constant
@@ -2981,6 +2992,10 @@ deprecations
 depress
 depressed
 depression
+deprioritize
+deprioritized
+deprioritizes
+deprioritizing
 depth
 deputy
 dequantization
@@ -3390,6 +3405,7 @@ divisors
 divorce
 dna
 do
+dockable
 doctor
 document
 documentary
@@ -3401,6 +3417,7 @@ dodecagons
 does
 doesn't
 dog
+dogfooding
 doing
 dolby
 doll
@@ -4314,6 +4331,7 @@ flint
 flip
 float
 floating
+floatless
 flock
 flood
 floor
@@ -4782,6 +4800,7 @@ hacker
 hackerish
 hackers
 hackish
+hacktastic
 had
 hadn
 hadn't
@@ -4802,6 +4821,7 @@ handbook
 handful
 handkerchief
 handle
+handleable
 handled
 handler
 handlers
@@ -5223,6 +5243,8 @@ included
 includes
 including
 inclusion
+inclusivities
+inclusivity
 incoherence
 incoherences
 incoherent
@@ -6383,6 +6405,9 @@ memberwise
 memento
 memoization
 memoize
+memoized
+memoizes
+memoizing
 memorial
 memories
 memory
@@ -6636,6 +6661,8 @@ monadic
 monads
 monday
 money
+moniker
+monikers
 monitor
 monitoring
 monitors
@@ -6698,6 +6725,7 @@ multiblock
 multicast
 multicasting
 multicasts
+multiclient
 multiculturalism
 multiculturalisms
 multifunctor
@@ -6730,8 +6758,10 @@ multiprocessing
 multiscale
 multisearch
 multiselect
+multisource
 multistatement
 multistatements
+multitargeting
 multithread
 multithreaded
 multithreading
@@ -6913,6 +6943,7 @@ none
 non-empty
 nonequal
 nonequals
+nones
 nonescaped
 nonetheless
 nonexisting
@@ -7104,6 +7135,7 @@ online
 onlooker
 only
 onto
+opacities
 opcode
 opcodes
 open
@@ -8086,6 +8118,7 @@ prettifies
 prettify
 prettifying
 pretty
+preunzipped
 prevent
 prevents
 previewer
@@ -8560,6 +8593,8 @@ recommend
 recommendation
 recommendations
 recommended
+recommender
+recommenders
 recompile
 recompiled
 recompose
@@ -8635,6 +8670,7 @@ redirections
 redirector
 redirectors
 redirects
+redisplayed
 redistributions
 redo
 redoing
@@ -8771,6 +8807,11 @@ reinitialize
 reinitialized
 reinitializes
 reinitializing
+reinstall
+reinstallable
+reinstalled
+reinstalling
+reinstalls
 reinvoke
 reinvoked
 reinvokes
@@ -8827,6 +8868,8 @@ remixers
 remote
 remoted
 remoting
+remotion
+remotions
 removable
 removal
 remove
@@ -9015,6 +9058,10 @@ rerouted
 reroutes
 rerouting
 resampling
+resave
+resaved
+resaves
+resaving
 rescale
 rescaled
 rescales
@@ -9047,6 +9094,8 @@ reserializing
 reservation
 reserve
 reserved
+reserver
+reservers
 reset
 resettable
 resetter
@@ -9094,6 +9143,8 @@ responsivenesses
 rest
 restartable
 restartables
+restarter
+restarters
 restaurant
 restorable
 restore
@@ -9132,6 +9183,11 @@ retain
 retained
 retake
 retard
+retarget
+retargetable
+retargeted
+retargeting
+retargets
 rethrottle
 rethrottled
 rethrottles
@@ -9151,6 +9207,7 @@ retranslate
 retranslated
 retranslates
 retranslating
+retriable
 retries
 retrieve
 retrieved
@@ -9666,6 +9723,7 @@ shopping
 shorcut
 shore
 short
+short-circuit
 shortcut
 shortcuts
 shorthand
@@ -10168,6 +10226,7 @@ stopped
 stopper
 stopping
 stopwatch
+stopwatches
 stopword
 stopwords
 storage
@@ -10299,6 +10358,8 @@ subgraph
 subgraphs
 subhierarchies
 subhierarchy
+subidentifier
+subidentifiers
 subitem
 subitems
 subject
@@ -10711,6 +10772,7 @@ tapped
 tapping
 taps
 target
+targetable
 targeted
 targets
 task
@@ -10828,6 +10890,7 @@ than
 thank
 thanks
 that
+that'd
 the
 theater
 theatre
@@ -10871,6 +10934,7 @@ thirsty
 thirteen
 thirty
 this
+this'd
 thorax
 those
 though
@@ -10936,6 +11000,7 @@ timespan
 timespans
 timestamp
 timestamped
+timestamping
 timestamps
 timetable
 timezone
@@ -11083,6 +11148,9 @@ transit
 transition
 transitive
 transitively
+transitiveness
+transitivenesses
+transitivity
 translatable
 translate
 translated
@@ -11180,6 +11248,7 @@ trimming
 trims
 trip
 triple
+trippable
 trivia
 trivial
 trojan
@@ -11311,7 +11380,10 @@ uncaught
 unchallengeable
 unchanged
 uncheck
+uncheckable
 unchecked
+unchecking
+unchecks
 uncle
 unclosable
 unclosed
@@ -11396,6 +11468,7 @@ undocumented
 undoes
 undoing
 undone
+undotted
 undouble
 undoubled
 undoubles
@@ -11602,8 +11675,13 @@ unpackers
 unpadded
 unpaired
 unpalatalize
+unparent
+unparented
+unparenting
+unparents
 unparsable
 unparse
+unparseable
 unparsed
 unparses
 unparsing
@@ -11651,6 +11729,7 @@ unregisters
 unreplicated
 unrepresentable
 unresolved
+unrestored
 unreversed
 unrotated
 unsafe
@@ -11677,6 +11756,7 @@ unsigned
 unskip
 unsorted
 unspecified
+unsplit
 unstack
 unstacked
 unstacking
@@ -11726,6 +11806,7 @@ untransformed
 untransposed
 untrusted
 untyped
+unupgradeable
 unused
 unusual
 unversioned
@@ -11767,6 +11848,7 @@ updates
 updating
 upfront
 upgrade
+upgradeable
 upkeep
 uplift
 upload
@@ -12142,6 +12224,7 @@ wilcard
 wilcards
 wild
 wildcard
+wildcarded
 wildcards
 wildlife
 will

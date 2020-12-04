@@ -23,6 +23,7 @@ namespace Roslynator.CommandLine
             WordList big = WordList.Load(basePath + "big.wordlist").Except(br).SaveAndLoad();
             WordList core = WordList.Load(basePath + "core.wordlist").Except(br).Except(tech).Except(abbr).SaveAndLoad();
             WordList misc = WordList.Load(basePath + "misc.wordlist").Except(core).Except(br).Except(tech).SaveAndLoad();
+            WordList hyphen = WordList.Load(basePath + "hyphen.wordlist").Except(core).SaveAndLoad();
 
             WordList all = big.AddValues(core).AddValues(br).AddValues(tech).AddValues(misc).AddValues(abbr);
 
