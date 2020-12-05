@@ -32,14 +32,14 @@ namespace Roslynator.CommandLine
 
 #if NON_INTERACTIVE
             var options = new SpellingFixerOptions(
-                splitMode: SplitMode.None,
+                splitMode: SplitMode.CaseAndHyphen,
                 includeLocal: true,
                 includeGeneratedCode: Options.IncludeGeneratedCode,
                 interactive: false,
                 dryRun: true);
 #else
             var options = new SpellingFixerOptions(
-                splitMode: SplitMode.None,
+                splitMode: SplitMode.CaseAndHyphen,
                 includeLocal: false,
                 includeGeneratedCode: Options.IncludeGeneratedCode,
                 interactive: true);
@@ -87,70 +87,46 @@ namespace Roslynator.CommandLine
                 await spellingFixer.FixSolutionAsync(f => projectFilter.IsMatch(f), cancellationToken);
             }
 
-            WordList ignoreList = spellingFixer.SpellingData.IgnoreList;
+            SaveNewValues(spellingFixer.SpellingData, cancellationToken);
 
-            if (ignoreList.Count > 0)
+            return CommandResult.Success;
+
+            SpellingFixer GetSpellingFixer(Solution solution)
             {
-                var oldIgnoreList = new WordList(@"..\..\..\WordLists\roslynator.spelling.core.ignorelist", StringComparer.CurrentCulture, null);
+                SpellingData spellingData = SpellingData.Empty;
 
-                if (File.Exists(oldIgnoreList.Path))
-                {
-                    oldIgnoreList = WordList.Load(oldIgnoreList.Path, oldIgnoreList.Comparer);
-                }
+                string assemblyPath = typeof(FixCommand).Assembly.Location;
 
-                var wordList = new WordList(oldIgnoreList.Path + ".tmp", oldIgnoreList.Comparer, ignoreList.Values);
+                if (!string.IsNullOrEmpty(assemblyPath))
+                    spellingData = SpellingData.LoadFromDirectory(Path.Combine(Path.GetDirectoryName(assemblyPath), "WordLists"));
 
-                wordList = wordList.Except(oldIgnoreList);
-
-                IEnumerable<string> values = wordList.Values
-                    .Except(spellingFixer.SpellingData.FixList.Items.Select(f => f.Key), WordList.DefaultComparer)
-                    .Distinct(StringComparer.CurrentCulture)
-                    .OrderBy(f => f)
-                    .Select(f =>
-                    {
-                        string value = f.ToLowerInvariant();
-#if DEBUG
-                        var fixes = new List<string>();
-
-                        fixes.AddRange(SpellingFixProvider.SwapMatches(
-                            value,
-                            spellingFixer.SpellingData));
-
-                        if (fixes.Count == 0
-                            && value.Length >= 8)
-                        {
-                            fixes.AddRange(SpellingFixProvider.FuzzyMatches(
-                                value,
-                                spellingFixer.SpellingData,
-                                cancellationToken));
-                        }
-
-                        if (fixes.Count > 0)
-                            value = $"{value}={string.Join(",", fixes)}";
-#endif
-                        return value;
-                    });
-
-                wordList
-                    .WithValues(values)
-                    .Save();
+                return new SpellingFixer(
+                    solution,
+                    spellingData: spellingData,
+                    formatProvider: formatProvider,
+                    options: options);
             }
+        }
 
+        [Conditional("DEBUG")]
+        private static void SaveNewValues(
+            SpellingData spellingData,
+            CancellationToken cancellationToken)
+        {
             const string fixListPath = @"..\..\..\WordLists\roslynator.spelling.core.fixlist";
+            const string fixListTmpPath = fixListPath + ".tmp";
+            const string ignoreListPath = @"..\..\..\WordLists\roslynator.spelling.core.wordlist.tmp";
 
-            ImmutableDictionary<string, ImmutableHashSet<SpellingFix>> fixes
-                = spellingFixer.SpellingData.FixList.Items;
+            Dictionary<string, List<SpellingFix>> dic = spellingData.FixList.Items.ToDictionary(
+                f => f.Key,
+                f => f.Value.ToList(),
+                WordList.DefaultComparer);
 
-            if (fixes.Count > 0)
+            if (dic.Count > 0)
             {
-                Dictionary<string, List<SpellingFix>> dic = fixes
-                    .ToDictionary(f => f.Key, f => f.Value.ToList(), WordList.DefaultComparer);
-
-                const string path2 = fixListPath + ".tmp";
-
-                if (File.Exists(path2))
+                if (File.Exists(fixListTmpPath))
                 {
-                    foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in FixList.Load(path2).Items)
+                    foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in FixList.Load(fixListTmpPath).Items)
                     {
                         if (dic.TryGetValue(kvp.Key, out List<SpellingFix> list))
                         {
@@ -173,34 +149,72 @@ namespace Roslynator.CommandLine
                             dic.Remove(kvp.Key);
                     }
                 }
-
-                fixes = dic.ToImmutableDictionary(
-                    f => f.Key.ToLowerInvariant(),
-                    f => f.Value
-                        .Select(f => f.WithValue(f.Value.ToLowerInvariant()))
-                        .Distinct(SpellingFixComparer.Default)
-                        .ToImmutableHashSet(SpellingFixComparer.Default));
-
-                FixList.Save(path2, fixes);
             }
 
-            return CommandResult.Success;
+            StringComparer comparer = StringComparer.CurrentCulture;
 
-            SpellingFixer GetSpellingFixer(Solution solution)
+            HashSet<string> values = spellingData.IgnoreList.Values.ToHashSet(comparer);
+
+            if (values.Count > 0)
             {
-                SpellingData spellingData = SpellingData.Empty;
+                if (File.Exists(ignoreListPath))
+                    values.UnionWith(WordList.Load(ignoreListPath, comparer).Values);
 
-                string assemblyPath = typeof(FixCommand).Assembly.Location;
+                IEnumerable<string> newValues = values
+                    .Except(spellingData.FixList.Items.Select(f => f.Key), WordList.DefaultComparer)
+                    .Distinct(StringComparer.CurrentCulture)
+                    .OrderBy(f => f)
+                    .Select(f =>
+                    {
+                        string value = f.ToLowerInvariant();
 
-                if (!string.IsNullOrEmpty(assemblyPath))
-                    spellingData = SpellingData.LoadFromDirectory(Path.Combine(Path.GetDirectoryName(assemblyPath), "WordLists"));
+                        var fixes = new List<string>();
 
-                return new SpellingFixer(
-                    solution,
-                    spellingData: spellingData,
-                    formatProvider: formatProvider,
-                    options: options);
+                        fixes.AddRange(SpellingFixProvider.SwapMatches(
+                            value,
+                            spellingData));
+
+                        if (fixes.Count == 0
+                            && value.Length >= 8)
+                        {
+                            fixes.AddRange(SpellingFixProvider.FuzzyMatches(
+                                value,
+                                spellingData,
+                                cancellationToken));
+                        }
+
+                        if (fixes.Count > 0)
+                        {
+                            var spellingFix = new SpellingFix(string.Join(",", fixes), SpellingFixKind.None);
+
+                            if (dic.TryGetValue(value, out List<SpellingFix> list))
+                            {
+                                list.Add(spellingFix);
+                            }
+                            else
+                            {
+                                dic[value] = new List<SpellingFix>() { spellingFix };
+                            }
+
+                            return null;
+                        }
+
+                        return value;
+                    })
+                    .Where(f => f != null);
+
+                WordList.Save(ignoreListPath, newValues, comparer);
             }
+
+            ImmutableDictionary<string, ImmutableHashSet<SpellingFix>> fixes = dic.ToImmutableDictionary(
+                f => f.Key.ToLowerInvariant(),
+                f => f.Value
+                    .Select(f => f.WithValue(f.Value.ToLowerInvariant()))
+                    .Distinct(SpellingFixComparer.Default)
+                    .ToImmutableHashSet(SpellingFixComparer.Default));
+
+            if (fixes.Count > 0)
+                FixList.Save(fixListTmpPath, fixes);
         }
 
         protected override void OperationCanceled(OperationCanceledException ex)

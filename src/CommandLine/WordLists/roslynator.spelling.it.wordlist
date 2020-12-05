@@ -105,6 +105,7 @@ byval
 cad
 calibri
 callvirt
+camelize
 captcha
 captchas
 cctor
@@ -183,6 +184,7 @@ curr
 cygwin
 cz
 dao
+dasherize
 db
 dba
 dbg
@@ -641,6 +643,7 @@ paramref
 params
 paren
 parens
+pascalize
 pbkdf
 pci
 pcl
@@ -848,6 +851,7 @@ tftp
 tgz
 thisobj
 tinyint
+titleize
 tizen
 tlbimp
 tld
@@ -866,6 +870,7 @@ tsql
 tsv
 ttf
 ttl
+tupleize
 twitter
 twofish
 txt

@@ -206,10 +206,18 @@ namespace Roslynator.Spelling
             string path,
             WordList wordList)
         {
-            IEnumerable<string> values = wordList.Values
+            Save(path, wordList.Values, wordList.Comparer);
+        }
+
+        public static void Save(
+            string path,
+            IEnumerable<string> values,
+            StringComparer comparer)
+        {
+            values = values
                 .Where(f => !string.IsNullOrWhiteSpace(f))
                 .Select(f => f.Trim())
-                .Distinct(wordList.Comparer)
+                .Distinct(comparer)
                 .OrderBy(f => f, StringComparer.InvariantCulture);
 
             File.WriteAllText(path, string.Join(Environment.NewLine, values));

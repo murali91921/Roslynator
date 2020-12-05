@@ -36,6 +36,7 @@ NHibernate
 OAuth
 OpenSSL
 PostgreSQL
+Regexator
 Restream
 RoboHash
 Roslynator
