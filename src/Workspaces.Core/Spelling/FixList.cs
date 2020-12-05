@@ -64,6 +64,38 @@ namespace Roslynator.Spelling
             }
         }
 
+        public static FixList LoadFromDirectory(string directoryPath)
+        {
+            var fixes = new Dictionary<string, List<string>>();
+
+            foreach (string filePath in Directory.EnumerateFiles(directoryPath, "*.fixlist", SearchOption.TopDirectoryOnly))
+            {
+                string input = Path.GetFileNameWithoutExtension(filePath);
+
+                foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in Load(filePath).Items)
+                {
+                    if (fixes.TryGetValue(kvp.Key, out List<string> values))
+                    {
+                        values.AddRange(kvp.Value.Select(f => f.Value));
+                    }
+                    else
+                    {
+                        fixes[kvp.Key] = kvp.Value.Select(f => f.Value).ToList();
+                    }
+                }
+            }
+
+            ImmutableDictionary<string, ImmutableHashSet<SpellingFix>> fixes2 = fixes.ToImmutableDictionary(
+                f => f.Key,
+                f => f.Value
+                    .Distinct(StringComparer.CurrentCulture)
+                    .Select(f => new SpellingFix(f, SpellingFixKind.List))
+                    .ToImmutableHashSet(SpellingFixComparer.CurrentCulture),
+                WordList.DefaultComparer);
+
+            return new FixList(fixes2);
+        }
+
         public static FixList Load(string path)
         {
             var dic = new Dictionary<string, HashSet<string>>(WordList.DefaultComparer);

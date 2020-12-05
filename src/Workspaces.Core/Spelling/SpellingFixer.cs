@@ -72,8 +72,6 @@ namespace Roslynator.Spelling
                 else
                 {
                     WriteLine($"Skip '{project.Name}' {$"{i + 1}/{projects.Length}"}", ConsoleColor.DarkGray, Verbosity.Minimal);
-
-                    //results.Add(SpellingFixResult.Skipped);
                 }
 
                 TimeSpan elapsed = stopwatch.Elapsed;

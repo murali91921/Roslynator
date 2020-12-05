@@ -105,6 +105,20 @@ namespace Roslynator.Spelling
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay => $"Count = {Values.Count}  {Path}";
 
+        public static WordList LoadFromDirectory(string directoryPath)
+        {
+            WordList wordList = Default;
+
+            foreach (string filePath in Directory.EnumerateFiles(directoryPath, "*.wordlist", SearchOption.TopDirectoryOnly))
+            {
+                string input = System.IO.Path.GetFileNameWithoutExtension(filePath);
+
+                wordList = wordList.AddValues(Load(filePath));
+            }
+
+            return wordList;
+        }
+
         public static WordList Load(string path, StringComparer comparer = null)
         {
             IEnumerable<string> values = ReadWords(path);

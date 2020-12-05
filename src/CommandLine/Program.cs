@@ -26,8 +26,6 @@ namespace Roslynator.CommandLine
     {
         private static int Main(string[] args)
         {
-            WordListHelpers.CompareWordList();
-
             WriteLine($"Roslynator Command Line Tool version {typeof(Program).GetTypeInfo().Assembly.GetName().Version}", Verbosity.Quiet);
             WriteLine("Copyright (c) Josef Pihrt. All rights reserved.", Verbosity.Quiet);
             WriteLine(Verbosity.Quiet);
@@ -345,7 +343,10 @@ namespace Roslynator.CommandLine
             var command = new FixSpellingCommand(options, projectFilter);
 
             IEnumerable<string> properties = options.Properties;
-
+#if DEBUG
+            Console.WriteLine("Processing word lists");
+            WordListHelpers.ProcessWordLists();
+#endif
             CommandResult result = await command.ExecuteAsync(options.Path, options.MSBuildPath, properties);
 
             return (result == CommandResult.Success) ? 0 : 1;

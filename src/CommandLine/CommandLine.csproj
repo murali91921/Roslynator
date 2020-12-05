@@ -63,32 +63,40 @@
 
   <ItemGroup>
     <None Include="..\..\images\icon.png" Pack="true" PackagePath="\" Visible="false" />
+    <None Remove="_FixLists\.gitignore" />
+    <None Remove="_WordLists\.gitignore" />
     <None Remove="_._" />
-    <None Update="WordLists\roslynator.spelling.html.wordlist">
+    <None Update="_FixLists\core.fixlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="WordLists\roslynator.spelling.names.wordlist">
+    <None Update="_FixLists\core.fixlist.new">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="WordLists\roslynator.spelling.core_br.wordlist">
+    <None Update="_WordLists\abbr.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="WordLists\roslynator.spelling.hyphen.wordlist">
+    <None Update="_WordLists\core.br.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="WordLists\roslynator.spelling.abbr.wordlist">
+    <None Update="_WordLists\core.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="WordLists\roslynator.spelling.big.wordlist">
+    <None Update="_WordLists\core2.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="WordLists\roslynator.spelling.core.fixlist">
+    <None Update="_WordLists\core2.wordlist.new">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="WordLists\roslynator.spelling.core.wordlist">
+    <None Update="_WordLists\html.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="WordLists\roslynator.spelling.it.wordlist">
+    <None Update="_WordLists\hyphen.wordlist">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="_WordLists\names.wordlist">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="_WordLists\tech.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
