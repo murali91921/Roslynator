@@ -1,8 +1,17 @@
-amqp
-crc
-msft
-gssapi
-redis
+adonet
+chm
+fav
+hmmssfff
+hsqldb
+jdbc
+mdf
+mssqlserver
+olap
+proj
+sap
+tempdb
+autoprop
+autoprops
 
 aac
 acklam
@@ -30,6 +39,7 @@ algol
 alloc
 allocs
 amd
+amqp
 ansi
 antlr
 aop
@@ -166,6 +176,7 @@ coth
 cpp
 cpu
 cpus
+crc
 cref
 crlf
 cs
@@ -374,6 +385,7 @@ gps
 gpu
 grep
 grpc
+gssapi
 gui
 guid
 guids
@@ -417,6 +429,7 @@ id
 ide
 ids
 idx
+idxs
 iec
 ienumerable
 ienumerables
@@ -562,6 +575,7 @@ mscorlib
 msde
 msdn
 msdtc
+msft
 msil
 msix
 msmq
@@ -711,6 +725,7 @@ readme
 realm
 rect
 rects
+redis
 regex
 regexes
 regexp

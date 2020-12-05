@@ -137,15 +137,16 @@ namespace Roslynator.CommandLine
 
                         if (fixes.Count > 0)
                         {
-                            var spellingFix = new SpellingFix(string.Join(",", fixes), SpellingFixKind.None);
+                            IEnumerable<SpellingFix> spellingFixes = fixes
+                                .Select(fix => new SpellingFix(fix, SpellingFixKind.None));
 
                             if (dic.TryGetValue(value, out List<SpellingFix> list))
                             {
-                                list.Add(spellingFix);
+                                list.AddRange(spellingFixes);
                             }
                             else
                             {
-                                dic[value] = new List<SpellingFix>() { spellingFix };
+                                dic[value] = new List<SpellingFix>(spellingFixes);
                             }
 
                             return null;
