@@ -23,7 +23,8 @@ namespace Roslynator.CommandLine
         public static void ProcessWordLists()
         {
             WordList core_br = WordList.Load(_wordListDirPath + "core.br.wordlist").SaveAndLoad();
-            WordList tech = WordList.Load(_wordListDirPath + "tech.wordlist").Except(core_br).SaveAndLoad();
+            WordList fonts = WordList.Load(_wordListDirPath + "fonts.wordlist").Except(core_br).SaveAndLoad();
+            WordList tech = WordList.Load(_wordListDirPath + "tech.wordlist").Except(core_br).Except(fonts).SaveAndLoad();
             WordList abbr = WordList.Load(_wordListDirPath + "abbr.wordlist").Except(core_br).Except(tech).SaveAndLoad();
             WordList core = WordList.Load(_wordListDirPath + "core.wordlist").Except(core_br).SaveAndLoad();
             WordList core2 = WordList.Load(_wordListDirPath + "core2.wordlist").Except(core_br).Except(tech).Except(abbr).SaveAndLoad();

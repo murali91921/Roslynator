@@ -1,10 +1,9 @@
+abbr
 afaict
 afaik
-imho
-
-abbr
 atm
 bic
+crm
 cvv
 diy
 ean
@@ -12,8 +11,12 @@ edu
 eur
 gb
 gmt
+gprs
+gsm
 iban
 imdb
+imei
+imho
 intl
 isbn
 issn
@@ -25,7 +28,9 @@ mrs
 mru
 ms
 mvp
+nist
 nyse
+omg
 plc
 pm
 pov
@@ -41,5 +46,6 @@ uhf
 usa
 usd
 vip
+voip
 wtf
 wto

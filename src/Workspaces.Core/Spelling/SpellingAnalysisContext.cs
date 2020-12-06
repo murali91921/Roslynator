@@ -58,7 +58,7 @@ namespace Roslynator.Spelling
 |
     ('(d|ll|m|re|t|ve)\b)
 |
-\b
+    \b
 )",
             RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
