@@ -88,6 +88,7 @@ namespace Roslynator.CSharp
                 case SyntaxKind.PropertyDeclaration:
                 case SyntaxKind.EventDeclaration:
                 case SyntaxKind.Parameter:
+                case SyntaxKind.ForEachStatement:
                     {
                         return parent;
                     }

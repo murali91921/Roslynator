@@ -74,10 +74,7 @@ namespace Roslynator
             string indentation,
             Verbosity verbosity)
         {
-            string messageText = DiagnosticFormatter.FormatSpellingDiagnostic(diagnostic, baseDirectoryPath);
-
-            Write(indentation, verbosity);
-            WriteLine(messageText, ConsoleColor.Cyan, verbosity);
+            WriteDiagnostic(diagnostic.Diagnostic, baseDirectoryPath, default(IFormatProvider), indentation, verbosity);
 
             TextSpan span = diagnostic.Location.SourceSpan;
             TextLineCollection lines = sourceText.Lines;

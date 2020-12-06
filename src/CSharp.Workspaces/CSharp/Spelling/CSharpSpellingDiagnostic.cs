@@ -9,11 +9,12 @@ namespace Roslynator.CSharp.Spelling
     internal sealed class CSharpSpellingDiagnostic : SpellingDiagnostic
     {
         public CSharpSpellingDiagnostic(
+            Diagnostic diagnostic,
             string value,
             string containingValue,
             Location location,
             int index,
-            SyntaxToken identifier = default) : base(value, containingValue, location, index, identifier)
+            SyntaxToken identifier = default) : base(diagnostic, value, containingValue, location, index, identifier)
         {
         }
 

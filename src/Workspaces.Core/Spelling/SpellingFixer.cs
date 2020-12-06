@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -19,6 +20,8 @@ namespace Roslynator.Spelling
 {
     internal class SpellingFixer
     {
+        private static readonly Regex _lowercasedSeparatedWithUnderscoresRegex = new Regex(@"\A_*\p{Ll}+(_+\p{Ll}+)+\z");
+
         public SpellingFixer(
             Solution solution,
             SpellingData spellingData,
@@ -186,12 +189,12 @@ namespace Roslynator.Spelling
 
         private async Task<List<SpellingFixResult>> FixCommentsAsync(
             Project project,
-            List<SpellingDiagnostic> diagnostic,
+            List<SpellingDiagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
             var results = new List<SpellingFixResult>();
 
-            List<SpellingDiagnostic> commentDiagnostics = diagnostic.Where(f => !f.IsSymbol).ToList();
+            List<SpellingDiagnostic> commentDiagnostics = diagnostics.Where(f => !f.IsSymbol).ToList();
 
             var applyChanges = false;
 
@@ -208,35 +211,35 @@ namespace Roslynator.Spelling
 
                 List<TextChange> textChanges = null;
 
-                foreach (SpellingDiagnostic iagnostic in grouping.OrderBy(f => f.Location.SourceSpan.Start))
+                foreach (SpellingDiagnostic diagnostic in grouping.OrderBy(f => f.Location.SourceSpan.Start))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (SpellingData.IgnoreList.Contains(iagnostic.Value))
+                    if (SpellingData.IgnoreList.Contains(diagnostic.Value))
                         continue;
 
-                    LogHelpers.WriteSpellingDiagnostic(iagnostic, Options, sourceText, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
+                    LogHelpers.WriteSpellingDiagnostic(diagnostic, Options, sourceText, Path.GetDirectoryName(project.FilePath), "    ", Verbosity.Normal);
 
-                    SpellingFix fix = GetFix(iagnostic, cancellationToken);
+                    SpellingFix fix = GetFix(diagnostic, cancellationToken);
 
                     Debug.Assert(fix.Value != "");
 
                     if (!fix.IsDefault
-                        && !string.Equals(fix.Value, iagnostic.Value, StringComparison.Ordinal))
+                        && !string.Equals(fix.Value, diagnostic.Value, StringComparison.Ordinal))
                     {
                         if (!Options.DryRun)
-                            (textChanges ??= new List<TextChange>()).Add(new TextChange(iagnostic.Location.SourceSpan, fix.Value));
+                            (textChanges ??= new List<TextChange>()).Add(new TextChange(diagnostic.Location.SourceSpan, fix.Value));
 
                         results.Add(new SpellingFixResult(
-                            iagnostic.Value,
+                            diagnostic.Value,
                             fix.Value,
-                            iagnostic.Location.GetMappedLineSpan()));
+                            diagnostic.Location.GetMappedLineSpan()));
 
-                        ProcessFix(iagnostic, fix);
+                        ProcessFix(diagnostic, fix);
                     }
                     else
                     {
-                        SpellingData = SpellingData.AddIgnoredValue(iagnostic.Value);
+                        SpellingData = SpellingData.AddIgnoredValue(diagnostic.Value);
                     }
                 }
 
@@ -593,25 +596,29 @@ namespace Roslynator.Spelling
             {
                 foreach (int splitIndex in SpellingFixProvider.GetSplitIndexes(diagnostic, SpellingData))
                 {
-                    // foofooBar > fooBar
-                    if (value.Length - splitIndex >= splitIndex
-                        && string.Compare(value, 0, value, splitIndex, splitIndex, StringComparison.Ordinal) == 0)
-                    {
-                        fixes.Add(new SpellingFix(value.Remove(splitIndex, splitIndex), SpellingFixKind.Split));
-                    }
+                    //TODO: foofooBar > fooBar
+                    //if (value.Length - splitIndex >= splitIndex
+                    //    && string.Compare(value, 0, value, splitIndex, splitIndex, StringComparison.Ordinal) == 0)
+                    //{
+                    //    fixes.Add(new SpellingFix(value.Remove(splitIndex, splitIndex), SpellingFixKind.Split));
+                    //}
 
-                    // foobar > fooBar
-                    // Tvalue > TValue
-                    fixes.Add(new SpellingFix(
-                        value
-                            .Remove(splitIndex, 1)
-                            .Insert(splitIndex, char.ToUpperInvariant(value[splitIndex]).ToString()),
-                        SpellingFixKind.Split));
+                    bool? canInsertUnderscore = null;
+
+                    if (!diagnostic.IsSymbol
+                        || !(canInsertUnderscore ??= _lowercasedSeparatedWithUnderscoresRegex.IsMatch(value)))
+                    {
+                        // foobar > fooBar
+                        // Tvalue > TValue
+                        fixes.Add(new SpellingFix(
+                            TextUtility.ReplaceRange(value, char.ToUpperInvariant(value[splitIndex]).ToString(), splitIndex, 1),
+                            SpellingFixKind.Split));
+                    }
 
                     if (diagnostic.IsSymbol)
                     {
                         // foobar > foo_bar
-                        if (diagnostic.ContainingValue.Contains("_"))
+                        if (canInsertUnderscore == true)
                             fixes.Add(new SpellingFix(value.Insert(splitIndex, "_"), SpellingFixKind.Split));
                     }
                     else if (splitIndex > 1)

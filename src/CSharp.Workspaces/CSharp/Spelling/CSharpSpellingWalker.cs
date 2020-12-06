@@ -1,229 +1,39 @@
 ﻿// Copyright (c) Josef Pihrt. All rights reserved. Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Roslynator.RegularExpressions;
 using Roslynator.Spelling;
 
 namespace Roslynator.CSharp.Spelling
 {
-    //TODO: decode html entity?
-    //TODO: parse email address
     //TODO: allow parameter names in comments
     internal class CSharpSpellingWalker : CSharpSyntaxWalker
     {
-        private static readonly Regex _splitIdentifierRegex = new Regex(
-            @"
-    \P{L}+
-|
-    (?<=\p{Lu})(?=\p{Lu}\p{Ll})
-|
-    (?<=\p{Ll})(?=\p{Lu})
-",
-            RegexOptions.IgnorePatternWhitespace);
+        private readonly SpellingAnalysisContext _analysisContext;
 
-        private static readonly Regex _splitCaseRegex = new Regex(
-            @"
-    (?<=\p{Lu})(?=\p{Lu}\p{Ll})
-|
-    (?<=\p{Ll})(?=\p{Lu})
-",
-            RegexOptions.IgnorePatternWhitespace);
+        private SpellingFixerOptions Options => _analysisContext.Options;
 
-        private static readonly Regex _splitHyphenRegex = new Regex("-");
-
-        private static readonly Regex _splitCaseAndHyphenRegex = new Regex(
-            @"
-    -
-|
-    (?<=\p{Lu})(?=\p{Lu}\p{Ll})
-|
-    (?<=\p{Ll})(?=\p{Lu})
-",
-            RegexOptions.IgnorePatternWhitespace);
-
-        private static readonly Regex _wordInCommentRegex = new Regex(
-            @"
-\b
-\p{L}{2,}
-(-\p{L}{2,})*
-\p{L}*
-(
-    (?='s\b)
-|
-    ('(d|ll|m|re|t|ve)\b)
-|
-\b
-)",
-            RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
-
-        private static readonly Regex _identifierToSkipRegex = new Regex(@"\A_*\p{Ll}{1,3}\d*\z");
-
-        private static readonly Regex _urlRegex = new Regex(
-            @"\bhttps?://[^\s]+(?=\s|\z)", RegexOptions.IgnoreCase);
-
-        private readonly Action<Diagnostic> _reportDiagnostic;
-
-        public SpellingData SpellingData { get; }
-
-        public SpellingFixerOptions Options { get; }
-
-        public CancellationToken CancellationToken { get; }
-
-        public CSharpSpellingWalker(
-            Action<Diagnostic> reportDiagnostic,
-            SpellingData spellingData,
-            SpellingFixerOptions options,
-            CancellationToken cancellationToken)
+        public CSharpSpellingWalker(SpellingAnalysisContext analysisContext)
             : base(SyntaxWalkerDepth.StructuredTrivia)
         {
-            SpellingData = spellingData;
-            Options = options;
-            CancellationToken = cancellationToken;
-
-            _reportDiagnostic = reportDiagnostic;
+            _analysisContext = analysisContext;
         }
 
-        private void AnalyzeComment(string value, SyntaxTree syntaxTree, TextSpan textSpan)
+        private void AnalyzeText(string value, SyntaxTree syntaxTree, TextSpan textSpan)
         {
-            int prevEnd = 0;
+            _analysisContext.CancellationToken.ThrowIfCancellationRequested();
 
-            Match match = _urlRegex.Match(value, prevEnd);
-
-            while (match.Success)
-            {
-                AnalyzeComment(value, prevEnd, match.Index - prevEnd, textSpan, syntaxTree);
-
-                prevEnd = match.Index + match.Length;
-
-                match = match.NextMatch();
-            }
-
-            AnalyzeComment(value, prevEnd, value.Length - prevEnd, textSpan, syntaxTree);
+            _analysisContext.AnalyzeText(value, textSpan, syntaxTree);
         }
 
-        private void AnalyzeComment(
-            string value,
-            int startIndex,
-            int length,
-            TextSpan textSpan,
-            SyntaxTree syntaxTree)
+        private void AnalyzeIdentifier(SyntaxToken identifier, int prefixLength = 0)
         {
-            Match match = _wordInCommentRegex.Match(value, startIndex, length);
+            _analysisContext.CancellationToken.ThrowIfCancellationRequested();
 
-            Regex splitRegex = GetSplitRegex();
-
-            while (match.Success)
-            {
-                if (match.Length >= Options.MinWordLength)
-                {
-                    if (splitRegex == null)
-                    {
-                        AnalyzeValue(
-                            match.Value,
-                            new TextSpan(textSpan.Start + match.Index, match.Length),
-                            syntaxTree);
-                    }
-                    else
-                    {
-                        foreach (SplitItem splitItem in SplitItemCollection.Create(splitRegex, match.Value))
-                        {
-                            AnalyzeValue(
-                                splitItem.Value,
-                                new TextSpan(textSpan.Start + match.Index + splitItem.Index, splitItem.Value.Length),
-                                syntaxTree);
-                        }
-                    }
-                }
-
-                match = match.NextMatch();
-            }
-
-            Regex GetSplitRegex()
-            {
-                return Options.SplitMode switch
-                {
-                    SplitMode.None => null,
-                    SplitMode.Case => _splitCaseRegex,
-                    SplitMode.Hyphen => _splitHyphenRegex,
-                    SplitMode.CaseAndHyphen => _splitCaseAndHyphenRegex,
-                    _ => throw new InvalidOperationException(),
-                };
-            }
-        }
-
-        private void AnalyzeIdentifier(
-            SyntaxToken identifier,
-            int prefixLength = 0)
-        {
-            string value = identifier.ValueText;
-
-            if (value.Length < Options.MinWordLength)
-                return;
-
-            if (prefixLength > 0)
-            {
-                if (SpellingData.IgnoreList.Contains(value))
-                    return;
-
-                if (SpellingData.List.Contains(value))
-                    return;
-            }
-
-            string value2 = (prefixLength > 0) ? value.Substring(prefixLength) : value;
-
-            SplitItemCollection splitItems = SplitItemCollection.Create(_splitIdentifierRegex, value2);
-
-            if (splitItems.Count > 1)
-            {
-                if (SpellingData.IgnoreList.Contains(value2))
-                    return;
-
-                if (SpellingData.List.Contains(value2))
-                    return;
-            }
-
-            foreach (SplitItem splitItem in splitItems)
-            {
-                Debug.Assert(splitItem.Value.All(f => char.IsLetter(f)), splitItem.Value);
-
-                AnalyzeValue(
-                    splitItem.Value,
-                    new TextSpan(identifier.SpanStart + splitItem.Index + prefixLength, splitItem.Length),
-                    identifier.SyntaxTree);
-            }
-        }
-
-        private void AnalyzeValue(
-            string value,
-            TextSpan textSpan,
-            SyntaxTree syntaxTree)
-        {
-            if (value.Length < Options.MinWordLength)
-                return;
-
-            if (IsAllowedNonsensicalWord(value))
-                return;
-
-            if (SpellingData.IgnoreList.Contains(value))
-                return;
-
-            if (SpellingData.List.Contains(value))
-                return;
-
-            Diagnostic diagnostic = Diagnostic.Create(
-                SpellingAnalyzer.DiagnosticDescriptor,
-                Location.Create(syntaxTree, textSpan),
-                value);
-
-            _reportDiagnostic(diagnostic);
+            _analysisContext.AnalyzeIdentifier(identifier, prefixLength);
         }
 
         public override void VisitTrivia(SyntaxTrivia trivia)
@@ -234,7 +44,7 @@ namespace Roslynator.CSharp.Spelling
                 case SyntaxKind.MultiLineCommentTrivia:
                     {
                         if (Options.IncludeComments)
-                            AnalyzeComment(trivia.ToString(), trivia.SyntaxTree, trivia.Span);
+                            AnalyzeText(trivia.ToString(), trivia.SyntaxTree, trivia.Span);
 
                         break;
                     }
@@ -252,7 +62,7 @@ namespace Roslynator.CSharp.Spelling
                     {
                         Debug.Assert(Options.IncludeComments);
 
-                        AnalyzeComment(trivia.ToString(), trivia.SyntaxTree, trivia.Span);
+                        AnalyzeText(trivia.ToString(), trivia.SyntaxTree, trivia.Span);
                         break;
                     }
             }
@@ -327,17 +137,11 @@ namespace Roslynator.CSharp.Spelling
                                 if (!Options.IncludeLocal)
                                     return false;
 
-                                if (ShouldBeSkipped(node.Identifier.ValueText))
-                                    return false;
-
                                 break;
                             }
                         case SyntaxKind.FieldDeclaration:
                         case SyntaxKind.EventFieldDeclaration:
                             {
-                                if (ShouldBeSkipped(node.Identifier.ValueText))
-                                    return false;
-
                                 break;
                             }
                     }
@@ -357,11 +161,8 @@ namespace Roslynator.CSharp.Spelling
 
         public override void VisitCatchDeclaration(CatchDeclarationSyntax node)
         {
-            if (Options.IncludeLocal
-                && !ShouldBeSkipped(node.Identifier.ValueText))
-            {
+            if (Options.IncludeLocal)
                 AnalyzeIdentifier(node.Identifier);
-            }
 
             base.VisitCatchDeclaration(node);
         }
@@ -483,10 +284,15 @@ namespace Roslynator.CSharp.Spelling
 
         public override void VisitParameter(ParameterSyntax node)
         {
-            if (!ShouldBeSkipped(node.Identifier.ValueText))
-                AnalyzeIdentifier(node.Identifier);
+            AnalyzeIdentifier(node.Identifier);
 
             base.VisitParameter(node);
+        }
+
+        public override void VisitForEachStatement(ForEachStatementSyntax node)
+        {
+            if (Options.IncludeLocal)
+                AnalyzeIdentifier(node.Identifier);
         }
 
         public override void VisitXmlElement(XmlElementSyntax node)
@@ -508,181 +314,8 @@ namespace Roslynator.CSharp.Spelling
                 foreach (SyntaxToken token in node.TextTokens)
                 {
                     if (token.IsKind(SyntaxKind.XmlTextLiteralToken))
-                        AnalyzeComment(token.ValueText, node.SyntaxTree, token.Span);
+                        AnalyzeText(token.ValueText, node.SyntaxTree, token.Span);
                 }
-            }
-        }
-
-        private bool ShouldBeSkipped(string s)
-        {
-            return _identifierToSkipRegex.IsMatch(s);
-        }
-
-        //TODO: del
-        //private static bool IsLocalOrParameterOrField(SyntaxNode node)
-        //{
-        //    switch (node.Kind())
-        //    {
-        //        case SyntaxKind.CatchDeclaration:
-        //        case SyntaxKind.SingleVariableDesignation:
-        //            {
-        //                return true;
-        //            }
-        //        case SyntaxKind.VariableDeclarator:
-        //            {
-        //                return node.IsParentKind(SyntaxKind.VariableDeclaration)
-        //                    && node.Parent.IsParentKind(
-        //                        SyntaxKind.LocalDeclarationStatement,
-        //                        SyntaxKind.UsingStatement,
-        //                        SyntaxKind.ForStatement,
-        //                        SyntaxKind.FixedStatement,
-        //                        SyntaxKind.FieldDeclaration,
-        //                        SyntaxKind.EventFieldDeclaration);
-        //            }
-        //        default:
-        //            {
-        //                return false;
-        //            }
-        //    }
-        //}
-
-        private bool IsAllowedNonsensicalWord(string value)
-        {
-            if (value.Length < 3)
-                return false;
-
-            switch (value)
-            {
-                case "xyz":
-                case "Xyz":
-                case "XYZ":
-                case "asdfgh":
-                case "Asdfgh":
-                case "ASDFGH":
-                case "qwerty":
-                case "Qwerty":
-                case "QWERTY":
-                case "qwertz":
-                case "Qwertz":
-                case "QWERTZ":
-                    return true;
-            }
-
-            if (IsAbcSequence())
-                return true;
-
-            if (IsAaaSequence())
-                return true;
-
-            if (IsAaaBbbCccSequence())
-                return true;
-
-            return false;
-
-            bool IsAbcSequence()
-            {
-                int num = 0;
-
-                if (value[0] == 'a')
-                {
-                    if (value[1] == 'b')
-                    {
-                        num = 'c';
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else if (value[0] == 'A')
-                {
-                    if (value[1] == 'B')
-                    {
-                        num = 'C';
-                    }
-                    else if (value[1] == 'b')
-                    {
-                        num = 'c';
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-
-                for (int i = 2; i < value.Length; i++)
-                {
-                    if (value[i] != num)
-                        return false;
-
-                    num++;
-                }
-
-                return true;
-            }
-
-            bool IsAaaSequence()
-            {
-                char ch = value[0];
-                int i = 1;
-
-                if (ch >= 65
-                    && ch <= 90
-                    && value[1] == ch + 32)
-                {
-                    ch = (char)(ch + 32);
-                    i++;
-                }
-
-                while (i < value.Length)
-                {
-                    if (value[i] != ch)
-                        return false;
-
-                    i++;
-                }
-
-                return true;
-            }
-
-            // aabbcc
-            bool IsAaaBbbCccSequence()
-            {
-                char ch = value[0];
-                int i = 1;
-
-                while (i < value.Length
-                    && value[i] == ch)
-                {
-                    i++;
-                }
-
-                if (i > 1
-                    && (ch == 'a' || ch == 'A')
-                    && value.Length >= 6
-                    && value.Length % i == 0)
-                {
-                    int length = i;
-                    int count = value.Length / i;
-
-                    for (int j = 0; j < count - 1; j++)
-                    {
-                        var ch2 = (char)(ch + j + 1);
-
-                        int start = i + (j * length);
-                        int end = start + length;
-
-                        for (int k = i + (j * length); k < end; k++)
-                        {
-                            if (ch2 != value[k])
-                                return false;
-                        }
-                    }
-
-                    return true;
-                }
-
-                return false;
             }
         }
     }

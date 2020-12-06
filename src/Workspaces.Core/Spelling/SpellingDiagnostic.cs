@@ -14,18 +14,22 @@ namespace Roslynator.Spelling
         private TextCasing? _casing;
 
         protected SpellingDiagnostic(
+            Diagnostic diagnostic,
             string value,
             string containingValue,
             Location location,
             int index,
             SyntaxToken identifier = default)
         {
+            Diagnostic = diagnostic;
             Value = value;
             ContainingValue = containingValue;
             Location = location;
             Index = index;
             Identifier = identifier;
         }
+
+        public Diagnostic Diagnostic { get; }
 
         public string Value { get; }
 

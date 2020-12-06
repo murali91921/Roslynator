@@ -36,11 +36,13 @@ namespace Roslynator.CSharp.Spelling
         {
             var diagnostics = new List<Diagnostic>();
 
-            var walker = new CSharpSpellingWalker(
+            var analysisContext = new SpellingAnalysisContext(
                 diagnostic => diagnostics.Add(diagnostic),
                 spellingData,
                 options,
                 cancellationToken);
+
+            var walker = new CSharpSpellingWalker(analysisContext);
 
             walker.Visit(node);
 
@@ -68,7 +70,7 @@ namespace Roslynator.CSharp.Spelling
 
                 string value = triviaText.Substring(span.Start - trivia.SpanStart, span.Length);
 
-                return new CSharpSpellingDiagnostic(value, value, location, 0);
+                return new CSharpSpellingDiagnostic(diagnostic, value, value, location, 0);
             }
 
             SyntaxToken token = root.FindToken(span.Start, findInsideTrivia: true);
@@ -83,7 +85,7 @@ namespace Roslynator.CSharp.Spelling
 
                 string value = text.Substring(index, span.Length);
 
-                return new CSharpSpellingDiagnostic(value, value, location, index, (token.IsKind(SyntaxKind.IdentifierToken)) ? token : default);
+                return new CSharpSpellingDiagnostic(diagnostic, value, value, location, index, (token.IsKind(SyntaxKind.IdentifierToken)) ? token : default);
             }
 
             return null;
@@ -93,14 +95,14 @@ namespace Roslynator.CSharp.Spelling
         private class CSharpSpellingAnalyzer : DiagnosticAnalyzer
         {
             private readonly SpellingData _spellingData;
-            private readonly SpellingFixerOptions _spellingFixerOptions;
+            private readonly SpellingFixerOptions _options;
 
             public CSharpSpellingAnalyzer(
                 SpellingData spellingData,
-                SpellingFixerOptions spellingFixerOptions)
+                SpellingFixerOptions options)
             {
                 _spellingData = spellingData;
-                _spellingFixerOptions = spellingFixerOptions;
+                _options = options;
             }
 
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -112,7 +114,7 @@ namespace Roslynator.CSharp.Spelling
             {
                 context.EnableConcurrentExecution();
 
-                context.ConfigureGeneratedCodeAnalysis((_spellingFixerOptions.IncludeGeneratedCode)
+                context.ConfigureGeneratedCodeAnalysis((_options.IncludeGeneratedCode)
                     ? GeneratedCodeAnalysisFlags.ReportDiagnostics
                     : GeneratedCodeAnalysisFlags.None);
 
@@ -125,11 +127,13 @@ namespace Roslynator.CSharp.Spelling
 
                 SyntaxNode root = tree.GetRoot(context.CancellationToken);
 
-                var walker = new CSharpSpellingWalker(
+                var analysisContext = new SpellingAnalysisContext(
                     diagnostic => context.ReportDiagnostic(diagnostic),
                     _spellingData,
-                    _spellingFixerOptions,
+                    _options,
                     context.CancellationToken);
+
+                var walker = new CSharpSpellingWalker(analysisContext);
 
                 walker.Visit(root);
             }
