@@ -40,11 +40,6 @@ namespace Roslynator.Spelling
             return new SpellingData(List.AddValue(value), FixList, IgnoreList);
         }
 
-        public SpellingData AddFix(string error, string fix, SpellingFixKind kind)
-        {
-            return AddFix(error, new SpellingFix(fix, kind));
-        }
-
         public SpellingData AddFix(string error, SpellingFix spellingFix)
         {
             FixList fixList = FixList.Add(error, spellingFix);

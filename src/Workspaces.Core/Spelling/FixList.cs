@@ -36,11 +36,6 @@ namespace Roslynator.Spelling
             return Items.TryGetKey(equalKey, out actualKey);
         }
 
-        public FixList Add(string key, string fix, SpellingFixKind kind)
-        {
-            return Add(key, new SpellingFix(fix, kind));
-        }
-
         public FixList Add(string key, SpellingFix spellingFix)
         {
             if (Items.TryGetValue(key, out ImmutableHashSet<SpellingFix> fixes))
@@ -56,11 +51,11 @@ namespace Roslynator.Spelling
             }
             else
             {
-                fixes = ImmutableHashSet.Create<SpellingFix>(SpellingFixComparer.Default, spellingFix);
+                fixes = ImmutableHashSet.Create(SpellingFixComparer.CurrentCultureIgnoreCase, spellingFix);
 
-                ImmutableDictionary<string, ImmutableHashSet<SpellingFix>> map = Items.Add(key, fixes);
+                ImmutableDictionary<string, ImmutableHashSet<SpellingFix>> dic = Items.Add(key, fixes);
 
-                return new FixList(map);
+                return new FixList(dic);
             }
         }
 
@@ -89,7 +84,7 @@ namespace Roslynator.Spelling
                 f => f.Key,
                 f => f.Value
                     .Distinct(StringComparer.CurrentCulture)
-                    .Select(f => new SpellingFix(f, SpellingFixKind.List))
+                    .Select(f => new SpellingFix(f, SpellingFixKind.Predefined))
                     .ToImmutableHashSet(SpellingFixComparer.CurrentCulture),
                 WordList.DefaultComparer);
 
@@ -134,8 +129,8 @@ namespace Roslynator.Spelling
                 = dic.ToImmutableDictionary(
                     f => f.Key,
                     f => f.Value
-                        .Select(f => new SpellingFix(f, SpellingFixKind.List))
-                        .ToImmutableHashSet(SpellingFixComparer.Default),
+                        .Select(f => new SpellingFix(f, SpellingFixKind.Predefined))
+                        .ToImmutableHashSet(SpellingFixComparer.CurrentCultureIgnoreCase),
                     WordList.DefaultComparer);
 
             return new FixList(items);

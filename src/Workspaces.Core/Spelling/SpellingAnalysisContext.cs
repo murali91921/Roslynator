@@ -17,15 +17,13 @@ namespace Roslynator.Spelling
     {
         private const string _splitCasePattern = @"
     (?<=
-        (\A|\p{Ll})
         \p{Lu}
     )
     (?=
-        \p{Lu}\p{Ll}\p{Ll}
+        \p{Lu}\p{Ll}
     )
 |
     (?<=
-        (?<!\A\p{Lu})
         \p{Ll}
     )
     (?=
@@ -61,6 +59,21 @@ namespace Roslynator.Spelling
     \b
 )",
             RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
+
+        // NaN, IDs, GUIDs, GACed, NETify, JSONify
+        private static readonly Regex _unsplittableWordRegex = new Regex(
+            @"
+\A
+(
+    \p{Lu}\p{Ll}\p{Lu}
+)
+|
+(
+    \p{Lu}{2,}(s|ed|ify)
+)
+\z
+",
+            RegexOptions.ExplicitCapture);
 
         private static readonly Regex _urlRegex = new Regex(
             @"\bhttps?://[^\s]+(?=\s|\z)", RegexOptions.IgnoreCase);
@@ -119,7 +132,8 @@ namespace Roslynator.Spelling
             {
                 if (match.Length >= Options.MinWordLength)
                 {
-                    if (splitRegex == null)
+                    if (splitRegex == null
+                        || _unsplittableWordRegex.IsMatch(match.Value))
                     {
                         AnalyzeValue(
                             match.Value,
@@ -174,25 +188,35 @@ namespace Roslynator.Spelling
 
             string value2 = (prefixLength > 0) ? value.Substring(prefixLength) : value;
 
-            SplitItemCollection splitItems = SplitItemCollection.Create(_splitIdentifierRegex, value2);
-
-            if (splitItems.Count > 1)
+            if (_unsplittableWordRegex.IsMatch(value2))
             {
-                if (SpellingData.IgnoreList.Contains(value2))
-                    return;
-
-                if (SpellingData.List.Contains(value2))
-                    return;
-            }
-
-            foreach (SplitItem splitItem in splitItems)
-            {
-                Debug.Assert(splitItem.Value.All(f => char.IsLetter(f)), splitItem.Value);
-
                 AnalyzeValue(
-                    splitItem.Value,
-                    new TextSpan(identifier.SpanStart + splitItem.Index + prefixLength, splitItem.Length),
+                    value2,
+                    new TextSpan(identifier.SpanStart + prefixLength, value2.Length),
                     identifier.SyntaxTree);
+            }
+            else
+            {
+                SplitItemCollection splitItems = SplitItemCollection.Create(_splitIdentifierRegex, value2);
+
+                if (splitItems.Count > 1)
+                {
+                    if (SpellingData.IgnoreList.Contains(value2))
+                        return;
+
+                    if (SpellingData.List.Contains(value2))
+                        return;
+                }
+
+                foreach (SplitItem splitItem in splitItems)
+                {
+                    Debug.Assert(splitItem.Value.All(f => char.IsLetter(f)), splitItem.Value);
+
+                    AnalyzeValue(
+                        splitItem.Value,
+                        new TextSpan(identifier.SpanStart + splitItem.Index + prefixLength, splitItem.Length),
+                        identifier.SyntaxTree);
+                }
             }
         }
 
@@ -201,6 +225,10 @@ namespace Roslynator.Spelling
             TextSpan textSpan,
             SyntaxTree syntaxTree)
         {
+            Debug.Assert(
+                value.Length <= 1 || TextUtility.GetTextCasing(value) != TextCasing.Undefined,
+                TextUtility.GetTextCasing(value).ToString());
+
             if (value.Length < Options.MinWordLength)
                 return;
 

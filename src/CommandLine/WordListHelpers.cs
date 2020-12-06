@@ -28,11 +28,11 @@ namespace Roslynator.CommandLine
             WordList abbr = WordList.Load(_wordListDirPath + "abbr.wordlist").Except(core_br).Except(tech).SaveAndLoad();
             WordList core = WordList.Load(_wordListDirPath + "core.wordlist").Except(core_br).SaveAndLoad();
             WordList core2 = WordList.Load(_wordListDirPath + "core2.wordlist").Except(core_br).Except(tech).Except(abbr).SaveAndLoad();
+            WordList names = WordList.Load(_wordListDirPath + "names.wordlist").Except(core_br).Except(tech).SaveAndLoad();
 
-            WordList.Load(_wordListDirPath + "names.wordlist").Except(core_br).Except(tech).SaveAndLoad();
             WordList.Load(_wordListDirPath + "hyphen.wordlist").Except(core2).SaveAndLoad();
 
-            WordList all = core.AddValues(core2).AddValues(core_br).AddValues(tech).AddValues(abbr);
+            WordList all = core.AddValues(core2).AddValues(core_br).AddValues(names);
             ProcessFixList(all);
         }
 
@@ -96,7 +96,7 @@ namespace Roslynator.CommandLine
                 {
                     if (dic.TryGetValue(kvp.Key, out List<SpellingFix> list))
                     {
-                        list.RemoveAll(f => kvp.Value.Contains(f, SpellingFixComparer.Default));
+                        list.RemoveAll(f => kvp.Value.Contains(f, SpellingFixComparer.CurrentCultureIgnoreCase));
 
                         if (list.Count == 0)
                             dic.Remove(kvp.Key);
@@ -164,8 +164,8 @@ namespace Roslynator.CommandLine
                 f => f.Key.ToLowerInvariant(),
                 f => f.Value
                     .Select(f => f.WithValue(f.Value.ToLowerInvariant()))
-                    .Distinct(SpellingFixComparer.Default)
-                    .ToImmutableHashSet(SpellingFixComparer.Default));
+                    .Distinct(SpellingFixComparer.CurrentCultureIgnoreCase)
+                    .ToImmutableHashSet(SpellingFixComparer.CurrentCultureIgnoreCase));
 
             if (fixes.Count > 0)
                 FixList.Save(fixListNewPath, fixes);

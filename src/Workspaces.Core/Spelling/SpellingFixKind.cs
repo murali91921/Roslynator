@@ -5,7 +5,7 @@ namespace Roslynator.Spelling
     internal enum SpellingFixKind
     {
         None = 0,
-        List = 1,
+        Predefined = 1,
         Swap = 2,
         Fuzzy = 3,
         Split = 4,

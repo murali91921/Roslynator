@@ -12,9 +12,9 @@ namespace Roslynator.Spelling
         IComparer,
         IEqualityComparer
     {
-        public static SpellingFixComparer Default { get; } = new DefaultSpellingFixComparer();
-
         public static SpellingFixComparer CurrentCulture { get; } = new CurrentCultureSpellingFixComparer();
+
+        public static SpellingFixComparer CurrentCultureIgnoreCase { get; } = new CurrentCultureIgnoreCaseSpellingFixComparer();
 
         public abstract int Compare(SpellingFix x, SpellingFix y);
 
@@ -73,24 +73,6 @@ namespace Roslynator.Spelling
             throw new ArgumentException("", nameof(obj));
         }
 
-        private class DefaultSpellingFixComparer : SpellingFixComparer
-        {
-            public override int Compare(SpellingFix x, SpellingFix y)
-            {
-                return WordList.DefaultComparer.Compare(x.Value, y.Value);
-            }
-
-            public override bool Equals(SpellingFix x, SpellingFix y)
-            {
-                return WordList.DefaultComparer.Equals(x.Value, y.Value);
-            }
-
-            public override int GetHashCode(SpellingFix obj)
-            {
-                return WordList.DefaultComparer.GetHashCode(obj.Value);
-            }
-        }
-
         private class CurrentCultureSpellingFixComparer : SpellingFixComparer
         {
             public override int Compare(SpellingFix x, SpellingFix y)
@@ -106,6 +88,24 @@ namespace Roslynator.Spelling
             public override int GetHashCode(SpellingFix obj)
             {
                 return StringComparer.CurrentCulture.GetHashCode(obj.Value);
+            }
+        }
+
+        private class CurrentCultureIgnoreCaseSpellingFixComparer : SpellingFixComparer
+        {
+            public override int Compare(SpellingFix x, SpellingFix y)
+            {
+                return WordList.DefaultComparer.Compare(x.Value, y.Value);
+            }
+
+            public override bool Equals(SpellingFix x, SpellingFix y)
+            {
+                return WordList.DefaultComparer.Equals(x.Value, y.Value);
+            }
+
+            public override int GetHashCode(SpellingFix obj)
+            {
+                return WordList.DefaultComparer.GetHashCode(obj.Value);
             }
         }
     }

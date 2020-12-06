@@ -1,3 +1,5 @@
+libuv
+
 aac
 acos
 acosh
@@ -259,10 +261,8 @@ ecdsa
 ecma
 ecmascript
 eddsa
-editorconfig
 elif
 elisp
-elmah
 elses
 en
 enc
@@ -532,6 +532,7 @@ nan
 nat
 nbsp
 ndp
+netconfig
 netcore
 netframework
 netstandard
@@ -840,7 +841,6 @@ uml
 unc
 undef
 unicast
-unicode
 unix
 upn
 upnp

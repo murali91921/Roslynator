@@ -1,3 +1,4 @@
+Taskify
 Accenture
 Antlr
 AppVeyor
@@ -32,11 +33,14 @@ DocFX
 Docker
 DotVVM
 Dovecot
+EditorConfig
+ELMAH
 Emacs
 Emby
 Erlang
 Ethereum
 Eventish
+FakeItEasy
 Firebase
 Firefox
 Flickr
@@ -126,6 +130,7 @@ Tizen
 TortoiseMerge
 Twilio
 Twitter
+Unicode
 Verilog
 Veyor
 Viera

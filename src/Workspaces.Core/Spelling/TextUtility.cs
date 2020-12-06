@@ -37,16 +37,21 @@ namespace Roslynator.Spelling
 
         public static TextCasing GetTextCasing(string s)
         {
+            int length = s.Length;
+
+            if (length == 0)
+                return TextCasing.Undefined;
+
             char ch = s[0];
 
             if (char.IsLower(ch))
             {
-                for (int i = 1; i < s.Length; i++)
+                for (int i = 1; i < length; i++)
                 {
-                    if (!char.IsLower(s[i])
-                        && !char.IsLetter(s[i]))
+                    if (char.IsLetter(s[i])
+                        && !char.IsLower(s[i]))
                     {
-                        return TextCasing.Mixed;
+                        return TextCasing.Undefined;
                     }
                 }
 
@@ -54,16 +59,19 @@ namespace Roslynator.Spelling
             }
             else if (char.IsUpper(ch))
             {
+                if (length == 1)
+                    return TextCasing.Upper;
+
                 ch = s[1];
 
                 if (char.IsLower(ch))
                 {
-                    for (int i = 2; i < s.Length; i++)
+                    for (int i = 2; i < length; i++)
                     {
-                        if (!char.IsLower(s[i])
-                            && !char.IsLetter(s[i]))
+                        if (char.IsLetter(s[i])
+                            && !char.IsLower(s[i]))
                         {
-                            return TextCasing.Mixed;
+                            return TextCasing.Undefined;
                         }
                     }
 
@@ -71,12 +79,12 @@ namespace Roslynator.Spelling
                 }
                 else if (char.IsUpper(ch))
                 {
-                    for (int i = 0; i < s.Length; i++)
+                    for (int i = 0; i < length; i++)
                     {
-                        if (!char.IsUpper(s[i])
-                            && !char.IsLetter(s[i]))
+                        if (char.IsLetter(s[i])
+                            && !char.IsUpper(s[i]))
                         {
-                            return TextCasing.Mixed;
+                            return TextCasing.Undefined;
                         }
                     }
 
@@ -84,7 +92,12 @@ namespace Roslynator.Spelling
                 }
             }
 
-            return TextCasing.Mixed;
+            return TextCasing.Undefined;
+        }
+
+        public static bool TextCasingEquals(string value1, string value2)
+        {
+            return GetTextCasing(value1) == GetTextCasing(value2);
         }
     }
 }

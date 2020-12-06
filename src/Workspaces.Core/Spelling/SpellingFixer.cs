@@ -477,7 +477,7 @@ namespace Roslynator.Spelling
                 && SpellingData.FixList.TryGetValue(containingValue, out ImmutableHashSet<SpellingFix> fixes2))
             {
                 SpellingFix fix2 = fixes2.SingleOrDefault(
-                    f => f.Kind == SpellingFixKind.List && diagnostic.IsApplicableFix(f.Value),
+                    f => f.Kind == SpellingFixKind.Predefined && diagnostic.IsApplicableFix(f.Value),
                     shouldThrow: false);
 
                 if (string.Equals(containingValue, fix2.Value, StringComparison.Ordinal))
@@ -495,28 +495,21 @@ namespace Roslynator.Spelling
             if (SpellingData.FixList.TryGetValue(value, out fixes2))
             {
                 if (Options.AutoFix
-                    && textCasing != TextCasing.Mixed)
+                    && textCasing != TextCasing.Undefined)
                 {
-                    SpellingFix fix2 = fixes2.SingleOrDefault(
-                        f => diagnostic.IsApplicableFix(f.Value),
+                    fix = fixes2.SingleOrDefault(
+                        f => TextUtility.GetTextCasing(f.Value) != TextCasing.Undefined
+                            && diagnostic.IsApplicableFix(f.Value),
                         shouldThrow: false);
 
-                    if (!fix2.IsDefault)
-                    {
-                        if (fix2.Kind == SpellingFixKind.List
-                            || (SpellingData.FixList.TryGetKey(value, out string originalValue)
-                                && string.Equals(value, originalValue, StringComparison.Ordinal)))
-                        {
-                            if (TextUtility.GetTextCasing(fix2.Value) != TextCasing.Mixed)
-                                fix = fix2.WithValue(TextUtility.SetTextCasing(fix2.Value, textCasing));
-                        }
-                    }
+                    if (!fix.IsDefault)
+                        fix = fix.WithValue(TextUtility.SetTextCasing(fix.Value, textCasing));
                 }
 
                 if (fix.IsDefault)
                 {
                     fixes = fixes2
-                        .Where(f => TextUtility.GetTextCasing(f.Value) != TextCasing.Mixed
+                        .Where(f => TextUtility.GetTextCasing(f.Value) != TextCasing.Undefined
                             && diagnostic.IsApplicableFix(f.Value))
                         .Select(f => f.WithValue(TextUtility.SetTextCasing(f.Value, textCasing)))
                         .ToList();
@@ -526,7 +519,7 @@ namespace Roslynator.Spelling
             if (fix.IsDefault
                 && Options.Interactive)
             {
-                if (textCasing != TextCasing.Mixed)
+                if (textCasing != TextCasing.Undefined)
                 {
                     if (fixes.Count == 0)
                         AddPossibleFixes(diagnostic, ref fixes, cancellationToken);
@@ -550,15 +543,15 @@ namespace Roslynator.Spelling
         {
             //TODO: set max number of suggestions
             fixes = fixes
-                .Distinct(SpellingFixComparer.Default)
+                .Distinct(SpellingFixComparer.CurrentCulture)
                 .Where(f =>
                 {
-                    return f.Kind == SpellingFixKind.List
+                    return f.Kind == SpellingFixKind.Predefined
                         || diagnostic.IsApplicableFix(f.Value);
                 })
                 .Select(fix =>
                 {
-                    if (TextUtility.GetTextCasing(fix.Value) != TextCasing.Mixed)
+                    if (TextUtility.GetTextCasing(fix.Value) != TextCasing.Undefined)
                         return fix.WithValue(TextUtility.SetTextCasing(fix.Value, diagnostic.Casing));
 
                     return fix;
@@ -591,8 +584,16 @@ namespace Roslynator.Spelling
 
             string value = diagnostic.Value;
 
-            if (diagnostic.Casing == TextCasing.Lower
-                || diagnostic.Casing == TextCasing.FirstUpper)
+            ImmutableArray<string> matches = SpellingFixProvider.SwapMatches(
+                diagnostic.ValueLower,
+                SpellingData);
+
+            foreach (string match in matches)
+                fixes.Add(new SpellingFix(match, SpellingFixKind.Swap));
+
+            if (fixes.Count == 0
+                && (diagnostic.Casing == TextCasing.Lower
+                    || diagnostic.Casing == TextCasing.FirstUpper))
             {
                 foreach (int splitIndex in SpellingFixProvider.GetSplitIndexes(diagnostic, SpellingData))
                 {
@@ -629,23 +630,17 @@ namespace Roslynator.Spelling
                 }
             }
 
-            ImmutableArray<string> matches = SpellingFixProvider.SwapMatches(
-                diagnostic.ValueLower,
-                SpellingData);
+            //TODO: 
+            //if (matches.Length == 0)
+            //{
+            //    matches = SpellingFixProvider.FuzzyMatches(
+            //        diagnostic.ValueLower,
+            //        SpellingData,
+            //        cancellationToken);
 
-            foreach (string match in matches)
-                fixes.Add(new SpellingFix(match, SpellingFixKind.Swap));
-
-            if (matches.Length == 0)
-            {
-                matches = SpellingFixProvider.FuzzyMatches(
-                    diagnostic.ValueLower,
-                    SpellingData,
-                    cancellationToken);
-
-                foreach (string match in matches)
-                    fixes.Add(new SpellingFix(match, SpellingFixKind.Fuzzy));
-            }
+            //    foreach (string match in matches)
+            //        fixes.Add(new SpellingFix(match, SpellingFixKind.Fuzzy));
+            //}
         }
 
         private SpellingFix GetUserFix()
@@ -757,7 +752,13 @@ namespace Roslynator.Spelling
 
         private void ProcessFix(SpellingDiagnostic diagnostic, SpellingFix spellingFix)
         {
-            SpellingData = SpellingData.AddFix(diagnostic.Value, spellingFix);
+            if (spellingFix.Kind != SpellingFixKind.Predefined
+                && (spellingFix.Kind != SpellingFixKind.User
+                    || TextUtility.TextCasingEquals(diagnostic.Value, spellingFix.Value)))
+            {
+                SpellingData = SpellingData.AddFix(diagnostic.Value, spellingFix);
+            }
+
             SpellingData = SpellingData.AddWord(spellingFix.Value);
         }
     }
