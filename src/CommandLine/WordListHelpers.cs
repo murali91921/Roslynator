@@ -22,17 +22,68 @@ namespace Roslynator.CommandLine
 
         public static void ProcessWordLists()
         {
-            WordList core_br = WordList.Load(_wordListDirPath + "core.br.wordlist").SaveAndLoad();
-            WordList fonts = WordList.Load(_wordListDirPath + "fonts.wordlist").Except(core_br).SaveAndLoad();
-            WordList tech = WordList.Load(_wordListDirPath + "tech.wordlist").Except(core_br).Except(fonts).SaveAndLoad();
-            WordList abbr = WordList.Load(_wordListDirPath + "abbr.wordlist").Except(core_br).Except(tech).SaveAndLoad();
-            WordList core = WordList.Load(_wordListDirPath + "core.wordlist").Except(core_br).SaveAndLoad();
-            WordList core2 = WordList.Load(_wordListDirPath + "core2.wordlist").Except(core_br).Except(tech).Except(abbr).SaveAndLoad();
-            WordList names = WordList.Load(_wordListDirPath + "names.wordlist").Except(core_br).Except(tech).SaveAndLoad();
+            WordList abbreviations = WordList.Load(_wordListDirPath + "abbreviations.wordlist")
+                .SaveAndLoad();
 
-            WordList.Load(_wordListDirPath + "hyphen.wordlist").Except(core2).SaveAndLoad();
+            WordList acronyms = WordList.Load(_wordListDirPath + "acronyms.wordlist")
+                .SaveAndLoad();
 
-            WordList all = core.AddValues(core2).AddValues(core_br).AddValues(names);
+            WordList core_br = WordList.Load(_wordListDirPath + "core.br.wordlist")
+                .SaveAndLoad();
+
+            WordList fonts = WordList.Load(_wordListDirPath + "fonts.wordlist")
+                .SaveAndLoad();
+
+            WordList geography = WordList.Load(_wordListDirPath + "geography.wordlist")
+                .SaveAndLoad();
+
+            WordList names = WordList.Load(_wordListDirPath + "names.wordlist")
+                .SaveAndLoad();
+
+            WordList plural_adjectives = WordList.Load(_wordListDirPath + "plural_adjectives.wordlist")
+                .SaveAndLoad();
+
+            WordList rare = WordList.Load(_wordListDirPath + "rare.wordlist")
+                .SaveAndLoad();
+
+            WordList math = WordList.Load(_wordListDirPath + "math.wordlist")
+                .Except(abbreviations)
+                .Except(acronyms)
+                .Except(fonts)
+                .SaveAndLoad();
+
+            WordList tech = WordList.Load(_wordListDirPath + "tech.wordlist")
+                .Except(abbreviations)
+                .Except(acronyms)
+                .Except(fonts)
+                .SaveAndLoad();
+
+            WordList core2 = WordList.Load(_wordListDirPath + "core2.wordlist")
+                .Except(abbreviations)
+                .Except(acronyms)
+                .Except(core_br)
+                .Except(geography)
+                .Except(math)
+                .Except(names)
+                .Except(plural_adjectives)
+                .Except(rare)
+                .Except(tech)
+                .SaveAndLoad();
+
+            WordList core = WordList.Load(_wordListDirPath + "core.wordlist")
+                .Except(core_br)
+                .SaveAndLoad();
+
+            WordList.Load(_wordListDirPath + "hyphen.wordlist")
+                .Except(core2)
+                .SaveAndLoad();
+
+            WordList all = core.AddValues(core2)
+                .AddValues(core_br)
+                .AddValues(plural_adjectives)
+                .AddValues(abbreviations)
+                .AddValues(names);
+
             ProcessFixList(all);
         }
 
