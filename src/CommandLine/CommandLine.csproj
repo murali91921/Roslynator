@@ -102,6 +102,9 @@
     <None Update="_WordLists\names.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="_WordLists\math.wordlist">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="_WordLists\tech.wordlist">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

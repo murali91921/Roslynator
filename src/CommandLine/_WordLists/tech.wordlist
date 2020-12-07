@@ -1,8 +1,15 @@
-libuv
+exif
+hhmmss
+yyyymmddhhmmss
+golang
+ssas
+ssis
+ssrs
+svchost
+secam
+msdos
 
 aac
-acos
-acosh
 activex
 addon
 addons
@@ -461,6 +468,7 @@ lf
 lgpl
 lhs
 lib
+libuv
 linq
 linux
 lisp
