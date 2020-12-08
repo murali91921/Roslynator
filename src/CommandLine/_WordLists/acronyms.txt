@@ -1,6 +1,7 @@
 afaict
 afaik
 atm
+bcg
 bic
 ceo
 crm
@@ -14,6 +15,7 @@ gb
 gmt
 gprs
 gsm
+HbbTV
 iban
 icao
 imdb
@@ -26,6 +28,7 @@ jpy
 llc
 lol
 mit
+mms
 mr
 mrs
 mvp
@@ -42,7 +45,9 @@ sms
 ssn
 suv
 toc
+tsa
 tv
+ucla
 uhf
 usa
 usd

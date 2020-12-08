@@ -1,5 +1,7 @@
 Accenture
+Android
 Antlr
+Apache
 AppVeyor
 Artifactory
 Atlassian
@@ -42,6 +44,7 @@ Ethereum
 Eventish
 Facebook
 FakeItEasy
+Ferrari
 Firebase
 Firefox
 Flickr
@@ -65,6 +68,7 @@ Hotmail
 Hulu
 IBM
 Iconify
+Iconize
 ICSharpCode
 InstaPayment
 Intergraph
@@ -79,12 +83,15 @@ Linkify
 Linksys
 Litecoin
 Logitech
+Lucene
 Mandriva
+MariaDB
 Markdig
 Mathematica
 Microsoft
 Mintty
 Modernizr
+Mongo
 MongoDB
 Monokai
 MonoTouch
@@ -98,6 +105,7 @@ Netscape
 Newtonsoft
 NHibernate
 Ninject
+Nintendo
 Northwind
 NRefactory
 NServiceBus
@@ -109,8 +117,10 @@ Octocat
 OmniSharp
 OneDrive
 OpenID
+OpenOffice
 OpenSSL
 Outlook
+Pantone
 Patreon
 PayPal
 PeachPie
@@ -128,6 +138,8 @@ Restream
 Roboconf
 RoboHash
 Roslynator
+Salesforce
+Samsung
 Scilab
 Selenium
 Serilog
@@ -136,6 +148,7 @@ Silverlight
 SkyDrive
 Skype
 Solaris
+Splunk
 SQLite
 Starcraft
 StyleCop
@@ -161,12 +174,14 @@ WebGL
 WebKit
 WhatsApp
 Whitepages
+Whois
 Wiki
 Wikipedia
 WildFly
 WordPress
 Xamarin
 Xbox
+Xilinx
 Yandex
 YouTube
 Yubico

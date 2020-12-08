@@ -131,7 +131,6 @@ hard-coded
 hard-wired
 hex-digit
 high-effort
-high-level
 high-performance
 high-priority
 human-readable
@@ -153,7 +152,6 @@ long-lived
 long-running
 long-term
 lower-cased
-low-level
 machine-dependent
 magneto-optical
 meta-attribute
@@ -363,7 +361,6 @@ value-typed
 vice-versa
 wake-up
 weak-named
-well-known
 well-renowned
 white-space
 windows-style

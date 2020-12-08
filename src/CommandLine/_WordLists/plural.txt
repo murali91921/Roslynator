@@ -1,4 +1,6 @@
 alikes
+automations
+convergents
 divines
 enumerables
 equatables
@@ -6,6 +8,7 @@ fakeables
 finallies
 fissionables
 incorruptibles
+ingestions
 invisibles
 iterables
 lazies
@@ -13,6 +16,7 @@ mutables
 observables
 obsoletes
 queryables
+remediations
 restartables
 selectables
 silents
@@ -21,3 +25,4 @@ sortings
 spatials
 spectaculars
 supplementaries
+twentieths

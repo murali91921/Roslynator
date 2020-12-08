@@ -1,5 +1,7 @@
 acos
 acosh
+acot
+acoth
 arccos
 arccosecant
 arccosine
@@ -62,6 +64,7 @@ heptagonal
 heptagons
 hexagon
 hexagons
+hypergeometric
 icosahedra
 icosahedron
 icosahedrons

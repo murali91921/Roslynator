@@ -117,6 +117,7 @@ dematerialise
 dematerialised
 dematerialises
 dematerialising
+denormalised
 deserialisability
 deserialisable
 deserialisation
@@ -397,6 +398,7 @@ realise
 realised
 realises
 realising
+recognisable
 recognise
 recognised
 recognises
@@ -440,6 +442,10 @@ sanitiser
 sanitisers
 sanitises
 sanitising
+schematise
+schematised
+schematises
+schematising
 scrutinise
 scrutinised
 scrutinises
@@ -510,6 +516,11 @@ synthesise
 synthesised
 synthesises
 synthesising
+tokenisation
+tokenise
+tokenised
+tokenises
+tokenising
 unfavourable
 uninitialise
 uninitialised

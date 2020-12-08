@@ -1,5 +1,6 @@
 aac
-activex
+abnf
+ActiveX
 addon
 addons
 addr
@@ -52,6 +53,7 @@ autoprop
 autoprops
 aux
 aws
+awssdk
 backcompat
 bcc
 bcl
@@ -68,10 +70,12 @@ bom
 bool
 bools
 brainfuck
+Brotli
 bsd
 bson
 bstr
 btn
+buf
 byref
 bytecode
 byval
@@ -108,6 +112,7 @@ cmdlets
 cmos
 cmp
 cnt
+codegen
 coeff
 coeffs
 com
@@ -154,6 +159,8 @@ dao
 dasherize
 db
 dba
+dbcs
+dbf
 dbg
 dbms
 dbo
@@ -162,6 +169,7 @@ dddmmss
 ddl
 ddmm
 ddmmss
+ddmmyyyy
 ddos
 ddr
 ddr2
@@ -205,13 +213,16 @@ dns
 dnx
 dnxcore
 doc
+Dockefile
 docs
 doctype
 docx
 dom
 dos
 dothtml
+dotm
 dotnet
+dotx
 downshift
 dpi
 dram
@@ -253,6 +264,7 @@ epg
 erp
 err
 etl
+etsi
 eula
 eval
 exe
@@ -262,6 +274,7 @@ exp
 expando
 expandos
 expr
+exprs
 externs
 faq
 fav
@@ -270,6 +283,7 @@ favicons
 fddi
 ffmpeg
 filterpriority
+FIPS
 fixme
 flac
 fld
@@ -319,6 +333,7 @@ gui
 guid
 guids
 gzip
+gzipped
 hashbang
 hdd
 hdmi
@@ -343,7 +358,9 @@ hmmssfffffff
 hql
 href
 hresult
+hsl
 hsqldb
+hsv
 htm
 htmls
 http
@@ -365,6 +382,7 @@ iec
 ienumerable
 ienumerables
 ietf
+IFormattable
 iframe
 ifs
 igmp
@@ -374,6 +392,7 @@ iisexpress
 ildasm
 ilist
 ilists
+imap
 imaps
 img
 impl
@@ -395,6 +414,7 @@ iot
 ip
 ipod
 ips
+IPSec
 iptv
 ipv
 iqueryable
@@ -434,10 +454,12 @@ len
 lf
 lgpl
 lhs
+libcurl
 libuv
 linkified
 linq
 linux
+lkfs
 lkml
 lmdb
 lnk
@@ -449,8 +471,10 @@ lparam
 lpcm
 lpcstr
 lpctstr
+lpstr
 lpsz
 lptstr
+lpwstr
 lru
 lsp
 lstm
@@ -553,6 +577,7 @@ nuspecs
 oaep
 obj
 ocsp
+ocx
 odbc
 oem
 ogg
@@ -606,6 +631,7 @@ pkce
 pkcs
 pkg
 pkgdef
+pki
 pkzip
 png
 pnp
@@ -618,7 +644,9 @@ popups
 pos
 posix
 ppi
+ppt
 pptp
+pptx
 pr
 pragma
 pragmas
@@ -637,9 +665,11 @@ psmdcp
 ptr
 pwd
 pylint
+qldb
 qsort
 quicksort
 quicksorting
+qvbr
 qwerty
 qwertz
 ram
@@ -662,6 +692,7 @@ repos
 req
 resx
 ret
+retval
 rfc
 rfid
 rgb
@@ -682,6 +713,7 @@ rtf
 rtl
 rtm
 rtmp
+rtmps
 rtos
 rtsp
 ruleset
@@ -708,6 +740,7 @@ semver
 seq
 servlet
 sfproj
+sftp
 sfx
 sgml
 shebang
@@ -802,6 +835,7 @@ sysconfig
 syslog
 sysname
 tbl
+tbls
 tcp
 tcpip
 tcs
@@ -822,6 +856,7 @@ tlbimp
 tld
 tls
 tmp
+tmpfs
 todo
 tooltip
 tpl
@@ -911,6 +946,7 @@ vps
 vrml
 vscode
 vsct
+vsdx
 vshost
 vsix
 vsixmanifest
@@ -956,8 +992,11 @@ xbmc
 xdmcp
 xla
 xls
+xlsb
 xlsm
 xlsx
+xltm
+xltx
 xmldoc
 xmlns
 xmls
@@ -966,6 +1005,7 @@ xmpp
 xna
 xobject
 xor
+xored
 xpath
 xplat
 xproj
@@ -981,9 +1021,11 @@ yaml
 yml
 yvalue
 yymmddh
+yyyymm
 yyyymmd
 yyyymmdd
 yyyymmddh
+yyyymmddhh
 yyyymmddhhmmss
 zlib
 zpl

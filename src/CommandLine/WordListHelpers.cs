@@ -28,7 +28,7 @@ namespace Roslynator.CommandLine
             WordList acronyms = WordList.LoadFile(_wordListDirPath + "acronyms.txt")
                 .SaveAndLoad();
 
-            WordList core_br = WordList.LoadFile(_wordListDirPath + "core.br.txt")
+            WordList core_br = WordList.LoadFile(_wordListDirPath + "core_br.txt")
                 .SaveAndLoad();
 
             WordList fonts = WordList.LoadFile(_wordListDirPath + "fonts.txt")
@@ -43,7 +43,7 @@ namespace Roslynator.CommandLine
                 .Except(languages)
                 .SaveAndLoad();
 
-            WordList plural_adjectives = WordList.LoadFile(_wordListDirPath + "plural_adjectives.txt")
+            WordList plural = WordList.LoadFile(_wordListDirPath + "plural.txt")
                 .SaveAndLoad();
 
             WordList rare = WordList.LoadFile(_wordListDirPath + "rare.txt")
@@ -69,7 +69,7 @@ namespace Roslynator.CommandLine
                 .Except(geography)
                 .Except(math)
                 .Except(names)
-                .Except(plural_adjectives)
+                .Except(plural)
                 .Except(rare)
                 .Except(tech)
                 .SaveAndLoad();
@@ -85,7 +85,7 @@ namespace Roslynator.CommandLine
             WordList all = core.AddValues(core2)
                 .AddValues(core_br)
                 .AddValues(languages)
-                .AddValues(plural_adjectives)
+                .AddValues(plural)
                 .AddValues(abbreviations)
                 .AddValues(names);
 
