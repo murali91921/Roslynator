@@ -60,20 +60,23 @@ namespace Roslynator.Spelling
 )",
             RegexOptions.ExplicitCapture | RegexOptions.IgnorePatternWhitespace);
 
-        // NaN, IDs, GUIDs, GACed, NETify, JSONify
-        private static readonly Regex _unsplittableWordRegex = new Regex(
+        // NaN, IDs, GACed, JSONify, AND'd
+        private static readonly Regex _specialWordRegex = new Regex(
             @"
 \A
-(
-    \p{Lu}\p{Ll}\p{Lu}
-)
-|
-(
-    \p{Lu}{2,}(s|ed|ify)
+(?:
+    (?:
+        (?<g>\p{Lu}\p{Ll}\p{Lu})
+    )
+    |
+    (?:
+        (?<g>\p{Lu}{2,})
+        (?:s|ed|ify|'d)
+    )
 )
 \z
 ",
-            RegexOptions.ExplicitCapture);
+            RegexOptions.IgnorePatternWhitespace);
 
         private static readonly Regex _urlRegex = new Regex(
             @"\bhttps?://[^\s]+(?=\s|\z)", RegexOptions.IgnoreCase);
@@ -124,16 +127,16 @@ namespace Roslynator.Spelling
             TextSpan textSpan,
             SyntaxTree syntaxTree)
         {
-            Match match = _wordInCommentRegex.Match(value, startIndex, length);
-
             Regex splitRegex = GetSplitRegex();
 
+            Match match = _wordInCommentRegex.Match(value, startIndex, length);
+
+            //TODO: convert to 'for'
             while (match.Success)
             {
                 if (match.Length >= Options.MinWordLength)
                 {
-                    if (splitRegex == null
-                        || _unsplittableWordRegex.IsMatch(match.Value))
+                    if (splitRegex == null)
                     {
                         AnalyzeValue(
                             match.Value,
@@ -142,12 +145,26 @@ namespace Roslynator.Spelling
                     }
                     else
                     {
-                        foreach (SplitItem splitItem in SplitItemCollection.Create(splitRegex, match.Value))
+                        Match match2 = _specialWordRegex.Match(match.Value);
+
+                        if (match2.Success)
                         {
+                            Group group = match2.Groups["g"];
+
                             AnalyzeValue(
-                                splitItem.Value,
-                                new TextSpan(textSpan.Start + match.Index + splitItem.Index, splitItem.Value.Length),
+                                group.Value,
+                                new TextSpan(textSpan.Start + group.Index, group.Length),
                                 syntaxTree);
+                        }
+                        else
+                        {
+                            foreach (SplitItem splitItem in SplitItemCollection.Create(splitRegex, match.Value))
+                            {
+                                AnalyzeValue(
+                                    splitItem.Value,
+                                    new TextSpan(textSpan.Start + match.Index + splitItem.Index, splitItem.Value.Length),
+                                    syntaxTree);
+                            }
                         }
                     }
                 }
@@ -188,11 +205,15 @@ namespace Roslynator.Spelling
 
             string value2 = (prefixLength > 0) ? value.Substring(prefixLength) : value;
 
-            if (_unsplittableWordRegex.IsMatch(value2))
+            Match match = _specialWordRegex.Match(value2);
+
+            if (match.Success)
             {
+                Group group = match.Groups["g"];
+
                 AnalyzeValue(
-                    value2,
-                    new TextSpan(identifier.SpanStart + prefixLength, value2.Length),
+                    group.Value,
+                    new TextSpan(identifier.SpanStart + prefixLength, group.Length),
                     identifier.SyntaxTree);
             }
             else
@@ -226,8 +247,10 @@ namespace Roslynator.Spelling
             SyntaxTree syntaxTree)
         {
             Debug.Assert(
-                value.Length <= 1 || TextUtility.GetTextCasing(value) != TextCasing.Undefined,
-                TextUtility.GetTextCasing(value).ToString());
+                value.Length <= 1
+                    || TextUtility.GetTextCasing(value) != TextCasing.Undefined
+                    || Regex.IsMatch(value, @"\A\p{Lu}\p{Ll}\p{Lu}\z"),
+                value);
 
             if (value.Length < Options.MinWordLength)
                 return;

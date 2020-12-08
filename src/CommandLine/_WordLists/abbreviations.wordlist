@@ -19,6 +19,8 @@ diff
 diffed
 diffing
 diffs
+ext
+exts
 info
 infos
 init
@@ -28,10 +30,13 @@ jit
 jits
 jitted
 jitting
+lib
+libs
 realloc
 reallocs
 reinit
 reinits
+resp
 resync
 resynced
 resynces

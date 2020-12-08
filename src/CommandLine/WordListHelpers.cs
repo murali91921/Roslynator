@@ -37,7 +37,11 @@ namespace Roslynator.CommandLine
             WordList geography = WordList.Load(_wordListDirPath + "geography.wordlist")
                 .SaveAndLoad();
 
+            WordList languages = WordList.Load(_wordListDirPath + "languages.wordlist")
+                .SaveAndLoad();
+
             WordList names = WordList.Load(_wordListDirPath + "names.wordlist")
+                .Except(languages)
                 .SaveAndLoad();
 
             WordList plural_adjectives = WordList.Load(_wordListDirPath + "plural_adjectives.wordlist")
@@ -56,6 +60,7 @@ namespace Roslynator.CommandLine
                 .Except(abbreviations)
                 .Except(acronyms)
                 .Except(fonts)
+                .Except(languages)
                 .SaveAndLoad();
 
             WordList core2 = WordList.Load(_wordListDirPath + "core2.wordlist")
@@ -80,6 +85,7 @@ namespace Roslynator.CommandLine
 
             WordList all = core.AddValues(core2)
                 .AddValues(core_br)
+                .AddValues(languages)
                 .AddValues(plural_adjectives)
                 .AddValues(abbreviations)
                 .AddValues(names);

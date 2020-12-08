@@ -18,7 +18,6 @@ ai
 aifc
 aiff
 algo
-algol
 alloc
 allocs
 amd
@@ -38,8 +37,8 @@ arr
 asax
 asc
 asf
+ashx
 asm
-asp
 aspnet
 aspx
 asx
@@ -98,7 +97,6 @@ cjk
 cjkv
 cli
 clob
-clojure
 clr
 cls
 clut
@@ -109,10 +107,11 @@ cmdlets
 cmos
 cmp
 cnt
-cobol
 coeff
 coeffs
 com
+commitish
+committish
 compat
 conf
 const
@@ -139,7 +138,6 @@ csi
 csproj
 csrf
 csrss
-css
 csv
 csx
 ctcp
@@ -147,6 +145,7 @@ ctlr
 ctor
 ctors
 ctrl
+cts
 ctx
 curr
 cz
@@ -171,7 +170,6 @@ decltype
 def
 defs
 delim
-delphi
 deps
 deref
 desc
@@ -218,6 +216,7 @@ dpi
 dram
 drm
 dsl
+dsn
 dsssl
 dst
 dtd
@@ -262,7 +261,6 @@ exp
 expando
 expandos
 expr
-ext
 externs
 faq
 fav
@@ -300,6 +298,7 @@ gitattributes
 gitconfig
 gitignore
 glob
+globber
 globbing
 globs
 globstar
@@ -320,7 +319,6 @@ guid
 guids
 gzip
 hashbang
-haskell
 hdd
 hdmi
 hdr
@@ -346,7 +344,6 @@ href
 hresult
 hsqldb
 htm
-html
 htmls
 http
 httpd
@@ -357,6 +354,7 @@ iana
 ico
 icollection
 icollections
+icq
 id
 ide
 ids
@@ -401,11 +399,11 @@ ipv
 iqueryable
 isdn
 iso
+isp
 j2ee
 j2me
 j2se
 jarray
-javascript
 jdbc
 jdk
 jni
@@ -415,7 +413,6 @@ jpegs
 jpg
 jquery
 js
-json
 jsp
 jtoken
 jwk
@@ -436,12 +433,10 @@ len
 lf
 lgpl
 lhs
-lib
 libuv
 linkified
 linq
 linux
-lisp
 lkml
 lmdb
 lnk
@@ -458,7 +453,6 @@ lptstr
 lru
 lsp
 lstm
-lua
 luhn
 lwsp
 lzma
@@ -502,6 +496,7 @@ msdn
 msdos
 msdtc
 msft
+msi
 msil
 msix
 msmq
@@ -522,6 +517,7 @@ netcore
 netframework
 netmask
 netmasks
+netsh
 netstandard
 nfa
 nfc
@@ -546,7 +542,6 @@ ntfs
 ntlm
 ntp
 ntsc
-nuget
 nullptr
 num
 nunit
@@ -600,12 +595,10 @@ pcre
 pdb
 pdf
 perf
-perl
 permalink
 permalinks
 pfx
 pgp
-php
 pid
 pingback
 pkce
@@ -693,13 +686,13 @@ rtsp
 ruleset
 rulesets
 rxjs
+rxvt
 saml
 sap
 sasl
 sass
 sbyte
 sbytes
-scala
 scm
 sctp
 sdk
@@ -740,7 +733,6 @@ slugifies
 slugify
 slugifying
 smallint
-smalltalk
 smime
 smtp
 smtps
@@ -749,8 +741,8 @@ snmp
 sntp
 snupkg
 snupkgs
+spdx
 spec
-sql
 sqlserver
 sqrt
 sram
@@ -799,6 +791,7 @@ svc
 svchost
 svg
 svga
+svn
 symlink
 symlinked
 symlinking
@@ -810,12 +803,16 @@ sysname
 tbl
 tcp
 tcpip
+tcs
+telnet
 temp
 tempdb
 testhost
 tfm
 tfms
+tfs
 tftp
+tfvc
 tgz
 thisobj
 tinyint
@@ -845,7 +842,6 @@ typelib
 typeof
 typeparam
 typeparams
-typescript
 uac
 uap
 uddi
@@ -895,11 +891,13 @@ varargs
 varchar
 varchars
 vba
+vbcs
 vbhthml
 vbproj
 vbs
 vcxproj
 vga
+vhdl
 vim
 virt
 visio
@@ -909,6 +907,7 @@ vob
 vorbis
 vpn
 vps
+vrml
 vscode
 vsct
 vshost
@@ -944,24 +943,25 @@ wpa
 wparam
 wpf
 wsdl
+wsgi
 wss
 wwan
 www
 wwwroot
 xaml
 xap
+xaraya
 xbmc
 xdmcp
-xhtml
 xla
 xls
 xlsm
 xlsx
-xml
 xmldoc
 xmlns
 xmls
 xmp
+xmpp
 xna
 xobject
 xor
@@ -970,7 +970,6 @@ xplat
 xproj
 xsd
 xsi
-xsl
 xslt
 xsrf
 xss
