@@ -3,6 +3,7 @@
 #define NON_INTERACTIVE
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -98,8 +99,19 @@ namespace Roslynator.CommandLine
 
                 if (!string.IsNullOrEmpty(assemblyPath))
                 {
-                    WordList wordList = WordList.LoadFromDirectory(Path.Combine(Path.GetDirectoryName(assemblyPath), "_WordLists"));
-                    FixList fixList = FixList.LoadFromDirectory(Path.Combine(Path.GetDirectoryName(assemblyPath), "_FixLists"));
+                    IEnumerable<string> wordListPaths = Directory.EnumerateFiles(
+                        Path.Combine(Path.GetDirectoryName(assemblyPath), "_WordLists"),
+                        "*.wordlist",
+                        SearchOption.AllDirectories);
+
+                    WordList wordList = WordList.LoadFiles(wordListPaths);
+
+                    IEnumerable<string> fixListPaths = Directory.EnumerateFiles(
+                        Path.Combine(Path.GetDirectoryName(assemblyPath), "_FixLists"),
+                        "*.fixlist",
+                        SearchOption.AllDirectories);
+
+                    FixList fixList = FixList.LoadFiles(fixListPaths);
 
                     spellingData = new SpellingData(wordList, fixList, default);
                 }

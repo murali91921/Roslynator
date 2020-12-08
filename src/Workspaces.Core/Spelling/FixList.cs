@@ -59,15 +59,15 @@ namespace Roslynator.Spelling
             }
         }
 
-        public static FixList LoadFromDirectory(string directoryPath)
+        public static FixList LoadFiles(IEnumerable<string> filePaths)
         {
             var fixes = new Dictionary<string, List<string>>();
 
-            foreach (string filePath in Directory.EnumerateFiles(directoryPath, "*.fixlist", SearchOption.TopDirectoryOnly))
+            foreach (string filePath in filePaths)
             {
                 string input = Path.GetFileNameWithoutExtension(filePath);
 
-                foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in Load(filePath).Items)
+                foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in LoadFile(filePath).Items)
                 {
                     if (fixes.TryGetValue(kvp.Key, out List<string> values))
                     {
@@ -91,7 +91,7 @@ namespace Roslynator.Spelling
             return new FixList(fixes2);
         }
 
-        public static FixList Load(string path)
+        public static FixList LoadFile(string path)
         {
             var dic = new Dictionary<string, HashSet<string>>(WordList.DefaultComparer);
 
@@ -160,7 +160,7 @@ namespace Roslynator.Spelling
         {
             Save(path);
 
-            return Load(path);
+            return LoadFile(path);
         }
     }
 }

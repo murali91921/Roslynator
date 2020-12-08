@@ -22,48 +22,47 @@ namespace Roslynator.CommandLine
 
         public static void ProcessWordLists()
         {
-            WordList abbreviations = WordList.Load(_wordListDirPath + "abbreviations.wordlist")
+            WordList abbreviations = WordList.LoadFile(_wordListDirPath + "abbreviations.wordlist")
                 .SaveAndLoad();
 
-            WordList acronyms = WordList.Load(_wordListDirPath + "acronyms.wordlist")
+            WordList acronyms = WordList.LoadFile(_wordListDirPath + "acronyms.wordlist")
                 .SaveAndLoad();
 
-            WordList core_br = WordList.Load(_wordListDirPath + "core.br.wordlist")
+            WordList core_br = WordList.LoadFile(_wordListDirPath + "core.br.wordlist")
                 .SaveAndLoad();
 
-            WordList fonts = WordList.Load(_wordListDirPath + "fonts.wordlist")
+            WordList fonts = WordList.LoadFile(_wordListDirPath + "fonts.wordlist")
                 .SaveAndLoad();
 
-            WordList geography = WordList.Load(_wordListDirPath + "geography.wordlist")
+            WordList geography = WordList.LoadFiles(Directory.EnumerateFiles(_wordListDirPath + @"\geography", "*.*", SearchOption.AllDirectories));
+
+            WordList languages = WordList.LoadFile(_wordListDirPath + "languages.wordlist")
                 .SaveAndLoad();
 
-            WordList languages = WordList.Load(_wordListDirPath + "languages.wordlist")
-                .SaveAndLoad();
-
-            WordList names = WordList.Load(_wordListDirPath + "names.wordlist")
+            WordList names = WordList.LoadFile(_wordListDirPath + "names.wordlist")
                 .Except(languages)
                 .SaveAndLoad();
 
-            WordList plural_adjectives = WordList.Load(_wordListDirPath + "plural_adjectives.wordlist")
+            WordList plural_adjectives = WordList.LoadFile(_wordListDirPath + "plural_adjectives.wordlist")
                 .SaveAndLoad();
 
-            WordList rare = WordList.Load(_wordListDirPath + "rare.wordlist")
+            WordList rare = WordList.LoadFile(_wordListDirPath + "rare.wordlist")
                 .SaveAndLoad();
 
-            WordList math = WordList.Load(_wordListDirPath + "math.wordlist")
+            WordList math = WordList.LoadFile(_wordListDirPath + "math.wordlist")
                 .Except(abbreviations)
                 .Except(acronyms)
                 .Except(fonts)
                 .SaveAndLoad();
 
-            WordList tech = WordList.Load(_wordListDirPath + "tech.wordlist")
+            WordList tech = WordList.LoadFile(_wordListDirPath + "tech.wordlist")
                 .Except(abbreviations)
                 .Except(acronyms)
                 .Except(fonts)
                 .Except(languages)
                 .SaveAndLoad();
 
-            WordList core2 = WordList.Load(_wordListDirPath + "core2.wordlist")
+            WordList core2 = WordList.LoadFile(_wordListDirPath + "core2.wordlist")
                 .Except(abbreviations)
                 .Except(acronyms)
                 .Except(core_br)
@@ -75,11 +74,11 @@ namespace Roslynator.CommandLine
                 .Except(tech)
                 .SaveAndLoad();
 
-            WordList core = WordList.Load(_wordListDirPath + "core.wordlist")
+            WordList core = WordList.LoadFile(_wordListDirPath + "core.wordlist")
                 .Except(core_br)
                 .SaveAndLoad();
 
-            WordList.Load(_wordListDirPath + "hyphen.wordlist")
+            WordList.LoadFile(_wordListDirPath + "hyphen.wordlist")
                 .Except(core2)
                 .SaveAndLoad();
 
@@ -97,7 +96,7 @@ namespace Roslynator.CommandLine
         {
             const string path = _fixListDirPath + "core.fixlist";
 
-            FixList fixList = FixList.Load(path);
+            FixList fixList = FixList.LoadFile(path);
 
             foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in fixList.Items)
             {
@@ -136,7 +135,7 @@ namespace Roslynator.CommandLine
             {
                 if (File.Exists(fixListNewPath))
                 {
-                    foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in FixList.Load(fixListNewPath).Items)
+                    foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in FixList.LoadFile(fixListNewPath).Items)
                     {
                         if (dic.TryGetValue(kvp.Key, out List<SpellingFix> list))
                         {
@@ -149,7 +148,7 @@ namespace Roslynator.CommandLine
                     }
                 }
 
-                foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in FixList.Load(fixListPath).Items)
+                foreach (KeyValuePair<string, ImmutableHashSet<SpellingFix>> kvp in FixList.LoadFile(fixListPath).Items)
                 {
                     if (dic.TryGetValue(kvp.Key, out List<SpellingFix> list))
                     {
@@ -168,7 +167,7 @@ namespace Roslynator.CommandLine
             if (values.Count > 0)
             {
                 if (File.Exists(wordListNewPath))
-                    values.UnionWith(WordList.Load(wordListNewPath, comparer).Values);
+                    values.UnionWith(WordList.LoadFile(wordListNewPath, comparer).Values);
 
                 IEnumerable<string> newValues = values
                     .Except(spellingData.FixList.Items.Select(f => f.Key), WordList.DefaultComparer)

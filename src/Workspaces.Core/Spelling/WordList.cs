@@ -105,21 +105,17 @@ namespace Roslynator.Spelling
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay => $"Count = {Values.Count}  {Path}";
 
-        public static WordList LoadFromDirectory(string directoryPath)
+        public static WordList LoadFiles(IEnumerable<string> filePaths)
         {
             WordList wordList = Default;
 
-            foreach (string filePath in Directory.EnumerateFiles(directoryPath, "*.wordlist", SearchOption.TopDirectoryOnly))
-            {
-                string input = System.IO.Path.GetFileNameWithoutExtension(filePath);
-
-                wordList = wordList.AddValues(Load(filePath));
-            }
+            foreach (string filePath in filePaths)
+                wordList = wordList.AddValues(LoadFile(filePath));
 
             return wordList;
         }
 
-        public static WordList Load(string path, StringComparer comparer = null)
+        public static WordList LoadFile(string path, StringComparer comparer = null)
         {
             IEnumerable<string> values = ReadWords(path);
 
@@ -246,7 +242,7 @@ namespace Roslynator.Spelling
         {
             Save();
 
-            return Load(Path, Comparer);
+            return LoadFile(Path, Comparer);
         }
     }
 }

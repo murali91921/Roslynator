@@ -879,7 +879,6 @@ augmenting
 augments
 august
 aunt
-australia
 authenticate
 authenticated
 authenticates
@@ -965,6 +964,7 @@ autostart
 autostarted
 autostarting
 autostarts
+autosubscribing
 autotune
 autumn
 availability
@@ -1540,7 +1540,6 @@ callout
 callouts
 calls
 calm
-cambridge
 came
 camel
 camellia
@@ -1819,7 +1818,6 @@ childs
 chilli
 chimney
 chin
-china
 chinese
 chip
 chips
@@ -5120,6 +5118,8 @@ horror
 horse
 horseplay
 horsepower
+hosepipe
+hosepipes
 hospital
 host
 hostage
@@ -9370,6 +9370,8 @@ resubscribe
 resubscribed
 resubscribes
 resubscribing
+resubscription
+resubscriptions
 resubstitution
 result
 resulting
@@ -10666,6 +10668,7 @@ substance
 substantial
 substituent
 substituents
+substitutability
 substitute
 substituted
 substitutes
@@ -10696,6 +10699,7 @@ subtree
 subtrees
 subtrie
 subtries
+subtyping
 subvalue
 subvalues
 subversion
@@ -10791,6 +10795,7 @@ supersonic
 supersonically
 superstructure
 superstructures
+supertype
 supervise
 supper
 supplant
@@ -11520,7 +11525,6 @@ tuple
 tupled
 tuples
 turbine
-turkey
 turn
 turning
 turns
@@ -12022,6 +12026,7 @@ unrooted
 unrooting
 unroots
 unrotated
+unroutable
 unsafe
 unsatisfiable
 unsaved
