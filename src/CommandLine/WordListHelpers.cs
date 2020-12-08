@@ -22,47 +22,47 @@ namespace Roslynator.CommandLine
 
         public static void ProcessWordLists()
         {
-            WordList abbreviations = WordList.LoadFile(_wordListDirPath + "abbreviations.wordlist")
+            WordList abbreviations = WordList.LoadFile(_wordListDirPath + "abbreviations.txt")
                 .SaveAndLoad();
 
-            WordList acronyms = WordList.LoadFile(_wordListDirPath + "acronyms.wordlist")
+            WordList acronyms = WordList.LoadFile(_wordListDirPath + "acronyms.txt")
                 .SaveAndLoad();
 
-            WordList core_br = WordList.LoadFile(_wordListDirPath + "core.br.wordlist")
+            WordList core_br = WordList.LoadFile(_wordListDirPath + "core.br.txt")
                 .SaveAndLoad();
 
-            WordList fonts = WordList.LoadFile(_wordListDirPath + "fonts.wordlist")
+            WordList fonts = WordList.LoadFile(_wordListDirPath + "fonts.txt")
                 .SaveAndLoad();
 
             WordList geography = WordList.LoadFiles(Directory.EnumerateFiles(_wordListDirPath + @"\geography", "*.*", SearchOption.AllDirectories));
 
-            WordList languages = WordList.LoadFile(_wordListDirPath + "languages.wordlist")
+            WordList languages = WordList.LoadFile(_wordListDirPath + "languages.txt")
                 .SaveAndLoad();
 
-            WordList names = WordList.LoadFile(_wordListDirPath + "names.wordlist")
+            WordList names = WordList.LoadFile(_wordListDirPath + "names.txt")
                 .Except(languages)
                 .SaveAndLoad();
 
-            WordList plural_adjectives = WordList.LoadFile(_wordListDirPath + "plural_adjectives.wordlist")
+            WordList plural_adjectives = WordList.LoadFile(_wordListDirPath + "plural_adjectives.txt")
                 .SaveAndLoad();
 
-            WordList rare = WordList.LoadFile(_wordListDirPath + "rare.wordlist")
+            WordList rare = WordList.LoadFile(_wordListDirPath + "rare.txt")
                 .SaveAndLoad();
 
-            WordList math = WordList.LoadFile(_wordListDirPath + "math.wordlist")
+            WordList math = WordList.LoadFile(_wordListDirPath + "math.txt")
                 .Except(abbreviations)
                 .Except(acronyms)
                 .Except(fonts)
                 .SaveAndLoad();
 
-            WordList tech = WordList.LoadFile(_wordListDirPath + "tech.wordlist")
+            WordList tech = WordList.LoadFile(_wordListDirPath + "tech.txt")
                 .Except(abbreviations)
                 .Except(acronyms)
                 .Except(fonts)
                 .Except(languages)
                 .SaveAndLoad();
 
-            WordList core2 = WordList.LoadFile(_wordListDirPath + "core2.wordlist")
+            WordList core2 = WordList.LoadFile(_wordListDirPath + "core2.txt")
                 .Except(abbreviations)
                 .Except(acronyms)
                 .Except(core_br)
@@ -74,11 +74,11 @@ namespace Roslynator.CommandLine
                 .Except(tech)
                 .SaveAndLoad();
 
-            WordList core = WordList.LoadFile(_wordListDirPath + "core.wordlist")
+            WordList core = WordList.LoadFile(_wordListDirPath + "core.txt")
                 .Except(core_br)
                 .SaveAndLoad();
 
-            WordList.LoadFile(_wordListDirPath + "hyphen.wordlist")
+            WordList.LoadFile(_wordListDirPath + "hyphen.txt")
                 .Except(core2)
                 .SaveAndLoad();
 
@@ -94,7 +94,7 @@ namespace Roslynator.CommandLine
 
         private static void ProcessFixList(WordList wordList)
         {
-            const string path = _fixListDirPath + "core.fixlist";
+            const string path = _fixListDirPath + "core.txt";
 
             FixList fixList = FixList.LoadFile(path);
 
@@ -122,9 +122,9 @@ namespace Roslynator.CommandLine
             SpellingData spellingData,
             CancellationToken cancellationToken)
         {
-            const string fixListPath = _fixListDirPath + "core.fixlist";
+            const string fixListPath = _fixListDirPath + "core.txt";
             const string fixListNewPath = fixListPath + ".new";
-            const string wordListNewPath = _wordListDirPath + "core2.wordlist.new";
+            const string wordListNewPath = _wordListDirPath + "core2.txt.new";
 
             Dictionary<string, List<SpellingFix>> dic = spellingData.FixList.Items.ToDictionary(
                 f => f.Key,
