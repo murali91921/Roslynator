@@ -101,14 +101,14 @@ namespace Roslynator.CommandLine
                 {
                     IEnumerable<string> wordListPaths = Directory.EnumerateFiles(
                         Path.Combine(Path.GetDirectoryName(assemblyPath), "_WordLists"),
-                        "*.wordlist",
+                        "*.txt",
                         SearchOption.AllDirectories);
 
                     WordList wordList = WordList.LoadFiles(wordListPaths);
 
                     IEnumerable<string> fixListPaths = Directory.EnumerateFiles(
                         Path.Combine(Path.GetDirectoryName(assemblyPath), "_FixLists"),
-                        "*.fixlist",
+                        "*.txt",
                         SearchOption.AllDirectories);
 
                     FixList fixList = FixList.LoadFiles(fixListPaths);

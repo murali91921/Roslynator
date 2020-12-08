@@ -1,6 +1,7 @@
 alikes
 divines
 enumerables
+equatables
 fakeables
 finallies
 fissionables

@@ -252,6 +252,8 @@ namespace Roslynator.Spelling
                     || Regex.IsMatch(value, @"\A\p{Lu}\p{Ll}\p{Lu}\z"),
                 value);
 
+            Debug.Assert(value.All(f => char.IsLetter(f)), value);
+
             if (value.Length < Options.MinWordLength)
                 return;
 
