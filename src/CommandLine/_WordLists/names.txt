@@ -11,6 +11,7 @@ Authenticode
 Autofac
 AutoMapper
 Automatonymous
+Autopatcher
 Axapta
 Axios
 Baidu
@@ -92,6 +93,7 @@ MariaDB
 Markdig
 Mathematica
 Microsoft
+Minecraft
 Mintty
 Modernizr
 Mongo

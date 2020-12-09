@@ -1,6 +1,7 @@
 abbr
 attrib
 attribs
+calc
 coeff
 coeffs
 config
@@ -39,6 +40,7 @@ libs
 nanosec
 realloc
 reallocs
+recalc
 reinit
 reinits
 resp

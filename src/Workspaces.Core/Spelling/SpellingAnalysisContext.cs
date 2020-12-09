@@ -248,11 +248,7 @@ namespace Roslynator.Spelling
             TextSpan textSpan,
             SyntaxTree syntaxTree)
         {
-            Debug.Assert(
-                value.Length <= 1
-                    || TextUtility.GetTextCasing(value) != TextCasing.Undefined
-                    || Regex.IsMatch(value, @"\A\p{Lu}\p{Ll}\p{Lu}\z"),
-                value);
+            Debug.Assert(value.All(f => char.IsLetter(f) || f == '\''), value);
 
             if (value.Length < Options.MinWordLength)
                 return;

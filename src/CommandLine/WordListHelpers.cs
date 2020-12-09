@@ -124,8 +124,8 @@ namespace Roslynator.CommandLine
             CancellationToken cancellationToken)
         {
             const string fixListPath = _fixListDirPath + "core.txt";
-            const string fixListNewPath = fixListPath + ".tmp";
-            const string wordListNewPath = _wordListDirPath + "core2.txt.tmp";
+            const string fixListNewPath = _fixListDirPath + "core.tmp";
+            const string wordListNewPath = _wordListDirPath + "core2.tmp";
 
             Dictionary<string, List<SpellingFix>> dic = spellingData.FixList.Items.ToDictionary(
                 f => f.Key,

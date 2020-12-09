@@ -135,6 +135,8 @@ octahedral
 octahedron
 ordinate
 ordinates
+orientability
+orientable
 parabolically
 pentagon
 pentagons
@@ -148,6 +150,8 @@ quadrature
 quadrilateral
 quadrilaterals
 quadrimodal
+quartic
+quintic
 regularization
 regularized
 riemann

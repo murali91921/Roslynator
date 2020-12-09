@@ -84,19 +84,19 @@
     <None Update="_WordLists\core.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="_WordLists\Geography\cities.txt">
+    <None Update="_WordLists\geography\cities.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="_WordLists\Geography\capitals.txt">
+    <None Update="_WordLists\geography\capitals.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="_WordLists\Geography\us_states.txt">
+    <None Update="_WordLists\geography\us_states.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="_WordLists\Geography\countries.txt">
+    <None Update="_WordLists\geography\countries.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="_WordLists\languages.txt">
+    <None Update="_WordLists\it\languages.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="_WordLists\plural.txt">
@@ -108,16 +108,16 @@
     <None Update="_WordLists\core2.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="_WordLists\fonts.txt">
+    <None Update="_WordLists\it\fonts.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="_WordLists\Geography\other.txt">
+    <None Update="_WordLists\geography\other.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="_WordLists\rare.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="_WordLists\html.txt">
+    <None Update="_WordLists\it\html_tags.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="_WordLists\hyphen.txt">
@@ -129,7 +129,7 @@
     <None Update="_WordLists\math.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="_WordLists\tech.txt">
+    <None Update="_WordLists\it.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

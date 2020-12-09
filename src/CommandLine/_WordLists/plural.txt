@@ -2,6 +2,7 @@ alikes
 automations
 convergents
 divines
+enchantings
 enumerables
 equatables
 fakeables

@@ -1,6 +1,6 @@
 aac
 abnf
-ActiveX
+activex
 addon
 addons
 addr
@@ -108,11 +108,13 @@ cli
 clob
 clr
 cls
+clsid
 clut
 cmake
 cmd
 cmdlet
 cmdlets
+cmdline
 cmos
 cmp
 cnt
@@ -166,6 +168,7 @@ dbcs
 dbf
 dbg
 dbms
+dbnull
 dbo
 dddmm
 dddmmss
@@ -309,6 +312,7 @@ gac
 gc
 gc'd
 gdi
+gdiplus
 gfdl
 git
 gitattributes
@@ -371,6 +375,7 @@ https
 hwnd
 hypertext
 iana
+icmp
 ico
 icollection
 icollections
@@ -604,6 +609,12 @@ opcode
 opcodes
 opengl
 ordbms
+ordinalize
+ordinalized
+ordinalizer
+ordinalizers
+ordinalizes
+ordinalizing
 org
 orig
 orm
@@ -865,6 +876,7 @@ tgz
 thisobj
 tinyint
 titleize
+titleized
 tlbimp
 tld
 tls
