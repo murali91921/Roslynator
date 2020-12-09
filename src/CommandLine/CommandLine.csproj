@@ -78,7 +78,7 @@
     <None Update="_WordLists\acronyms.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="_WordLists\core.br.txt">
+    <None Update="_WordLists\core_br.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="_WordLists\core.txt">
@@ -99,7 +99,7 @@
     <None Update="_WordLists\languages.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="_WordLists\plural_adjectives.txt">
+    <None Update="_WordLists\plural.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="_WordLists\core3.txt">

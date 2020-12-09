@@ -19,6 +19,8 @@ diff
 diffed
 diffing
 diffs
+eval
+evals
 ext
 exts
 info

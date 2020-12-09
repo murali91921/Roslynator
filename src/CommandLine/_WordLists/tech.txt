@@ -266,7 +266,6 @@ err
 etl
 etsi
 eula
-eval
 exe
 exec
 exif
@@ -501,6 +500,7 @@ mhtml
 midi
 millis
 mime
+mips
 mixin
 mixins
 mkdir
@@ -567,6 +567,7 @@ ntfs
 ntlm
 ntp
 ntsc
+nullish
 nullptr
 num
 nunit
@@ -662,7 +663,9 @@ props
 protobuf
 protobufs
 psmdcp
+pss
 ptr
+ptrs
 pwd
 pylint
 qldb
@@ -706,6 +709,7 @@ rom
 roslyn
 rpc
 rsa
+rsassa
 rsp
 rss
 rtb
@@ -883,6 +887,8 @@ uap
 uddi
 udp
 udt
+uglified
+uglify
 ui
 uid
 uids
@@ -1014,6 +1020,7 @@ xsi
 xslt
 xsrf
 xss
+xssi
 xunit
 xvalue
 y2k

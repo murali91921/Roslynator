@@ -56,6 +56,8 @@ fermat
 fourier
 galois
 gaussian
+gradian
+gradians
 heisenberg
 hendecagon
 hendecagons

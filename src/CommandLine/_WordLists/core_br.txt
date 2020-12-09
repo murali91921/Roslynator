@@ -224,6 +224,7 @@ internationalise
 internationalised
 internationalises
 internationalising
+labellable
 labour
 laboured
 labouring

@@ -121,3 +121,9 @@ hostmaster
 webproxy
 ungated
 unget
+numericly
+breakingly
+crunchable
+uncrunchable
+uncrunched
+unconcise

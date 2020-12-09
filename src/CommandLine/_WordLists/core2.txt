@@ -1027,6 +1027,8 @@ backpropagating
 backpropagation
 backpropagations
 backprops
+backquote
+backquotes
 backref
 backreference
 backreferences
@@ -1388,6 +1390,7 @@ brassieres
 brave
 brazilian
 bread
+breadcrumb
 breadcrumbs
 break
 breakfast
@@ -1620,7 +1623,9 @@ car
 carbon
 card
 cardboard
+cardinal
 cardinality
+cardinally
 cards
 care
 career
@@ -2208,6 +2213,8 @@ composition
 compound
 compoundings
 compounds
+comprehension
+comprehensions
 comprehensive
 compress
 compressed
@@ -2643,6 +2650,8 @@ crystallizes
 crystallizing
 crystallographic
 crystallographically
+cubic
+cubics
 cucumber
 cues
 cull
@@ -3167,6 +3176,7 @@ destination
 destroy
 destructible
 destruction
+destructively
 destructor
 destructors
 destructure
@@ -4706,6 +4716,7 @@ geocentric
 geocentrically
 geocode
 geocoder
+geocoding
 geocoordinate
 geocoordinates
 geodetic
@@ -5356,10 +5367,12 @@ improvement
 impulse
 impurity
 in
+in between
 inaccessible
 inactive
 inactively
 inasmuch
+in-between
 inbox
 inboxes
 incentive
@@ -5402,6 +5415,8 @@ increment
 incremental
 incrementality
 incremented
+incrementer
+incrementers
 incrementing
 incrementor
 incrementors
@@ -5676,6 +5691,7 @@ interlaces
 interlacing
 interleave
 interleaves
+interlinear
 interlocked
 intermediate
 intern
@@ -5968,6 +5984,7 @@ kilobits
 kilobyte
 kilobytes
 kilogramme
+kilohertz
 kind
 kinds
 kineses
@@ -5995,6 +6012,7 @@ known
 knows
 lab
 label
+labelable
 labeled
 labeller
 labellers
@@ -6671,6 +6689,7 @@ mind
 mine
 miner
 mineral
+minification
 minified
 minifier
 minifiers
@@ -6708,6 +6727,9 @@ minuscules
 minuses
 minute
 minutes
+mipmap
+mipmapped
+mipmapping
 miracle
 mirror
 misannotation
@@ -6922,6 +6944,7 @@ multipolygon
 multipolygons
 multiprocess
 multiprocessing
+multisample
 multiscale
 multisearch
 multiselect
@@ -6988,6 +7011,7 @@ names
 namespace
 namespaced
 namespaces
+namespacing
 naming
 narrative
 narrow
@@ -7069,6 +7093,8 @@ newly
 news
 newspaper
 next
+nibble
+nibbles
 nice
 nicer
 nick
@@ -7230,6 +7256,8 @@ numerous
 nurse
 nut
 nutrient
+nybble
+nybbles
 obedient
 obey
 obituary
@@ -7260,6 +7288,12 @@ obviously
 occasion
 occasional
 occasionally
+occlude
+occluded
+occluder
+occluders
+occludes
+occluding
 occlusion
 occlusions
 occupation
@@ -7376,6 +7410,7 @@ orderings
 orderness
 orders
 ordinal
+ordinally
 ordinals
 ordinary
 ore
@@ -7449,6 +7484,7 @@ oval
 oven
 over
 overacting
+overage
 overall
 overallocated
 overallocation
@@ -8220,6 +8256,8 @@ predicate
 predicated
 predicates
 predicating
+predication
+predications
 predict
 predictable
 predicted
@@ -8704,6 +8742,8 @@ rare
 rarely
 raster
 rasterization
+rasterizer
+rasterizers
 rasters
 rat
 rate
@@ -9966,6 +10006,8 @@ semaphores
 semicolon
 semicolons
 seminumerical
+semitone
+semitones
 senate
 senator
 send
@@ -10112,6 +10154,7 @@ shot
 should
 shoulder
 shouldn't
+should've
 shout
 show
 shower
@@ -10124,6 +10167,8 @@ shrews
 shrink
 shrinking
 shrinks
+shrubberies
+shrubbery
 shrug
 shrunk
 shrunken
@@ -10178,6 +10223,7 @@ silence
 silent
 silk
 sill
+silliness
 silly
 silver
 similar
@@ -10309,6 +10355,10 @@ snippetized
 snippetizes
 snippetizing
 snippets
+snooze
+snoozed
+snoozes
+snoozing
 snow
 snowboard
 snowboarder
@@ -10432,6 +10482,8 @@ spectacular
 spectacularly
 spectrogram
 spectrograms
+specular
+specularity
 speculation
 speculative
 speech
@@ -10755,7 +10807,9 @@ submenu
 submenus
 submessage
 submessages
+submissible
 submit
+submittable
 submitted
 submitter
 submitters
@@ -12009,6 +12063,7 @@ unhooking
 unhooks
 unhyphenate
 unhyphenated
+unicodes
 unified
 uniform
 uniforming
@@ -12224,9 +12279,16 @@ unquoting
 unreachability
 unreachable
 unread
+unrealize
+unrealized
+unrealizes
+unrealizing
 unrecognized
 unrecovered
+unreference
 unreferenced
+unreferences
+unreferencing
 unregister
 unregistered
 unregistering
@@ -12252,6 +12314,7 @@ unscale
 unscaled
 unscales
 unscaling
+unscoped
 unsearchable
 unseeded
 unseekable
@@ -12301,6 +12364,10 @@ unsuppress
 unsuppressed
 unsuppresses
 unsuppressing
+unsuspend
+unsuspended
+unsuspending
+unsuspends
 unswitched
 unsynchronize
 unsynchronized
@@ -12313,6 +12380,7 @@ untagging
 untags
 untargeted
 unterminated
+unthrottled
 unthrown
 until
 untokenized
@@ -12402,9 +12470,13 @@ upscale
 upscaled
 upscales
 upscaling
+upsell
+upselling
+upsells
 upset
 upsilon
 upsilons
+upsold
 upstairs
 upstream
 upstreams
@@ -12653,6 +12725,8 @@ waveform
 waveforms
 wax
 way
+waypoint
+waypoints
 ways
 we
 weak

@@ -37,6 +37,7 @@ Dolby
 DotVVM
 Dovecot
 EditorConfig
+Elasticsearch
 ELMAH
 Emacs
 Emby
@@ -78,6 +79,7 @@ JetBrains
 Jira
 Kerberos
 Kodachrome
+Kubernetes
 LinkedIn
 Linkify
 Linksys
@@ -143,6 +145,7 @@ Samsung
 Scilab
 Selenium
 Serilog
+SharePoint
 SignalR
 Silverlight
 SkyDrive
@@ -185,5 +188,6 @@ Xilinx
 Yandex
 YouTube
 Yubico
+Zapier
 Zoolander
 Zune
