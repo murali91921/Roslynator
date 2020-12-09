@@ -19,6 +19,7 @@ queryables
 remediations
 restartables
 selectables
+serializables
 silents
 singulars
 sortings

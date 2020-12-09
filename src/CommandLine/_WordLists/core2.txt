@@ -79,6 +79,8 @@ acceptable
 acceptance
 acceptances
 accepted
+accepter
+accepters
 accepting
 accepts
 access
@@ -497,6 +499,7 @@ amount
 ampersand
 ampersands
 amplitude
+amplitudes
 amusement
 amusing
 an
@@ -910,6 +913,8 @@ autocompleted
 autocompletes
 autocompleting
 autocompletion
+autocorrect
+autocorrection
 autocorrelated
 autocorrelation
 autodetect
@@ -940,6 +945,7 @@ autoloading
 automagically
 automapped
 automapping
+automappings
 automata
 automatable
 automate
@@ -949,6 +955,7 @@ automaton
 automatons
 automobile
 automocked
+autopagination
 autoplay
 autoproperties
 autoproperty
@@ -1383,6 +1390,7 @@ brake
 branch
 branches
 branching
+branchless
 brand
 brass
 brassiere
@@ -1614,6 +1622,7 @@ captivated
 captivates
 captivating
 captivatingly
+capturable
 capture
 captured
 capturer
@@ -1646,7 +1655,6 @@ carrot
 carry
 cart
 carter
-cartesian
 cartilage
 cartographer
 cartographers
@@ -1856,6 +1864,8 @@ chrome
 chrominance
 chrominances
 chromosome
+chronometer
+chronometers
 chthonic
 chunked
 church
@@ -1925,6 +1935,7 @@ clean
 cleaner
 cleanup
 clear
+clearable
 cleared
 clearer
 clearers
@@ -2276,6 +2287,7 @@ conditioning
 conditionless
 conditions
 conduct
+conductance
 conductor
 confer
 conference
@@ -2317,6 +2329,11 @@ congressional
 congruence
 congruences
 congruent
+congruential
+conjugate
+conjugated
+conjugates
+conjugating
 conjunct
 conjunction
 conjunctions
@@ -2399,6 +2416,7 @@ content
 contents
 contest
 context
+contextful
 contexts
 contextualize
 contextualized
@@ -2640,6 +2658,8 @@ cry
 crying
 cryptic
 crypto
+cryptogram
+cryptograms
 cryptographically
 cryptography
 crystal
@@ -2790,6 +2810,7 @@ debounces
 debouncing
 debt
 debug
+debuggability
 debuggable
 debugged
 debuggee
@@ -2929,6 +2950,7 @@ defines
 defining
 definite
 definitely
+definiteness
 definition
 definitions
 definitiveness
@@ -3211,6 +3233,8 @@ detokenize
 detokenized
 detokenizes
 detokenizing
+deuterium
+deuteron
 devanagari
 develop
 developing
@@ -3302,6 +3326,7 @@ dilution
 dimension
 dimensional
 dimensionality
+dimensionless
 dimensions
 diminish
 diminished
@@ -3376,6 +3401,7 @@ discharge
 discipline
 disco
 discount
+discountable
 discourse
 discover
 discoverability
@@ -3605,6 +3631,7 @@ dummies
 dummy
 dummying
 dump
+dumpable
 dumper
 dumpers
 duplet
@@ -3885,6 +3912,7 @@ enumerated
 enumerates
 enumeration
 enumerations
+enumerative
 enumerator
 envelope
 environment
@@ -4019,6 +4047,7 @@ excel
 excellent
 except
 exception
+exceptionals
 exceptions
 excess
 exchange
@@ -4196,7 +4225,6 @@ fact
 factor
 factorial
 factorials
-factorization
 factors
 factory
 facts
@@ -4453,6 +4481,8 @@ floorplan
 flop
 floppy
 flops
+flotation
+flotations
 flour
 flow
 flowchart
@@ -4741,6 +4771,7 @@ gets
 gettability
 gettable
 getter
+getter-less
 getting
 gherkin
 gherkins
@@ -4917,6 +4948,7 @@ guy
 gym
 gymnastics
 gyro
+gyromagnetic
 habit
 habitat
 hack
@@ -5575,6 +5607,7 @@ inland
 inlet
 inlinable
 inline
+inlineable
 inlined
 inlines
 inlining
@@ -5606,6 +5639,7 @@ insight
 insights
 insist
 inspect
+inspectable
 inspection
 inspire
 inspired
@@ -5693,6 +5727,8 @@ interleave
 interleaves
 interlinear
 interlocked
+intermarriage
+intermarriages
 intermediate
 intern
 internal
@@ -6399,6 +6435,7 @@ magazine
 magic
 magnet
 magnetic
+magneton
 magnificent
 magnitude
 mail
@@ -6629,9 +6666,16 @@ metrics
 mexican
 mexicans
 micro
+microarchitecture
+microarchitectures
+microbenchmark
+microbenchmarking
+microbenchmarks
 microcode
 microcontroller
 microcontrollers
+microdeposit
+microdeposits
 microscope
 microsecond
 microseconds
@@ -6757,6 +6801,13 @@ misformatting
 mismatch
 mismatches
 misnested
+mispayment
+mispayments
+mispredict
+mispredicted
+mispredicting
+misprediction
+mispredicts
 misrecognize
 misrecognized
 misrecognizes
@@ -6912,6 +6963,7 @@ multicasting
 multicasts
 multiclient
 multicolumn
+multicore
 multicriteria
 multiculturalism
 multifunctor
@@ -7162,6 +7214,7 @@ nonnumeric
 nonnumerical
 nonoperational
 nonoverlapping
+nonparametric
 nonpersistable
 nonpooled
 nonprint
@@ -7175,6 +7228,7 @@ nonspace
 nonspacing
 nonstandard
 nonstrict
+nonsymmetric
 nonsystem
 nonsystematic
 nonsystemic
@@ -7582,6 +7636,7 @@ oxidation
 oxygene
 pace
 pack
+packability
 packable
 package
 packages
@@ -7669,6 +7724,7 @@ paralyzed
 paralyzes
 paralyzing
 parameter
+parameterful
 parameterizable
 parameterization
 parameterizations
@@ -7802,8 +7858,6 @@ penetrators
 penguin
 penny
 pension
-pentagon
-pentagons
 people
 pepper
 per
@@ -7851,6 +7905,7 @@ permissions
 permit
 permits
 permitted
+permittivity
 permutable
 permutation
 permutations
@@ -8220,8 +8275,10 @@ precomputed
 precomputes
 precomputing
 precondition
+preconditioned
 preconditioner
 preconditioners
+preconditioning
 preconditions
 preconfigure
 preconfigured
@@ -8314,6 +8371,10 @@ premultiplied
 preoffset
 preoption
 preoptions
+preorder
+preordered
+preordering
+preorders
 preparation
 prepare
 prepared
@@ -8522,6 +8583,11 @@ proportion
 proposal
 propose
 proposed
+prorate
+prorated
+prorates
+prorating
+proration
 prose
 prosecutor
 prospect
@@ -8616,13 +8682,9 @@ pyramid
 python
 pythons
 quack
-quadrangle
-quadrangles
 quadratic
 quadratical
 quadratically
-quadrilateral
-quadrilaterals
 quadtree
 quadtrees
 quail
@@ -9108,9 +9170,7 @@ regression
 regressions
 regret
 regular
-regularization
 regularize
-regularized
 regularizer
 regularizers
 regularizes
@@ -9227,6 +9287,7 @@ remembers
 remind
 remixer
 remixers
+remotable
 remote
 remoted
 remoting
@@ -9636,6 +9697,7 @@ reuploader
 reuploaders
 reuploading
 reuploads
+reusability
 reused
 revalidate
 revalidated
@@ -10067,6 +10129,7 @@ sets
 settability
 settable
 setter
+setter-less
 setting
 settings
 settle
@@ -10130,6 +10193,7 @@ shininess
 shining
 shiny
 ship
+shippable
 shirt
 shizzle
 shock
@@ -10821,6 +10885,8 @@ subnode
 subnodes
 subobject
 subobjects
+suboperation
+suboperations
 subordinate
 subpacket
 subpackets
@@ -10835,6 +10901,8 @@ subpatterns
 subpixel
 subpixels
 subprime
+subproblem
+subproblems
 subprocess
 subprocesses
 subprogram
@@ -10866,6 +10934,8 @@ subscript
 subscription
 subscriptions
 subscripts
+subsecond
+subseconds
 subsegment
 subsegments
 subselect
@@ -11018,6 +11088,7 @@ supersonically
 superstructure
 superstructures
 supertype
+supertypes
 supervise
 supper
 supplant
@@ -11434,6 +11505,7 @@ tidy
 tie
 tiebreak
 tiebreaks
+tiering
 ties
 tiger
 tight
@@ -11645,9 +11717,7 @@ transposed
 transposes
 transposing
 trap
-trapezoid
 trapezoidal
-trapezoids
 trappy
 trash
 trashes
@@ -11685,8 +11755,6 @@ trialing
 trialled
 trialling
 trials
-triangle
-triangles
 triangulation
 tribe
 trick
@@ -11853,6 +11921,7 @@ uncached
 uncalculated
 uncanceled
 uncancelled
+uncaptured
 uncastable
 uncatchable
 uncategorized
@@ -11987,6 +12056,7 @@ unescape
 unescaped
 unescapes
 unescaping
+unevaluated
 unexpand
 unexpanded
 unexpanding
@@ -12041,6 +12111,7 @@ ungrouped
 ungrouping
 ungroups
 unguessable
+unhalted
 unhandled
 unhappy
 unhash
@@ -12207,12 +12278,16 @@ unnormalize
 unnormalized
 unnormalizes
 unnormalizing
+unobvious
 unopinionated
 unoptimized
 unordered
 unowned
+unpaced
 unpack
+unpackable
 unpackaged
+unpackaging
 unpacker
 unpackers
 unpadded
@@ -12240,6 +12315,7 @@ unpersist
 unpersisted
 unpersisting
 unpersists
+unphysical
 unpin
 unpinned
 unpinning
@@ -12255,6 +12331,7 @@ unprepare
 unprepared
 unprepares
 unpreparing
+unprevented
 unprintable
 unprinted
 unprocessable
@@ -12285,10 +12362,12 @@ unrealizes
 unrealizing
 unrecognized
 unrecovered
+unredacted
 unreference
 unreferenced
 unreferences
 unreferencing
+unrefunded
 unregister
 unregistered
 unregistering
@@ -12332,8 +12411,11 @@ unshareable
 unshift
 unshifted
 unshuffle
+unsign
 unsignaled
 unsigned
+unsigning
+unsigns
 unsized
 unskip
 unsorted
@@ -12420,6 +12502,7 @@ unwrapping
 unwraps
 unwritable
 unwrite
+unwriteable
 unwrites
 unwriting
 unwritten

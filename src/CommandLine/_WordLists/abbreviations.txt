@@ -1,6 +1,8 @@
 abbr
 attrib
 attribs
+coeff
+coeffs
 config
 configs
 contrib
@@ -34,6 +36,7 @@ jitted
 jitting
 lib
 libs
+nanosec
 realloc
 reallocs
 reinit

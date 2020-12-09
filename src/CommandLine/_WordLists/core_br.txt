@@ -169,6 +169,8 @@ flavour
 flavoured
 flavouring
 flavours
+floatation
+floatations
 formalise
 formalised
 formalises

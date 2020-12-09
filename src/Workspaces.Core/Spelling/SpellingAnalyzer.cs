@@ -15,8 +15,8 @@ namespace Roslynator.Spelling
 
         public static readonly DiagnosticDescriptor DiagnosticDescriptor = new DiagnosticDescriptor(
             id: DiagnosticId,
-            title: "Fix spelling or typo.",
-            messageFormat: "Fix spelling or typo in '{0}'.",
+            title: "Possible misspelling or typo.",
+            messageFormat: "Possible misspelling or typo in '{0}'.",
             category: "Spelling",
             defaultSeverity: DiagnosticSeverity.Info,
             isEnabledByDefault: true,

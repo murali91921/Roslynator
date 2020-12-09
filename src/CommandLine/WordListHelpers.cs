@@ -85,6 +85,7 @@ namespace Roslynator.CommandLine
             WordList all = core.AddValues(core2)
                 .AddValues(core_br)
                 .AddValues(languages)
+                .AddValues(math)
                 .AddValues(plural)
                 .AddValues(abbreviations)
                 .AddValues(names);

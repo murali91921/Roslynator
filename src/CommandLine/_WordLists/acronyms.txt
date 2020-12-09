@@ -16,6 +16,7 @@ gmt
 gprs
 gsm
 HbbTV
+iata
 iban
 icao
 imdb
@@ -51,6 +52,7 @@ ucla
 uhf
 usa
 usd
+usps
 vip
 voip
 wtf

@@ -55,6 +55,10 @@ aux
 aws
 awssdk
 backcompat
+backport
+backported
+backporting
+baselining
 bcc
 bcl
 bcp
@@ -113,8 +117,6 @@ cmos
 cmp
 cnt
 codegen
-coeff
-coeffs
 com
 commitish
 committish
@@ -153,6 +155,7 @@ ctors
 ctrl
 cts
 ctx
+cuda
 curr
 cz
 dao
@@ -399,6 +402,7 @@ inet
 inheritdoc
 ini
 initobj
+inliner
 int
 intelli
 intellisense
@@ -528,6 +532,8 @@ msmq
 mssql
 mssqlserver
 msvc
+msvcrt
+multibyte
 mutex
 mutexes
 mvc
@@ -539,6 +545,7 @@ nbsp
 ndp
 netconfig
 netcore
+netcoreapp
 netframework
 netmask
 netmasks
@@ -781,6 +788,7 @@ snupkg
 snupkgs
 spdx
 spec
+spss
 sqlserver
 sqrt
 sram
@@ -807,6 +815,7 @@ stdin
 stdout
 strcmp
 strcpy
+stringifiable
 stringification
 stringified
 stringifier
@@ -1027,6 +1036,7 @@ y2k
 yaml
 yml
 yvalue
+yymmdd
 yymmddh
 yyyymm
 yyyymmd

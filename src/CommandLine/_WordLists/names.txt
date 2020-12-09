@@ -1,4 +1,5 @@
 Accenture
+Alipay
 Android
 Antlr
 Apache
@@ -113,6 +114,7 @@ NRefactory
 NServiceBus
 NSwag
 NuGet
+NumPy
 NVidia
 OAuth
 Octocat
