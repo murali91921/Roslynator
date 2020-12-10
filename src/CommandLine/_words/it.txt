@@ -195,6 +195,7 @@ devops
 dhcp
 dhhmmss
 diag
+diags
 dib
 dic
 dict
@@ -922,6 +923,7 @@ uml
 unc
 undef
 unicast
+unicoded
 unix
 unstringified
 unstringifies

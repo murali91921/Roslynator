@@ -257,6 +257,10 @@ manoeuvre
 manoeuvred
 manoeuvres
 manoeuvring
+materialise
+materialised
+materialises
+materialising
 maximisation
 maximise
 maximised

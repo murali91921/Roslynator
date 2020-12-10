@@ -17,26 +17,29 @@ namespace Roslynator.CommandLine
     {
         private static readonly Regex _splitRegex = new Regex(" +");
 
-        private const string _wordListDirPath = @"..\..\..\_WordLists\";
-        private const string _fixListDirPath = @"..\..\..\_FixLists\";
+        private const string _wordListDirPath = @"..\..\..\_words\";
+        private const string _fixListDirPath = @"..\..\..\_fixes\";
 
         public static void ProcessWordLists()
         {
+            _ = WordList.LoadFile(_wordListDirPath + "exclude.txt")
+                .SaveAndLoad();
+
             WordList abbreviations = WordList.LoadFile(_wordListDirPath + "abbreviations.txt")
                 .SaveAndLoad();
 
             WordList acronyms = WordList.LoadFile(_wordListDirPath + "acronyms.txt")
                 .SaveAndLoad();
 
-            WordList core_br = WordList.LoadFile(_wordListDirPath + "core_br.txt")
+            WordList core_br = WordList.LoadFile(_wordListDirPath + "br.txt")
                 .SaveAndLoad();
 
-            WordList fonts = WordList.LoadFile(_wordListDirPath + "fonts.txt")
+            WordList fonts = WordList.LoadFile(_wordListDirPath + @"\it\fonts.txt")
                 .SaveAndLoad();
 
             WordList geography = WordList.LoadFiles(Directory.EnumerateFiles(_wordListDirPath + @"\geography", "*.*", SearchOption.AllDirectories));
 
-            WordList languages = WordList.LoadFile(_wordListDirPath + "languages.txt")
+            WordList languages = WordList.LoadFile(_wordListDirPath + @"\it\languages.txt")
                 .SaveAndLoad();
 
             WordList names = WordList.LoadFile(_wordListDirPath + "names.txt")
@@ -55,7 +58,7 @@ namespace Roslynator.CommandLine
                 .Except(fonts)
                 .SaveAndLoad();
 
-            WordList tech = WordList.LoadFile(_wordListDirPath + "tech.txt")
+            WordList it = WordList.LoadFile(_wordListDirPath + "it.txt")
                 .Except(abbreviations)
                 .Except(acronyms)
                 .Except(fonts)
@@ -71,7 +74,7 @@ namespace Roslynator.CommandLine
                 .Except(names)
                 .Except(plural)
                 .Except(rare)
-                .Except(tech)
+                .Except(it)
                 .SaveAndLoad();
 
             WordList core = WordList.LoadFile(_wordListDirPath + "core.txt")
@@ -124,8 +127,8 @@ namespace Roslynator.CommandLine
             CancellationToken cancellationToken)
         {
             const string fixListPath = _fixListDirPath + "core.txt";
-            const string fixListNewPath = _fixListDirPath + "core.tmp";
-            const string wordListNewPath = _wordListDirPath + "core2.tmp";
+            const string fixListNewPath = _fixListDirPath + "_new.tmp";
+            const string wordListNewPath = _wordListDirPath + "_new.tmp";
 
             Dictionary<string, List<SpellingFix>> dic = spellingData.FixList.Items.ToDictionary(
                 f => f.Key,
