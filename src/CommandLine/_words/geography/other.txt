@@ -1,8 +1,3 @@
-canadian
-canadians
-cherokee
-cherokees
-
 africa
 african
 africans
@@ -20,6 +15,8 @@ british
 canadian
 canadians
 carribean
+cherokee
+cherokees
 cymru
 europe
 european

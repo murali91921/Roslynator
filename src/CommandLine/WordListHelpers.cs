@@ -57,6 +57,7 @@ namespace Roslynator.CommandLine
                 .Except(br, us, geography);
 
             WordList main2 = WordList.LoadFile(_wordListDirPath + @"\main2.txt")
+                .AddValues(WordList.LoadFile(_wordListDirPath + @"\main2_new.txt"))
                 .Except(
                     abbreviations,
                     acronyms,

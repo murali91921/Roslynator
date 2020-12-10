@@ -1,9 +1,9 @@
-ascii
 afaict
 afaik
 ai
 am
 ansi
+ascii
 atm
 bcg
 bic

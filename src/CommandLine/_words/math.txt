@@ -1,6 +1,4 @@
-bayesian
 abscissa
-spline
 abscissae
 abscissas
 acos
@@ -190,6 +188,7 @@ septagons
 signum
 sinh
 sinusoidal
+spline
 subvector
 subvectors
 summand

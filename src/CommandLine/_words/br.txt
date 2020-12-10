@@ -1,16 +1,3 @@
-councillor
-councillors
-defence
-licence
-licences
-marvellous
-modelling
-practise
-tunnelling
-cheque
-cheques
-
-cosy
 accessorise
 accessorised
 accessorises
@@ -80,6 +67,8 @@ characterise
 characterised
 characterises
 characterising
+cheque
+cheques
 circularise
 circularised
 circularises
@@ -98,6 +87,9 @@ colourful
 colourfully
 colourfulness
 colours
+cosy
+councillor
+councillors
 criticise
 criticised
 criticises
@@ -117,6 +109,7 @@ daemonise
 daemonised
 daemonises
 daemonising
+defence
 dehumanisation
 dehumanise
 dehumanised
@@ -253,6 +246,8 @@ liberalise
 liberalised
 liberalises
 liberalising
+licence
+licences
 linearisation
 linearisations
 linearise
@@ -271,6 +266,7 @@ manoeuvre
 manoeuvred
 manoeuvres
 manoeuvring
+marvellous
 materialise
 materialised
 materialises
@@ -291,6 +287,7 @@ mobilise
 mobilised
 mobilises
 mobilising
+modelling
 modernisation
 modernisations
 modernise
@@ -390,6 +387,10 @@ politicise
 politicised
 politicises
 politicising
+practise
+practised
+practises
+practising
 prioritised
 privatisation
 privatisations
@@ -542,6 +543,7 @@ tokenise
 tokenised
 tokenises
 tokenising
+tunnelling
 unfavourable
 uninitialise
 uninitialised
