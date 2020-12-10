@@ -66,10 +66,10 @@
     <None Remove="_fixes\.gitignore" />
     <None Remove="_words\.gitignore" />
     <None Remove="_._" />
-    <None Update="_fixes\core.txt">
+    <None Update="_fixes\fixes.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="_fixes\core.txt">
+    <None Update="_fixes\fixes.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="_words\abbreviations.txt">
@@ -81,7 +81,7 @@
     <None Update="_words\br.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="_words\core.txt">
+    <None Update="_words\main.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="_words\geography\cities.txt">
@@ -105,7 +105,7 @@
     <None Update="_words\exclude.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="_words\core2.txt">
+    <None Update="_words\main2.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="_words\it\fonts.txt">

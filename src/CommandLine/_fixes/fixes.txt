@@ -1879,7 +1879,6 @@ personel=personnel
 personell=personnel
 pertubation=perturbation
 pesistent=persistent
-phillipines=philippines
 phoenetic=phonetic
 phsyically=physically
 picturess=pictures

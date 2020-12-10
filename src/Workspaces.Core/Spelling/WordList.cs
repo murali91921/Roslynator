@@ -155,29 +155,27 @@ namespace Roslynator.Spelling
                 .Where(f => !f.StartsWith("#"));
         }
 
-        public WordList Intersect(WordList wordList, params WordList[] additionalWordList)
+        public WordList Intersect(WordList wordList, params WordList[] additionalWordLists)
         {
-            IEnumerable<string> intersect = Values
-                .Intersect(wordList.Values, Comparer);
+            IEnumerable<string> intersect = Values.Intersect(wordList.Values, Comparer);
 
-            if (additionalWordList?.Length > 0)
+            if (additionalWordLists?.Length > 0)
             {
                 intersect = intersect
-                    .Intersect(additionalWordList.SelectMany(f => f.Values), Comparer);
+                    .Intersect(additionalWordLists.SelectMany(f => f.Values), Comparer);
             }
 
             return WithValues(intersect);
         }
 
-        public WordList Except(WordList wordList, params WordList[] additionalWordList)
+        public WordList Except(WordList wordList, params WordList[] additionalWordLists)
         {
-            IEnumerable<string> except = Values
-                .Except(wordList.Values, Comparer);
+            IEnumerable<string> except = Values.Except(wordList.Values, Comparer);
 
-            if (additionalWordList?.Length > 0)
+            if (additionalWordLists?.Length > 0)
             {
                 except = except
-                    .Except(additionalWordList.SelectMany(f => f.Values), Comparer);
+                    .Except(additionalWordLists.SelectMany(f => f.Values), Comparer);
             }
 
             return WithValues(except);
@@ -200,11 +198,14 @@ namespace Roslynator.Spelling
             return new WordList(Path, Comparer, values);
         }
 
-        public WordList AddValues(WordList wordList)
+        public WordList AddValues(WordList wordList, params WordList[] additionalWordLists)
         {
-            IEnumerable<string> values = Values.Concat(wordList.Values).Distinct(Comparer);
+            IEnumerable<string> concat = Values.Concat(wordList.Values);
 
-            return new WordList(Path, Comparer, values);
+            if (additionalWordLists?.Length > 0)
+                concat = concat.Concat(additionalWordLists.SelectMany(f => f.Values));
+
+            return WithValues(concat.Distinct(Comparer));
         }
 
         public WordList WithValues(IEnumerable<string> values)
