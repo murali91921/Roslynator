@@ -1,5 +1,6 @@
 alikes
 automations
+comparables
 convergents
 divines
 enchantings

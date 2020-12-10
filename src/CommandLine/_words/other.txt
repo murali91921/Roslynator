@@ -6,11 +6,17 @@ chordata
 clownfish
 deuteranomaly
 deuteranopia
+devanagari
 dicotyledon
 dicotyledonous
 dicotyledons
 elytra
 elytrone
+furigana
+hijri
+hiragana
+hussar
+hussars
 magnoliophyta
 mammalia
 mayfly

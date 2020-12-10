@@ -1,3 +1,16 @@
+councillor
+councillors
+defence
+licence
+licences
+marvellous
+modelling
+practise
+tunnelling
+cheque
+cheques
+
+cosy
 accessorise
 accessorised
 accessorises
@@ -7,6 +20,7 @@ actualise
 actualised
 actualises
 actualising
+aluminium
 analyse
 analysed
 analyser

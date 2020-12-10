@@ -239,11 +239,18 @@ namespace Roslynator.Spelling
             Save(path ?? Path, this);
         }
 
-        public WordList SaveAndLoad()
+        public static void Normalize(string filePath)
         {
-            Save();
+            WordList list = LoadFile(filePath);
 
-            return LoadFile(Path, Comparer);
+            list.Save();
         }
+
+        //public WordList SaveAndLoad()
+        //{
+        //    Save();
+
+        //    return LoadFile(Path, Comparer);
+        //}
     }
 }

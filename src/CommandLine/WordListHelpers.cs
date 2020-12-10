@@ -17,94 +17,76 @@ namespace Roslynator.CommandLine
     {
         private static readonly Regex _splitRegex = new Regex(" +");
 
-        private const string _wordListDirPath = @"..\..\..\_words\";
-        private const string _fixListDirPath = @"..\..\..\_fixes\";
+        private const string _wordListDirPath = @"..\..\..\_words";
+        private const string _fixListDirPath = @"..\..\..\_fixes";
 
         public static void ProcessWordLists()
         {
-            _ = WordList.LoadFile(_wordListDirPath + "exclude.txt")
-                .SaveAndLoad();
+            foreach (string filePath in Directory.EnumerateFiles(_wordListDirPath, "*.txt", SearchOption.AllDirectories))
+            {
+                WordList.Normalize(filePath);
+            }
 
-            WordList abbreviations = WordList.LoadFile(_wordListDirPath + "abbreviations.txt")
-                .SaveAndLoad();
+            _ = WordList.LoadFile(_wordListDirPath + @"\exclude.txt");
+            WordList abbreviations = WordList.LoadFile(_wordListDirPath + @"\abbreviations.txt");
+            WordList acronyms = WordList.LoadFile(_wordListDirPath + @"\acronyms.txt");
+            WordList br = WordList.LoadFile(_wordListDirPath + @"\br.txt");
+            WordList us = WordList.LoadFile(_wordListDirPath + @"\us.txt");
+            WordList fonts = WordList.LoadFile(_wordListDirPath + @"\it\fonts.txt");
+            WordList languages = WordList.LoadFile(_wordListDirPath + @"\it\languages.txt");
+            WordList names = WordList.LoadFile(_wordListDirPath + @"\names.txt");
+            WordList plural = WordList.LoadFile(_wordListDirPath + @"\plural.txt");
+            WordList other = WordList.LoadFile(_wordListDirPath + @"\other.txt");
 
-            WordList acronyms = WordList.LoadFile(_wordListDirPath + "acronyms.txt")
-                .SaveAndLoad();
+            WordList geography = WordList.LoadFiles(
+                Directory.EnumerateFiles(
+                    _wordListDirPath + @"\geography",
+                    "*.*",
+                    SearchOption.AllDirectories));
 
-            WordList br = WordList.LoadFile(_wordListDirPath + "br.txt")
-                .SaveAndLoad();
+            WordList it = WordList.LoadFiles(
+                Directory.EnumerateFiles(
+                    _wordListDirPath + @"\it",
+                    "*.*",
+                    SearchOption.AllDirectories));
 
-            WordList fonts = WordList.LoadFile(_wordListDirPath + @"\it\fonts.txt")
-                .SaveAndLoad();
+            WordList math = WordList.LoadFile(_wordListDirPath + @"\math.txt")
+                .Except(abbreviations, acronyms, fonts);
 
-            WordList geography = WordList.LoadFiles(Directory.EnumerateFiles(_wordListDirPath + @"\geography", "*.*", SearchOption.AllDirectories));
+            WordList main = WordList.LoadFile(_wordListDirPath + @"\main.txt")
+                .Except(br, us, geography);
 
-            WordList languages = WordList.LoadFile(_wordListDirPath + @"\it\languages.txt")
-                .SaveAndLoad();
-
-            WordList names = WordList.LoadFile(_wordListDirPath + "names.txt")
-                .Except(languages)
-                .SaveAndLoad();
-
-            WordList plural = WordList.LoadFile(_wordListDirPath + "plural.txt")
-                .SaveAndLoad();
-
-            WordList rare = WordList.LoadFile(_wordListDirPath + "rare.txt")
-                .SaveAndLoad();
-
-            WordList math = WordList.LoadFile(_wordListDirPath + "math.txt")
-                .Except(
-                    abbreviations,
-                    acronyms,
-                    fonts)
-                .SaveAndLoad();
-
-            WordList it = WordList.LoadFile(_wordListDirPath + "it.txt")
-                .Except(
-                    abbreviations,
-                    acronyms,
-                    fonts,
-                    languages)
-                .SaveAndLoad();
-
-            WordList main2 = WordList.LoadFile(_wordListDirPath + "main2.txt")
+            WordList main2 = WordList.LoadFile(_wordListDirPath + @"\main2.txt")
                 .Except(
                     abbreviations,
                     acronyms,
                     br,
+                    us,
                     geography,
                     math,
                     names,
                     plural,
-                    rare,
-                    it)
-                .SaveAndLoad();
-
-            WordList main = WordList.LoadFile(_wordListDirPath + "main.txt")
-                .Except(
-                    br,
-                    geography)
-                .SaveAndLoad();
-
-            WordList.LoadFile(_wordListDirPath + "hyphen.txt")
-                .Except(main2)
-                .SaveAndLoad();
+                    other,
+                    it);
 
             WordList all = main.AddValues(
                 main2,
                 br,
+                us,
                 languages,
                 math,
                 plural,
                 abbreviations,
-                names);
+                names,
+                WordList.LoadFile(_wordListDirPath + @"\it\main.txt"),
+                WordList.LoadFile(_wordListDirPath + @"\it\names.txt"));
 
             ProcessFixList(all);
         }
 
         private static void ProcessFixList(WordList wordList)
         {
-            const string path = _fixListDirPath + "fixes.txt";
+            const string path = _fixListDirPath + @"\fixes.txt";
 
             FixList fixList = FixList.LoadFile(path);
 
@@ -132,9 +114,9 @@ namespace Roslynator.CommandLine
             SpellingData spellingData,
             CancellationToken cancellationToken)
         {
-            const string fixListPath = _fixListDirPath + "main.txt";
-            const string fixListNewPath = _fixListDirPath + "fixes.tmp";
-            const string wordListNewPath = _wordListDirPath + "main.tmp";
+            const string fixListPath = _fixListDirPath + @"\main.txt";
+            const string fixListNewPath = _fixListDirPath + @"\fixes.tmp";
+            const string wordListNewPath = _wordListDirPath + @"\main.tmp";
 
             Dictionary<string, List<SpellingFix>> dic = spellingData.FixList.Items.ToDictionary(
                 f => f.Key,

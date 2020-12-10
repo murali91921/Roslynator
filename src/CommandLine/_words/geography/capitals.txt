@@ -1,6 +1,6 @@
-﻿Algiers
+Algiers
 Amman
-Amsterdam 
+Amsterdam
 Ankara
 Antananarivo
 Ashgabat
@@ -13,7 +13,7 @@ Beijing
 Beirut
 Belgrade
 Berlin
-Bern 
+Bern
 Bishkek
 Bogotá
 Brasília
@@ -23,11 +23,11 @@ Bridgetown
 Brussels
 Bucharest
 Budapest
-Bujumbura 
+Bujumbura
 Cairo
 Canberra
 Caracas
-Colombo 
+Colombo
 Copenhagen
 Dakar
 Damascus
@@ -49,7 +49,7 @@ Helsinki
 Islamabad
 Jakarta
 Jamestown
-Jerusalem 
+Jerusalem
 Kabul
 Kampala
 Kathmandu
@@ -82,7 +82,7 @@ Oslo
 Ottawa
 Ouagadougou
 Paris
-Podgorica 
+Podgorica
 Prague
 Pristina
 Pyongyang
@@ -99,7 +99,7 @@ Sofia
 Stanley
 Stockholm
 Sukhumi
-Taipei 
+Taipei
 Tallinn
 Tashkent
 Tbilisi
@@ -111,14 +111,14 @@ Tripoli
 Tunis
 Ulaanbaatar
 Vaduz
-Valparaíso 
+Valparaíso
 Victoria
 Vienna
 Vilnius
 Warsaw
 Washington
 Wellington
-Yamoussoukro 
+Yamoussoukro
 Yaoundé
 Yerevan
 Zagreb

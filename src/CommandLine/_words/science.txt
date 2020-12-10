@@ -1,0 +1,8 @@
+coulomb
+deuterium
+deuteron
+dielectric
+dielectrics
+graviton
+gravitons
+photogrammetry

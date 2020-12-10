@@ -25,6 +25,7 @@ Bolivia
 Bosnia
 Botswana
 Brazil
+Britain
 Brunei
 Bulgaria
 Burma
@@ -42,6 +43,7 @@ Cuba
 Cyprus
 Czech
 Czechia
+Czechoslovakia
 Denmark
 Djibouti
 Dominica
@@ -181,6 +183,7 @@ Vatican
 Venezuela
 Vietnam
 Yemen
+Yugoslavia
 Zambia
 Zealand
 Zimbabwe
