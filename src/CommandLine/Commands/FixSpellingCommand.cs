@@ -100,14 +100,14 @@ namespace Roslynator.CommandLine
                 if (!string.IsNullOrEmpty(assemblyPath))
                 {
                     IEnumerable<string> wordListPaths = Directory.EnumerateFiles(
-                        Path.Combine(Path.GetDirectoryName(assemblyPath), "_WordLists"),
+                        Path.Combine(Path.GetDirectoryName(assemblyPath), "_words"),
                         "*.txt",
                         SearchOption.AllDirectories);
 
                     WordList wordList = WordList.LoadFiles(wordListPaths);
 
                     IEnumerable<string> fixListPaths = Directory.EnumerateFiles(
-                        Path.Combine(Path.GetDirectoryName(assemblyPath), "_FixLists"),
+                        Path.Combine(Path.GetDirectoryName(assemblyPath), "_fixes"),
                         "*.txt",
                         SearchOption.AllDirectories);
 

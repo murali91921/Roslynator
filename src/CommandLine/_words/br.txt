@@ -90,6 +90,9 @@ colours
 cosy
 councillor
 councillors
+counselling
+counsellor
+counsellors
 criticise
 criticised
 criticises
@@ -110,6 +113,7 @@ daemonised
 daemonises
 daemonising
 defence
+defences
 dehumanisation
 dehumanise
 dehumanised

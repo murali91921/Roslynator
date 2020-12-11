@@ -27,7 +27,7 @@ namespace Roslynator.CommandLine
                 WordList.Normalize(filePath);
             }
 
-            _ = WordList.LoadFile(_wordListDirPath + @"\exclude.txt");
+            _ = WordList.LoadFile(_wordListDirPath + @"\ignore.txt");
             WordList abbreviations = WordList.LoadFile(_wordListDirPath + @"\abbreviations.txt");
             WordList acronyms = WordList.LoadFile(_wordListDirPath + @"\acronyms.txt");
             WordList br = WordList.LoadFile(_wordListDirPath + @"\br.txt");
@@ -36,7 +36,7 @@ namespace Roslynator.CommandLine
             WordList languages = WordList.LoadFile(_wordListDirPath + @"\it\languages.txt");
             WordList names = WordList.LoadFile(_wordListDirPath + @"\names.txt");
             WordList plural = WordList.LoadFile(_wordListDirPath + @"\plural.txt");
-            WordList other = WordList.LoadFile(_wordListDirPath + @"\other.txt");
+            WordList science = WordList.LoadFile(_wordListDirPath + @"\science.txt");
 
             WordList geography = WordList.LoadFiles(
                 Directory.EnumerateFiles(
@@ -53,11 +53,10 @@ namespace Roslynator.CommandLine
             WordList math = WordList.LoadFile(_wordListDirPath + @"\math.txt")
                 .Except(abbreviations, acronyms, fonts);
 
-            WordList main = WordList.LoadFile(_wordListDirPath + @"\main.txt")
+            WordList @default = WordList.LoadFile(_wordListDirPath + @"\default.txt")
                 .Except(br, us, geography);
 
-            WordList main2 = WordList.LoadFile(_wordListDirPath + @"\main2.txt")
-                .AddValues(WordList.LoadFile(_wordListDirPath + @"\main2_new.txt"))
+            WordList custom = WordList.LoadFile(_wordListDirPath + @"\custom.txt")
                 .Except(
                     abbreviations,
                     acronyms,
@@ -67,18 +66,20 @@ namespace Roslynator.CommandLine
                     math,
                     names,
                     plural,
-                    other,
+                    science,
                     it);
 
-            WordList all = main.AddValues(
-                main2,
+            WordList all = @default.AddValues(
+                custom,
                 br,
                 us,
                 languages,
                 math,
                 plural,
                 abbreviations,
+                acronyms,
                 names,
+                geography,
                 WordList.LoadFile(_wordListDirPath + @"\it\main.txt"),
                 WordList.LoadFile(_wordListDirPath + @"\it\names.txt"));
 
@@ -115,9 +116,9 @@ namespace Roslynator.CommandLine
             SpellingData spellingData,
             CancellationToken cancellationToken)
         {
-            const string fixListPath = _fixListDirPath + @"\main.txt";
+            const string fixListPath = _fixListDirPath + @"\fixes.txt";
             const string fixListNewPath = _fixListDirPath + @"\fixes.tmp";
-            const string wordListNewPath = _wordListDirPath + @"\main.tmp";
+            const string wordListNewPath = _wordListDirPath + @"\custom.tmp";
 
             Dictionary<string, List<SpellingFix>> dic = spellingData.FixList.Items.ToDictionary(
                 f => f.Key,
