@@ -82,6 +82,7 @@ uhf
 usa
 usd
 usps
+utc
 vip
 wifi
 wtf

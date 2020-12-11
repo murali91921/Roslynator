@@ -20,6 +20,7 @@ bof
 bom
 bson
 cad
+ccsid
 cdn
 cgi
 cil
@@ -76,6 +77,7 @@ dvr
 dxgi
 dxva
 ebcdic
+ebnf
 ecdh
 ecdsa
 eddsa
@@ -150,6 +152,7 @@ lcid
 ldap
 lf
 lgpl
+lhs
 lkml
 lmdb
 loc
@@ -229,6 +232,7 @@ rdbms
 rfc
 rgb
 rgba
+rhs
 risc
 rom
 rpc

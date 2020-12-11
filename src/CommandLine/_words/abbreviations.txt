@@ -3,6 +3,7 @@ app
 apps
 attrib
 attribs
+avg
 calc
 coeff
 coeffs
@@ -39,6 +40,7 @@ inits
 intl
 lib
 libs
+msg
 nanosec
 recalc
 reinit

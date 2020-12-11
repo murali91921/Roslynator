@@ -203,7 +203,7 @@ namespace Roslynator.CommandLine
                             return null;
                         }
 
-                        return value;
+                        return f;
                     })
                     .Where(f => f != null);
 

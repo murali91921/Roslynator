@@ -13,6 +13,7 @@ autoscale
 autospacing
 autosubscribe
 bookkeep
+braindead
 breakingly
 byoc
 cacheables
@@ -104,6 +105,8 @@ reachables
 reexecuted
 referenceable
 requestlist
+rulename
+rulenames
 runnables
 schmategy
 shortcode

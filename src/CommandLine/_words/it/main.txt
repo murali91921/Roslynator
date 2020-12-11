@@ -79,6 +79,8 @@ bitmasks
 bitness
 bitrate
 bitrates
+bitset
+bitsets
 bitshift
 bitshifts
 bitstream
@@ -100,6 +102,7 @@ bugfixed
 bugfixes
 bugfixing
 bytecode
+bytecodes
 camelize
 captcha
 captchas
@@ -318,6 +321,7 @@ keyset
 keysets
 lexer
 lexers
+lexing
 linebreak
 linebreaks
 linefeed
@@ -338,6 +342,7 @@ logout
 logouts
 lookahead
 lookaheads
+lookback
 lookbehind
 lookbehinds
 loopback
@@ -360,6 +365,9 @@ mutex
 mutexes
 netmask
 netmasks
+nonclustered
+nongreedy
+nonstatic
 nullish
 opcode
 opcodes
@@ -383,7 +391,10 @@ quicksort
 quicksorting
 readme
 realm
+recognizer
+recognizers
 refback
+restreaming
 ruleset
 rulesets
 segfault
@@ -412,6 +423,7 @@ stringify
 stringifying
 struct
 structs
+submachines
 subnetting
 superuser
 superusers
@@ -423,10 +435,12 @@ titleize
 titleized
 todo
 trackback
+transactionless
 trie
 tupleize
 uglified
 uglify
+unaliased
 unicast
 unicoded
 unstringified

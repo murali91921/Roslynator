@@ -82,6 +82,8 @@ diagonalizing
 differintegral
 diffie
 dirichlet
+disjointly
+disjointness
 dodecagon
 dodecagons
 dodecahedra
@@ -154,6 +156,7 @@ nabla
 nablas
 nonagon
 nonagons
+nondisjoint
 octagon
 octagons
 octahedra
@@ -177,6 +180,7 @@ quadrilateral
 quadrilaterals
 quadrimodal
 quartic
+queueing
 quintic
 regularization
 regularized
